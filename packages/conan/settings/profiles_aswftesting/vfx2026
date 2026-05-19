@@ -40,7 +40,7 @@ jasper/*: jasper/4.2.5@aswftesting/vfx2026
 lcms/*: lcms/2.17@aswftesting/vfx2026
 lensfun/*: lensfun/0.3.4@aswftesting/vfx2026
 libalsa/*: libalsa/system@aswftesting/vfx2026
-libaom-av1/*: libaom/system@aswftesting/vfx2026
+libaom-av1/*: libaom-av1/system@aswftesting/vfx2026
 libbacktrace/*: libbacktrace/cci.20210118@aswftesting/vfx2026
 libdeflate/*: libdeflate/1.24@aswftesting/vfx2026
 libdrm/*: libdrm/system@aswftesting/vfx2026

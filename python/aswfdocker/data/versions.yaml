@@ -4,6 +4,20 @@
 # This file contains all the CI Docker package and image versions
 
 versions:
+  # OS distribution entries: system package versions provided by the base OS.
+  # Keyed by ASWF_BASEOS_DISTRO so ConanProfileGen can resolve them at profile
+  # generation time.  Add a "rockylinux9" entry here when that distro is adopted.
+  "rockylinux8":
+    package_versions:
+      ASWF_BISON_VERSION: "3.0.4"
+      ASWF_FLEX_VERSION: "2.6.1"
+      ASWF_GPERF_VERSION: "3.1"
+      ASWF_LIBTOOL_VERSION: "2.4.6"
+      ASWF_MESON_VERSION: "0.58.2"
+      ASWF_NODEJS_VERSION: "18.20.4"
+      ASWF_PKGCONF_VERSION: "1.4.2"
+      ASWF_WAYLAND_VERSION: "1.21.0"
+      ASWF_WAYLAND_PROTOCOLS_VERSION: "1.25"
   "1":
     major_version: "1"
     ci_common_version: "1"
@@ -117,6 +131,8 @@ versions:
     package_versions:
       ASWF_DTS_VERSION: "11"
       ASWF_DTS_PREFIX: "gcc-toolset"
+      ASWF_GCC_VERSION: "11.2"
+      ASWF_CXX_STANDARD: "17"
       ASWF_CONAN_VERSION: "2.26.2"
       ASWF_CONAN_PYTHON_VERSION: "3.10.20"
       ASWF_CUDA_VERSION: "12.6.3"
@@ -152,6 +168,8 @@ versions:
     package_versions:
       ASWF_DTS_VERSION: "11"
       ASWF_DTS_PREFIX: "gcc-toolset"
+      ASWF_GCC_VERSION: "11.2"
+      ASWF_CXX_STANDARD: "17"
       ASWF_CONAN_VERSION: "2.26.2"
       ASWF_CONAN_PYTHON_VERSION: "3.11.15"
       ASWF_CUDA_VERSION: "12.6.3"
@@ -188,6 +206,8 @@ versions:
     package_versions:
       ASWF_DTS_VERSION: "11"
       ASWF_DTS_PREFIX: "gcc-toolset"
+      ASWF_GCC_VERSION: "11.2"
+      ASWF_CXX_STANDARD: "17"
       ASWF_CONAN_VERSION: "2.26.2"
       ASWF_CONAN_PYTHON_VERSION: "3.11.15"
       ASWF_CUDA_VERSION: "12.6.3"
@@ -225,6 +245,8 @@ versions:
     package_versions:
       ASWF_DTS_VERSION: "14"
       ASWF_DTS_PREFIX: "gcc-toolset"
+      ASWF_GCC_VERSION: "14.2"
+      ASWF_CXX_STANDARD: "20"
       ASWF_CONAN_VERSION: "2.26.2"
       ASWF_CONAN_PYTHON_VERSION: "3.13.12"
       ASWF_CUDA_VERSION: "12.9.1"
@@ -467,6 +489,7 @@ versions:
     major_version: "2023"
     ci_common_version: "3"
     conan_profile: "vfx2023"
+    generate_profile: true
     package_versions:
       # Conan wrapper packages for system components
       ASWF_BROTLI_VERSION: "system"
@@ -604,6 +627,7 @@ versions:
     major_version: "2024"
     ci_common_version: "4"
     conan_profile: "vfx2024"
+    generate_profile: true
     package_versions:
       # Conan wrapper packages for system components
       ASWF_BROTLI_VERSION: "system"
@@ -741,6 +765,7 @@ versions:
     major_version: "2025"
     ci_common_version: "5"
     conan_profile: "vfx2025"
+    generate_profile: true
     package_versions:
       # Conan wrapper packages for system components
       ASWF_BROTLI_VERSION: "system"
@@ -879,6 +904,7 @@ versions:
     tags: ["latest"]
     ci_common_version: "6"
     conan_profile: "vfx2026"
+    generate_profile: true
     package_versions:
       # Conan wrapper packages for system components
       ASWF_BROTLI_VERSION: "system"

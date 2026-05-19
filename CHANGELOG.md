@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+# 2026-05-19
+
+- All releases
+  - Conan profiles [generated from templates and versions.yaml](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/284) to
+avoid version mismatches and typos. versions.yaml is now the only source of truth.
+
 # 2026-05-16
 
 Fixes for 2023.3 / 2024.7 / 2025.6 / 2026.4 releases
@@ -14,7 +20,6 @@ Fixes for 2023.3 / 2024.7 / 2025.6 / 2026.4 releases
 
 - 2023.3 / 2024.7 / 2025.6
   - Update rawtoaces version to 2.1.0 to bring current set of dependencies into all ci-rawtoaces images
-
 
 # 2026-05-03
 

@@ -7,6 +7,7 @@
 # Tell GitHub that these files are automatically generated
 ci-*/Dockerfile linguist-generated
 ci-*/README.md  linguist-generated
+packages/conan/settings/profiles/* linguist-generated
 
 # Pipfile lock file is not nice to look at...
 Pipfile.lock    linguist-generated

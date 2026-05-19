@@ -30,6 +30,15 @@ class TestIndex(unittest.TestCase):
         vi = self.index.version_info("2019")
         self.assertTrue(vi)
         self.assertEqual(vi.version, "2019")
+        # Version 2022 pre-dates the generate_profile flag: must default to False
+        vi = self.index.version_info("2022")
+        self.assertFalse(vi.generate_profile)
+        # Version 2023 onwards opts in to profile generation
+        vi = self.index.version_info("2023")
+        self.assertTrue(vi.generate_profile)
+        # Version 2026 uses ci_common6 as its toolchain base
+        vi = self.index.version_info("2026")
+        self.assertEqual(vi.ci_common_version, "6")
 
     def test_group_from_image(self):
         self.assertEqual(

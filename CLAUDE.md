@@ -21,13 +21,13 @@ aswf-docker/
 │       ├── data/          # Jinja2 templates, versions.yaml
 │       ├── tests/         # Unit tests (pytest)
 │       ├── builder.py     # Docker buildx bake orchestration
-│       ├── dockergen.py   # Jinja2 template rendering
+│       ├── dockergen.py   # Jinja2 template rendering (Dockerfiles, READMEs, Conan profiles)
 │       ├── index.py       # Version/package index from YAML
 │       ├── releaser.py    # GitHub release automation
 │       └── ...
 ├── packages/
 │   ├── conan/recipes/     # 116+ Conan package recipes (vendored)
-│   ├── conan/settings/    # Conan profile settings
+│   ├── conan/settings/    # Conan profile settings (profiles/ is auto-generated)
 │   └── common/            # Shared build utilities
 ├── scripts/               # Shell utilities, VFX scripts, tests
 ├── .github/workflows/     # CI: python.yml, docker-builds.yml, release.yml, python-sonar.yml
@@ -40,8 +40,9 @@ aswf-docker/
 - **versions.yaml**: Central version registry defining package versions per VFX
   Platform year. Versions use inheritance (e.g., `2-clang10` inherits from `2`).
 - **image.yaml**: Per-image specs listing packages, base image, and metadata.
-- **Dockerfiles are generated**: From Jinja2 templates via `aswfdocker dockergen`.
-  Never edit `ci-*/Dockerfile` or `ci-*/README.md` directly.
+- **Dockerfiles and Conan profiles are generated**: From Jinja2 templates via
+  `aswfdocker dockergen`. Never edit `ci-*/Dockerfile`, `ci-*/README.md`, or
+  `packages/conan/settings/profiles/*` directly.
 - **Docker buildx bake**: Builds are orchestrated via JSON bake files generated
   by `python/aswfdocker/builder.py`.
 
@@ -78,7 +79,7 @@ uv run black python/ packages/conan/recipes/
 # Run all pre-commit hooks
 uv run pre-commit run --all-files
 
-# Verify generated Dockerfiles are up to date
+# Verify generated Dockerfiles and Conan profiles are up to date
 uv run aswfdocker dockergen --check
 ```
 
@@ -95,13 +96,13 @@ uv run aswfdocker build --ci-image-type PACKAGE --group common --version 2026-cl
 uv run aswfdocker build --ci-image-type IMAGE --group base --version 2026-clang20 --dry-run
 ```
 
-### Regenerating Dockerfiles
+### Regenerating Dockerfiles and Conan profiles
 
 ```bash
-# Regenerate all Dockerfiles and READMEs from templates
+# Regenerate all Dockerfiles, READMEs, and Conan profiles from templates
 uv run aswfdocker dockergen
 
-# Check that generated files are up to date (used in CI)
+# Check that all generated files are up to date (used in CI)
 uv run aswfdocker dockergen --check
 ```
 
@@ -156,7 +157,12 @@ uv run aswfdocker dockergen --check
    generated from Jinja2 templates. Edit the templates in
    `python/aswfdocker/data/` and the specs in `ci-*/image.yaml` instead, then
    run `uv run aswfdocker dockergen`.
-2. **Conan recipes in `packages/conan/recipes/` are vendored** from Conan Center
+2. **Never edit `packages/conan/settings/profiles/*` directly** - these are
+   generated from Jinja2 templates in `python/aswfdocker/data/`. To update
+   package versions edit `versions.yaml`; to change profile structure edit
+   `conan-profile-ci-common.jinja2` or `conan-profile-vfx.jinja2`, then run
+   `uv run aswfdocker dockergen`.
+3. **Conan recipes in `packages/conan/recipes/` are vendored** from Conan Center
    Index. They are excluded from Black formatting and SonarCloud analysis.
-3. **`versions.yaml` is a symlink** to `python/aswfdocker/data/versions.yaml`.
-4. The `migrate` and `download` CLI commands are **deprecated**.
+4. **`versions.yaml` is a symlink** to `python/aswfdocker/data/versions.yaml`.
+5. The `migrate` and `download` CLI commands are **deprecated**.

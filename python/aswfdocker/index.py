@@ -41,6 +41,7 @@ class Index:
                 use_major_version_as_tag=v.get("use_major_version_as_tag", False),
             )
             vi.conan_profile = v.get("conan_profile")
+            vi.generate_profile = v.get("generate_profile", False)
             self._version_infos[version] = vi
 
         for vi in self._version_infos.values():

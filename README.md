@@ -417,7 +417,7 @@ git clone https://github.com/AcademySoftwareFoundation/aswf-docker
 cd aswf-docker
 uv sync --all-extras
 source .venv/bin/activate
-CONAN_HOME=/path_to/aswf-docker/packages/conan/settings conan install -cc core.cache:storage_path=/tmp/conan_home/d --requires=imath/3.2.2@aswf/vfx2026 --profile:all=packages/conan/settings/profiles_aswf/vfx2026 --deployer-folder /tmp --deployer=direct_deploy
+ASWF_PKG_ORG=aswf CONAN_HOME=/path_to/aswf-docker/packages/conan/settings conan install -cc core.cache:storage_path=/tmp/conan_home/d --requires=imath/3.2.2@aswf/vfx2026 --profile:all=packages/conan/settings/profiles/vfx2026 --deployer-folder /tmp --deployer=direct_deploy
 ```
 
 You will end up with the contents of the `imath` Conan package in `/tmp/direct_deploy/imath/`. You can use `--deployer=full_deploy` to get all of its transitive dependencies installed as well, this time in `/tmp/full_deploy/host/`:

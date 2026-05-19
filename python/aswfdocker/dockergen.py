@@ -1,10 +1,11 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 """
-Migration of ASWF Docker images between Docker organizations
+Generation of Dockerfiles, READMEs and Conan profiles from Jinja2 templates.
 """
 import logging
 import os
+import typing
 import requests
 import yaml
 from jinja2 import Environment, PackageLoader
@@ -13,6 +14,105 @@ from aswfdocker import utils, index, constants
 
 
 logger = logging.getLogger(__name__)
+
+
+def conan_profile_version_keys(idx: index.Index) -> typing.List[str]:
+    """Return version keys for which Conan profiles should be generated.
+
+    Scans versions.yaml for entries marked ``generate_profile: true`` (the
+    VFX Platform year entries) and collects their ``ci_common_version`` values
+    so the matching ci_common profiles are generated automatically.  Adding a
+    new VFX Platform year to versions.yaml with ``generate_profile: true``
+    is all that is needed — no code change required.
+    """
+    ci_common_keys: typing.Set[str] = set()
+    vfx_keys: typing.List[str] = []
+    for vi in idx.iter_version_info():
+        if vi.generate_profile:
+            vfx_keys.append(vi.version)
+            if vi.ci_common_version:
+                ci_common_keys.add(vi.ci_common_version)
+    return sorted(ci_common_keys) + sorted(vfx_keys)
+
+
+class ConanProfileGen:
+    """Generates a single Conan profile file from a Jinja2 template.
+
+    Conan 2.x supports native Jinja2 rendering in profiles; this means the
+    generated files themselves contain ``{% set org = os.getenv(...) %}`` and
+    ``{{ org }}`` expressions that Conan resolves at runtime from the
+    ``ASWF_PKG_ORG`` environment variable.  To avoid conflict, the aswfdocker
+    templates use alternate delimiters (``[[ ]]`` / ``[% %]``) so the Conan
+    Jinja2 syntax passes through the aswfdocker render step unchanged.
+    """
+
+    # Separate Jinja2 environment with non-standard delimiters so that
+    # {{ }} / {% %} in the template are treated as literal text and land
+    # verbatim in the generated file for Conan to render at runtime.
+    _env = Environment(
+        loader=PackageLoader("aswfdocker", "data"),
+        block_start_string="[%",
+        block_end_string="%]",
+        variable_start_string="[[",
+        variable_end_string="]]",
+        comment_start_string="[#",
+        comment_end_string="#]",
+        # Remove the newline after block tags so [% if %] / [% endif %]
+        # don't introduce extra blank lines in the rendered profile.
+        trim_blocks=True,
+        lstrip_blocks=True,
+        keep_trailing_newline=True,
+    )
+
+    def __init__(self, version_key: str):
+        self._idx = index.Index()
+        self.version_info = self._idx.version_info(version_key)
+
+    def _template_context(self) -> typing.Dict[str, typing.Any]:
+        # Resolve OS-distro–specific package versions (bison, flex, etc.) from
+        # the ASWF_BASEOS_DISTRO value inherited by this version entry.  For
+        # vfx year entries the value is inherited from the ci_common parent
+        # (e.g. "6" carries ASWF_BASEOS_DISTRO: "rockylinux8").  The distro
+        # entry in versions.yaml is keyed by that distro name.
+        baseos_distro = self.version_info.all_package_versions.get("ASWF_BASEOS_DISTRO")
+        distro_versions: typing.Dict[str, str] = {}
+        if baseos_distro:
+            distro_versions = self._idx.version_info(baseos_distro).package_versions
+        return {
+            "versions": self.version_info.all_package_versions,
+            "distro_versions": distro_versions,
+            "conan_profile": self.version_info.conan_profile,
+            "ci_common_version": self.version_info.ci_common_version,
+        }
+
+    def _output_path(self) -> str:
+        return os.path.join(
+            utils.get_git_top_level(),
+            "packages/conan/settings/profiles",
+            self.version_info.conan_profile,
+        )
+
+    def _template_name(self) -> str:
+        if self.version_info.conan_profile.startswith("ci_common"):
+            return "conan-profile-ci-common.jinja2"
+        return "conan-profile-vfx.jinja2"
+
+    def _render(self) -> typing.Tuple[str, str]:
+        tmpl = self._env.get_template(self._template_name())
+        return self._output_path(), tmpl.render(self._template_context())
+
+    def generate(self) -> str:
+        """Render template and write the profile file; return its path."""
+        path, content = self._render()
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return path
+
+    def check(self) -> typing.Tuple[str, bool]:
+        """Return (path, True) if the on-disk file matches the rendered output."""
+        path, content = self._render()
+        with open(path, encoding="utf-8") as f:
+            return path, f.read() == content
 
 
 class DockerGen:
