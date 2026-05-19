@@ -145,7 +145,7 @@ RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=${ASWF_CONAN_HO
     conan create \
       ${ASWF_CONAN_BUILD_MISSING} \
       ${ASWF_CONAN_NO_REMOTE} \
-      --profile:all "${ASWF_CONAN_HOME}"/.conan2/profiles_"${ASWF_PKG_ORG}"/"${ASWF_CONAN_CHANNEL}" \
+      --profile:all "${ASWF_CONAN_HOME}"/.conan2/profiles/"${ASWF_CONAN_CHANNEL}" \
       --name "${ASWF_PKG_NAME}" \
       --version "${ASWF_PKG_VERSION}" \
       --user "${ASWF_PKG_ORG}" \

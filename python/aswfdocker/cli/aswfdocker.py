@@ -455,11 +455,21 @@ def dockergen(context, image_name, check, verbose):
                 context.exit(1)
             else:
                 click.secho(f"{path} is up to date", fg="green")
+        for version_key in aswf_dockergen.conan_profile_version_keys(index.Index()):
+            path, ok = aswf_dockergen.ConanProfileGen(version_key).check()
+            if not ok:
+                click.secho(f"{path} is not up to date!", fg="red")
+                context.exit(1)
+            else:
+                click.secho(f"{path} is up to date", fg="green")
     else:
         for image in imgs:
             path = aswf_dockergen.DockerGen(image).generate_dockerfile()
             click.echo(f"Generated {path}")
             path = aswf_dockergen.DockerGen(image).generate_readme()
+            click.echo(f"Generated {path}")
+        for version_key in aswf_dockergen.conan_profile_version_keys(index.Index()):
+            path = aswf_dockergen.ConanProfileGen(version_key).generate()
             click.echo(f"Generated {path}")
 
 

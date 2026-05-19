@@ -343,30 +343,18 @@ generated `.cmake` files:
 ```
 
 To help minimize changes to the standard Conan recipes, Conan `profiles` are used to
-override specific package versions in the recipes. For instance in
-[packages/conan/settings/profiles_aswf/vfx2025](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/packages/conan/settings/profiles_aswf/vfx2025):
+override specific package versions in the recipes. The profiles in
+[`packages/conan/settings/profiles/`](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/packages/conan/settings/profiles/)
+are **automatically generated** from Jinja2 templates by `aswfdocker dockergen`,
+with all version numbers drawn from
+[`versions.yaml`](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/python/aswfdocker/data/versions.yaml)
+as the single source of truth. Never edit the profile files directly; update
+`versions.yaml` and re-run `aswfdocker dockergen`.
 
-```
-include(ci_common5)
-
-[settings]
-[options]
-# Build everything as shared libs by default
-*:shared=True
-[tool_requires]
-[replace_requires]
-b2/*: b2/5.2.1@aswf/vfx2025
-boost/*: boost/1.85.0@aswf/vfx2025
-brotli/*: brotli/system@aswf/vfx2025
-bzip2/*: bzip2/1.0.8@aswf/vfx2025
-dbus/*: dbus/system@aswf/vfx2025
-...
-```
-
-Unfortunately there is duplication between the version information in
- [`versions.yaml`](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/python/aswfdocker/data/versions.yaml) and the Conan profiles: a future update
- will auto generate the Conan profiles from `versions.yaml` which should be the
- source of truth.
+The generated profiles use Conan 2.x's native Jinja2 support to inject the
+Conan user/org at runtime: the `ASWF_PKG_ORG` environment variable (set to
+`aswf` or `aswftesting` by the build system) is resolved when Conan loads the
+profile, so a single set of profile files serves both organizations.
 
 When a sufficiently recent package is provided by the underlying OS distribution, packages labeled as version `system` are created which are thin wrappers around system installed components, and the Conan profile is used to remap `requires()`
 call to specific versions to these wrapper packages. Confusingly some will have an actual version number since some dependent packages check for acceptable version ranges. A better versioning scheme would be desirable for these wrapper packages.

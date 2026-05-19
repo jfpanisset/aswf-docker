@@ -34,6 +34,15 @@ class TestUtilsCli(unittest.TestCase):
         result = runner.invoke(aswfdocker.cli, ["dockergen", "--check", "-n", "base"])
         self.assertEqual(result.exit_code, 0, msg=f"output: {result.output}")
         lines = result.output.split("\n")
-        self.assertEqual(len(lines), 3)
+        # First two lines are for the requested image; subsequent lines are
+        # for Conan profiles (always checked regardless of --image-name).
         self.assertTrue(lines[0].endswith("ci-base/Dockerfile is up to date"))
         self.assertTrue(lines[1].endswith("ci-base/README.md is up to date"))
+        self.assertTrue(
+            any("profiles/ci_common" in line for line in lines),
+            "Expected Conan ci_common profile check lines in output",
+        )
+        self.assertTrue(
+            any("profiles/vfx" in line for line in lines),
+            "Expected Conan vfx profile check lines in output",
+        )
