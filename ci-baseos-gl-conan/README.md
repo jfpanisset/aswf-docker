@@ -25,9 +25,9 @@ Contains:
 * glvnd-1.7.0
 * ccache-4.9.1
 * dts-11
-* sonar-8.0.1.6346
+* sonar-8.1.0.6389
 * cmake-3.31.11
-* conan-2.26.2
+* conan-2.29.0
 * yq-4.45.2
 
 ## [aswf/ci-baseos-gl-conan:4.7](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=4.7)
@@ -38,9 +38,9 @@ Contains:
 * glvnd-1.7.0
 * ccache-4.9.1
 * dts-11
-* sonar-8.0.1.6346
+* sonar-8.1.0.6389
 * cmake-3.31.11
-* conan-2.26.2
+* conan-2.29.0
 * yq-4.45.2
 
 ## [aswf/ci-baseos-gl-conan:5.6](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=5.6)
@@ -51,9 +51,9 @@ Contains:
 * glvnd-1.7.0
 * ccache-4.9.1
 * dts-11
-* sonar-8.0.1.6346
+* sonar-8.1.0.6389
 * cmake-3.31.11
-* conan-2.26.2
+* conan-2.29.0
 * yq-4.45.2
 
 ## [aswf/ci-baseos-gl-conan:6.4](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=6.4)
@@ -62,10 +62,23 @@ Contains:
 * cuda-12.9.1
 * optix-8.0.0
 * glvnd-1.7.0
-* ccache-4.11.3
+* ccache-4.13.6
 * dts-14
-* sonar-8.0.1.6346
+* sonar-8.1.0.6389
 * cmake-4.0.6
-* conan-2.26.2
+* conan-2.29.0
 * yq-4.45.4
+
+## [aswf/ci-baseos-gl-conan:7.0](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=7.0)
+
+Contains:
+* cuda-13.3.0
+* optix-9.1.0
+* glvnd-1.7.0
+* ccache-4.13.6
+* dts-14
+* sonar-8.1.0.6389
+* cmake-4.3.3
+* conan-2.29.0
+* yq-4.53.3
 

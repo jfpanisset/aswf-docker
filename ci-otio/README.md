@@ -74,3 +74,10 @@ Contains:
 * numpy-2.3.2
 * vfxplatform-2026
 
+## [aswf/ci-otio:2027.0](https://hub.docker.com/r/aswf/ci-otio/tags?page=1&name=2027.0)
+
+Contains:
+* opentimelineio-0.18.1
+* numpy-2.4.6
+* vfxplatform-2027
+

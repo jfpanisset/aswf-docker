@@ -307,7 +307,9 @@ class ClangConan(ConanFile):
         else:
             # LLVM >=15 split up several components in its release, including cmake
             get(self, **sources["llvm"], destination='llvm-main', strip_root=True)
-            get(self, **sources["cmake"], destination='cmake', strip_root=True)
+            # LLVM >= 22 no longer ships separate cmake files
+            if Version(self.version) < 22:
+                get(self, **sources["cmake"], destination='cmake', strip_root=True)
 
     def _apply_resource_limits(self, cmake_definitions):
         if os.getenv("CONAN_CENTER_BUILD_SERVICE"):

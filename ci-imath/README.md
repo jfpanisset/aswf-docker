@@ -46,3 +46,10 @@ Contains:
 * numpy-2.3.2
 * vfxplatform-2026
 
+## [aswf/ci-imath:2027.0](https://hub.docker.com/r/aswf/ci-imath/tags?page=1&name=2027.0)
+
+Contains:
+* imath-3.2.2
+* numpy-2.4.6
+* vfxplatform-2027
+

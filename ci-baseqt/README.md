@@ -213,7 +213,7 @@ Contains:
 * onetbb-2022.1.0
 * zlib-1.3.1
 * zstd-1.5.7
-* cpython-3.13.3
+* cpython-3.13.13
 * freetype-2.13.2
 * gdbm-system
 * glew-2.2.0
@@ -228,4 +228,40 @@ Contains:
 * pyside-6.8.3
 * numpy-2.3.2
 * vfxplatform-2026
+
+## [aswf/ci-baseqt:2027.0](https://hub.docker.com/r/aswf/ci-baseqt/tags?page=1&name=2027.0)
+
+Contains:
+* b2-5.4.2
+* bzip2-1.0.8
+* cppunit-1.15.1
+* expat-2.8.1
+* fmt-12.1.0
+* gtest-1.17.0
+* libbacktrace-cci.20240730
+* libdeflate-1.25
+* libiconv-1.19
+* libxcrypt-4.5.2
+* lz4-1.10.0
+* pugixml-1.15
+* pystring-1.1.5
+* snappy-1.2.2
+* onetbb-2023.0.0
+* zlib-1.3.2
+* zstd-1.5.7
+* cpython-3.13.13
+* freetype-2.14.3
+* gdbm-system
+* glew-2.3.1
+* glfw-3.4
+* log4cplus-2.1.2
+* nanobind-2.12.0
+* boost-1.91.0
+* pybind11-3.0.4
+* libwebp-1.6.0
+* md4c-0.5.3
+* qt-6.8.3
+* pyside-6.8.3
+* numpy-2.4.6
+* vfxplatform-2027
 

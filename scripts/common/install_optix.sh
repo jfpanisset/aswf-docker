@@ -16,7 +16,7 @@ set -ex
 
 OPTIX_SDK_PREFIX=/usr/local/NVIDIA-OptiX-SDK
 
-for OPTIX_VERSION in 7.0.0 7.1.0 7.2.0 7.3.0 7.4.0 7.5.0 7.6.0 7.7.0 8.0.0 8.1.0 9.0.0
+for OPTIX_VERSION in 7.0.0 7.1.0 7.2.0 7.3.0 7.4.0 7.5.0 7.6.0 7.7.0 8.0.0 8.1.0 9.0.0 9.1.0
 do
     OPTIXLOC=https://github.com/NVIDIA/optix-dev/archive/refs/tags/v${OPTIX_VERSION}.tar.gz
     OPTIX_INSTALL_DIR=${OPTIX_SDK_PREFIX}-${OPTIX_VERSION}/include

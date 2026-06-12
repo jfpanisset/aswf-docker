@@ -5,6 +5,17 @@
 # From: https://github.com/conan-io/conan-center-index/blob/3375dfbcae9df4cee7b4eb6323b584fb60a2c8d0/recipes/llvm-core/all/conandata.yml
 
 sources:
+  "22.1.7":
+    "llvm":
+      url: "https://github.com/llvm/llvm-project/archive/llvmorg-22.1.7.tar.gz"
+      sha256: "da1578ea1faf2050e4b1923fce150b5656db1dbdeda71fe02498ac04f35b03d3"
+  "21.1.8":
+    "llvm":
+      url: "https://github.com/llvm/llvm-project/archive/llvmorg-21.1.8.tar.gz"
+      sha256: "7ba3f2a8d8fda88be18a31d011e8195d3b7f87f9fa92b20c94cba2d7f65b0e3f"
+    "cmake":
+      url: "https://github.com/llvm/llvm-project/releases/download/llvmorg-21.1.8/cmake-21.1.8.src.tar.xz"
+      sha256: "85735f20fd8c81ecb0a09abb0c267018475420e93b65050cc5b7634eab744de9"
   "20.1.8":
     "llvm":
       url: "https://github.com/llvm/llvm-project/archive/llvmorg-20.1.8.tar.gz"

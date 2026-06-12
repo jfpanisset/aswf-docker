@@ -46,7 +46,15 @@ Contains:
 
 Contains:
 * qt-6.8.3
-* openimageio-3.1.13.1
+* openimageio-3.1.14.0
 * numpy-2.3.2
 * vfxplatform-2026
+
+## [aswf/ci-oiio:2027.0](https://hub.docker.com/r/aswf/ci-oiio/tags?page=1&name=2027.0)
+
+Contains:
+* qt-6.8.3
+* openimageio-3.1.14.0
+* numpy-2.4.6
+* vfxplatform-2027
 

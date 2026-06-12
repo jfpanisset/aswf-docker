@@ -451,16 +451,16 @@ Contains:
 * partio-1.19.0
 * alembic-1.8.10
 * imath-3.2.2
-* opencolorio-2.5.1
-* openexr-3.4.11
+* opencolorio-2.5.2
+* openexr-3.4.12
 * openfx-1.5.1
-* openimageio-3.1.13.1
+* openimageio-3.1.14.0
 * opentimelineio-0.18.1
 * openusd-26.03
 * openvdb-13.0.0
 * materialx-1.39.4
-* osl-1.15.4.0
-* rawtoaces-2.1.0
+* osl-1.15.5.0
+* rawtoaces-2.1.1
 * numpy-2.3.2
 * vfxplatform-2026
 
@@ -478,16 +478,70 @@ Contains:
 * partio-1.19.0
 * alembic-1.8.10
 * imath-3.2.2
-* opencolorio-2.5.1
-* openexr-3.4.11
+* opencolorio-2.5.2
+* openexr-3.4.12
 * openfx-1.5.1
-* openimageio-3.1.13.1
+* openimageio-3.1.14.0
 * opentimelineio-0.18.1
 * openusd-26.03
 * openvdb-13.0.0
 * materialx-1.39.4
-* osl-1.15.4.0
-* rawtoaces-2.1.0
+* osl-1.15.5.0
+* rawtoaces-2.1.1
 * numpy-2.3.2
 * vfxplatform-2026
+
+## [aswf/ci-vfxall:2027-clang21.0](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2027-clang21.0)
+
+Contains:
+* cppunit-1.15.1
+* glew-2.3.1
+* gtest-1.17.0
+* libxcrypt-4.5.2
+* log4cplus-2.1.2
+* qt-6.8.3
+* pyside-6.8.3
+* opensubdiv-3.7.0
+* partio-1.20.0
+* alembic-1.8.11
+* imath-3.2.2
+* opencolorio-2.5.2
+* openexr-3.4.12
+* openfx-1.5.1
+* openimageio-3.1.14.0
+* opentimelineio-0.18.1
+* openusd-26.05
+* openvdb-13.0.0
+* materialx-1.39.5
+* osl-1.15.5.0
+* rawtoaces-2.1.1
+* numpy-2.4.6
+* vfxplatform-2027
+
+## [aswf/ci-vfxall:2027-clang22.0](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2027-clang22.0)
+
+Contains:
+* cppunit-1.15.1
+* glew-2.3.1
+* gtest-1.17.0
+* libxcrypt-4.5.2
+* log4cplus-2.1.2
+* qt-6.8.3
+* pyside-6.8.3
+* opensubdiv-3.7.0
+* partio-1.20.0
+* alembic-1.8.11
+* imath-3.2.2
+* opencolorio-2.5.2
+* openexr-3.4.12
+* openfx-1.5.1
+* openimageio-3.1.14.0
+* opentimelineio-0.18.1
+* openusd-26.05
+* openvdb-13.0.0
+* materialx-1.39.5
+* osl-1.15.5.0
+* rawtoaces-2.1.1
+* numpy-2.4.6
+* vfxplatform-2027
 

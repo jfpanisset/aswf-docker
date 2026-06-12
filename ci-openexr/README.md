@@ -70,7 +70,14 @@ Contains:
 ## [aswf/ci-openexr:2026.4](https://hub.docker.com/r/aswf/ci-openexr/tags?page=1&name=2026.4)
 
 Contains:
-* openexr-3.4.11
+* openexr-3.4.12
 * numpy-2.3.2
 * vfxplatform-2026
+
+## [aswf/ci-openexr:2027.0](https://hub.docker.com/r/aswf/ci-openexr/tags?page=1&name=2027.0)
+
+Contains:
+* openexr-3.4.12
+* numpy-2.4.6
+* vfxplatform-2027
 
