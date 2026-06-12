@@ -39,9 +39,18 @@ Contains:
 ## [aswf/ci-openrv:2026.4](https://hub.docker.com/r/aswf/ci-openrv/tags?page=1&name=2026.4)
 
 Contains:
-* cpython-3.13.3
+* cpython-3.13.13
 * expat-2.7.1
 * qt-6.8.3
 * numpy-2.3.2
 * vfxplatform-2026
+
+## [aswf/ci-openrv:2027.0](https://hub.docker.com/r/aswf/ci-openrv/tags?page=1&name=2027.0)
+
+Contains:
+* cpython-3.13.13
+* expat-2.8.1
+* qt-6.8.3
+* numpy-2.4.6
+* vfxplatform-2027
 

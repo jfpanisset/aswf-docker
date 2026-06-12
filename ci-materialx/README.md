@@ -53,3 +53,10 @@ Contains:
 * numpy-2.3.2
 * vfxplatform-2026
 
+## [aswf/ci-materialx:2027.0](https://hub.docker.com/r/aswf/ci-materialx/tags?page=1&name=2027.0)
+
+Contains:
+* materialx-1.39.5
+* numpy-2.4.6
+* vfxplatform-2027
+

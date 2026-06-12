@@ -40,7 +40,7 @@ else
         # - header_only libraries have a different installation layout
         # - we don't want to install empty system wrappers
         # - we don't want to install the openfoo package when building ci-openfoo, only its build dependencies
-        conan install --requires=$CONANREF --profile:all=${ASWF_CONAN_HOME}/.conan2/profiles_${ASWF_PKG_ORG}/${ASWF_CONAN_CHANNEL} --deployer-folder $1 --deployer=full_deploy
+        conan install --requires=$CONANREF --profile:all=${ASWF_CONAN_HOME}/.conan2/profiles/${ASWF_CONAN_CHANNEL} --deployer-folder $1 --deployer=full_deploy
     done
 
     # Clean up the Conan download cache. FIXME: can't seem to get "conan cache clean" to behave.

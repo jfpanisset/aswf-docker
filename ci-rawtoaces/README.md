@@ -42,7 +42,14 @@ Contains:
 ## [aswf/ci-rawtoaces:2026.4](https://hub.docker.com/r/aswf/ci-rawtoaces/tags?page=1&name=2026.4)
 
 Contains:
-* rawtoaces-2.1.0
+* rawtoaces-2.1.1
 * numpy-2.3.2
 * vfxplatform-2026
+
+## [aswf/ci-rawtoaces:2027.0](https://hub.docker.com/r/aswf/ci-rawtoaces/tags?page=1&name=2027.0)
+
+Contains:
+* rawtoaces-2.1.1
+* numpy-2.4.6
+* vfxplatform-2027
 

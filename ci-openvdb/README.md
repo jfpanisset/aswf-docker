@@ -170,3 +170,19 @@ Contains:
 * numpy-2.3.2
 * vfxplatform-2026
 
+## [aswf/ci-openvdb:2027-clang21.0](https://hub.docker.com/r/aswf/ci-openvdb/tags?page=1&name=2027-clang21.0)
+
+Contains:
+* openvdb-13.0.0
+* gtest-1.17.0
+* numpy-2.4.6
+* vfxplatform-2027
+
+## [aswf/ci-openvdb:2027-clang22.0](https://hub.docker.com/r/aswf/ci-openvdb/tags?page=1&name=2027-clang22.0)
+
+Contains:
+* openvdb-13.0.0
+* gtest-1.17.0
+* numpy-2.4.6
+* vfxplatform-2027
+

@@ -14,7 +14,7 @@ class SystemSVTAV1Conan(ConanFile):
    
     def package_info(self):
         self.cpp_info.includedirs = ["/usr/include"]
-        self.cpp_info.libdirs = ["/usr/lib64"]
+        self.cpp_info.libdirs = [] # in standard search path
 
         self.cpp_info.components["encoder"].libs = ["SvtAv1Enc"]
         self.cpp_info.components["encoder"].includedirs = ["/usr/include/svt-av1"]

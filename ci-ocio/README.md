@@ -78,7 +78,15 @@ Contains:
 
 Contains:
 * glew-2.2.0
-* opencolorio-2.5.1
+* opencolorio-2.5.2
 * numpy-2.3.2
 * vfxplatform-2026
+
+## [aswf/ci-ocio:2027.0](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2027.0)
+
+Contains:
+* glew-2.3.1
+* opencolorio-2.5.2
+* numpy-2.4.6
+* vfxplatform-2027
 

@@ -29,18 +29,18 @@ class SystemOpenSSLConan(ConanFile):
 
         # Point to system OpenSSL
         self.cpp_info.includedirs = ["/usr/include"]
-        self.cpp_info.libdirs = ["/usr/lib64"]
+        self.cpp_info.libdirs = [] # in standard search path
 
         # Component: Crypto
-        self.cpp_info.components["Crypto"].set_property("cmake_target_name", "OpenSSL::Crypto")
-        self.cpp_info.components["Crypto"].libs = ["crypto"]
-        self.cpp_info.components["Crypto"].includedirs = ["/usr/include"]
-        self.cpp_info.components["Crypto"].libdirs = ["/usr/lib64"]
-        self.cpp_info.components["Crypto"].system_libs = ["dl", "pthread"]
+        self.cpp_info.components["crypto"].set_property("cmake_target_name", "OpenSSL::Crypto")
+        self.cpp_info.components["crypto"].libs = ["crypto"]
+        self.cpp_info.components["crypto"].includedirs = ["/usr/include"]
+        self.cpp_info.components["crypto"].libdirs = [] # in standard search path
+        self.cpp_info.components["crypto"].system_libs = ["dl", "pthread"]
 
         # Component: SSL
-        self.cpp_info.components["SSL"].set_property("cmake_target_name", "OpenSSL::SSL")
-        self.cpp_info.components["SSL"].libs = ["ssl"]
-        self.cpp_info.components["SSL"].includedirs = ["/usr/include"]
-        self.cpp_info.components["SSL"].libdirs = ["/usr/lib64"]
-        self.cpp_info.components["SSL"].requires = ["Crypto"]
+        self.cpp_info.components["ssl"].set_property("cmake_target_name", "OpenSSL::SSL")
+        self.cpp_info.components["ssl"].libs = ["ssl"]
+        self.cpp_info.components["ssl"].includedirs = ["/usr/include"]
+        self.cpp_info.components["ssl"].libdirs = [] # in standard search path
+        self.cpp_info.components["ssl"].requires = ["crypto"]

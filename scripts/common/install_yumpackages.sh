@@ -6,6 +6,7 @@ set -ex
 
 
 GAMIN_RPM="gamin"
+MESA_LIBOSMESA_DEVEL_RPM="mesa-libOSMesa-devel"
 MESA_VULKAN_DEVEL_RPM="mesa-vulkan-devel"
 XORG_X11_XKB_UTILS_RPM="xorg-x11-xkb-utils xorg-x11-xkb-utils-devel"
 LIBXVMC_DEVEL_RPM="libXvMC-devel"
@@ -33,6 +34,7 @@ if [[ "$BASEOS_MAJORVERSION" -gt "7" ]]; then
         dnf config-manager --set-enabled crb
         # Some packages are gone or renamed in EL 9
         GAMIN_RPM=""
+        MESA_LIBOSMESA_DEVEL_RPM="mesa-compat-libOSMesa-devel"
         MESA_VULKAN_DEVEL_RPM="mesa-vulkan-drivers"
         # In Rocky 9 xkbcomp-devel is in the devel repo which we don't want, all it provides is a single
         # pkgconfig file we don't need.
@@ -41,6 +43,7 @@ if [[ "$BASEOS_MAJORVERSION" -gt "7" ]]; then
     fi
     # Ignore any DNF metadata cached in base image
     dnf clean all
+    dnf -y upgrade
 fi
 
 yum install --setopt=tsflags=nodocs -y \
@@ -165,7 +168,7 @@ yum install --setopt=tsflags=nodocs -y \
     mesa-libGL-devel \
     mesa-libGLU-devel \
     mesa-libGLw-devel \
-    mesa-libOSMesa-devel \
+    ${MESA_LIBOSMESA_DEVEL_RPM} \
     ${MESA_VULKAN_DEVEL_RPM} \
     mpdecimal-devel \
     mpg123-devel \
