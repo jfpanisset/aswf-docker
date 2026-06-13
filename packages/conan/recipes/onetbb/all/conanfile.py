@@ -2,7 +2,7 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/c29c3a06d0c5d4fd98529a34586c4f60ab00f659/recipes/onetbb/all/conanfile.py
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/onetbb/all/conanfile.py
 
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
@@ -106,15 +106,15 @@ class OneTBBConan(ConanFile):
 
     def requirements(self):
         if self._tbbbind_build:
-            self.requires("hwloc/2.9.3")
+            self.requires("hwloc/2.12.2")
 
     def validate(self):
         if self.settings.compiler == "apple-clang" and Version(self.settings.compiler.version) < "11.0":
             raise ConanInvalidConfiguration(f"{self.ref} couldn't be built by apple-clang < 11.0")
 
         # Old versions used to have shared option before hwloc dependency was moved to shared only
-        if self._tbbbind_explicit_hwloc and not self.dependencies["hwloc"].options.get_safe("shared", True):
-            raise ConanInvalidConfiguration(f"{self.ref} requires hwloc:shared=True to be built.")
+        if "hwloc" in self.dependencies.direct_host and self.dependencies["hwloc"].package_type != "shared-library":
+            raise ConanInvalidConfiguration(f"ontbb requires option hwloc/*:shared=True to be built.")
 
     def build_requirements(self):
         if self._tbbbind_build and not self._tbbbind_explicit_hwloc:
@@ -155,9 +155,12 @@ class OneTBBConan(ConanFile):
         if Version(self.version) <= "2021.10.0":
             toolchain.cache_variables["CMAKE_POLICY_VERSION_MINIMUM"] = "3.5"  # CMake 4 support
 
+        if self.package_type == "shared-library":
+            # already the default in CMakeLists, just being explicit
+            toolchain.cache_variables["BUILD_SHARED_LIBS"] = True
         toolchain.generate()
 
-        if self._tbbbind_build and not self._tbbbind_explicit_hwloc:
+        if "hwloc" in self.dependencies.direct_host:
             deps = PkgConfigDeps(self)
             deps.generate()
 
@@ -241,11 +244,3 @@ class OneTBBConan(ConanFile):
                 tbbproxy.requires = ["tbbmalloc"]
                 if self.settings.os in ["Linux", "FreeBSD"]:
                     tbbproxy.system_libs = ["m", "dl", "pthread"]
-
-        # TODO: to remove in conan v2 once cmake_find_package* & pkg_config generators removed
-        # ASWF: Conan 2 only
-        # self.cpp_info.names["cmake_find_package"] = "TBB"
-        # self.cpp_info.names["cmake_find_package_multi"] = "TBB"
-        # self.cpp_info.names["pkg_config"] = "tbb"
-        # tbb.names["cmake_find_package"] = "tbb"
-        # tbb.names["cmake_find_package_multi"] = "tbb"

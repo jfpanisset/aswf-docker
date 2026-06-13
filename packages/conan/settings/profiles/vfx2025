@@ -20,10 +20,10 @@ c-blosc/*: c-blosc/1.21.6@{{ org }}/vfx2025
 ceres-solver/*: ceres-solver/2.2.0@{{ org }}/vfx2025
 cimg/*: cimg/3.3.2@{{ org }}/vfx2025
 cppunit/*: cppunit/1.15.1@{{ org }}/vfx2025
-cpython/*: cpython/3.11.13@{{ org }}/vfx2025
+cpython/*: cpython/3.11.15@{{ org }}/vfx2025
 dbus/*: dbus/system@{{ org }}/vfx2025
 double-conversion/*: double-conversion/system@{{ org }}/vfx2025
-eigen/*: eigen/3.4.0@{{ org }}/vfx2025
+eigen/*: eigen/3.4.1@{{ org }}/vfx2025
 embree/*: embree/4.2.0@{{ org }}/vfx2025
 expat/*: expat/2.6.4@{{ org }}/vfx2025
 fmt/*: fmt/11.2.0@{{ org }}/vfx2025
@@ -99,7 +99,7 @@ opentimelineio/*: opentimelineio/0.17.0@{{ org }}/vfx2025
 openusd/*: openusd/25.05.01@{{ org }}/vfx2025
 openvdb/*: openvdb/12.1.1@{{ org }}/vfx2025
 opus/*: opus/system@{{ org }}/vfx2025
-osl/*: osl/1.14.9.0@{{ org }}/vfx2025
+osl/*: osl/1.14.11.0@{{ org }}/vfx2025
 partio/*: partio/1.19.0@{{ org }}/vfx2025
 pcre2/*: pcre2/system@{{ org }}/vfx2025
 ptex/*: ptex/2.4.3@{{ org }}/vfx2025
@@ -111,7 +111,7 @@ pystring/*: pystring/1.1.4@{{ org }}/vfx2025
 qt/*: qt/6.5.6@{{ org }}/vfx2025
 random123/*: random123/1.14.0@{{ org }}/vfx2025
 rapidjson/*: rapidjson/cci.20250205@{{ org }}/vfx2025
-rawtoaces/*: rawtoaces/2.1.0@{{ org }}/vfx2025
+rawtoaces/*: rawtoaces/2.1.1@{{ org }}/vfx2025
 snappy/*: snappy/1.1.10@{{ org }}/vfx2025
 spdlog/*: spdlog/1.15.3@{{ org }}/vfx2025
 sqlite3/*: sqlite3/system@{{ org }}/vfx2025
@@ -132,7 +132,7 @@ zstd/*: zstd/1.5.6@{{ org }}/vfx2025
 [replace_tool_requires]
 b2/*: b2/5.2.1@{{ org }}/vfx2025
 bison/*: bison/3.0.4@system
-cpython/*: cpython/3.11.13@{{ org }}/vfx2025
+cpython/*: cpython/3.11.15@{{ org }}/vfx2025
 flex/*: flex/2.6.1@system
 gperf/*: gperf/3.1@system
 libtool/*: libtool/2.4.6@system

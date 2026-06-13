@@ -2,15 +2,14 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/3375dfbcae9df4cee7b4eb6323b584fb60a2c8d0/recipes/zlib/all/conanfile.py
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/zlib/all/conanfile.py
 
 from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
-from conan.tools.files import apply_conandata_patches, export_conandata_patches, get, load, replace_in_file, save
-from conan.tools.scm import Version
+from conan.tools.files import export_conandata_patches, apply_conandata_patches, get, rmdir, copy, rm
 import os
 
-required_conan_version = ">=1.53.0"
+required_conan_version = ">=2.0"
 
 
 class ZlibConan(ConanFile):
@@ -52,50 +51,29 @@ class ZlibConan(ConanFile):
     def source(self):
         get(self, **self.conan_data["sources"][self.version],
             destination=self.source_folder, strip_root=True)
+        apply_conandata_patches(self)
 
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.variables["SKIP_INSTALL_ALL"] = False
-        tc.variables["SKIP_INSTALL_LIBRARIES"] = False
-        tc.variables["SKIP_INSTALL_HEADERS"] = False
-        tc.variables["SKIP_INSTALL_FILES"] = True
-        # Correct for misuse of "${CMAKE_INSTALL_PREFIX}/" in CMakeLists.txt
-        tc.variables["INSTALL_LIB_DIR"] = "lib"
-        tc.variables["INSTALL_INC_DIR"] = "include"
-        tc.variables["ZLIB_BUILD_EXAMPLES"] = False
+        tc.cache_variables["ZLIB_BUILD_TESTING"] = False
+        tc.cache_variables["ZLIB_BUILD_SHARED"] = self.options.shared
+        tc.cache_variables["ZLIB_BUILD_STATIC"] = not self.options.shared
         tc.generate()
 
-    def _patch_sources(self):
-        apply_conandata_patches(self)
-
-        is_apple_clang12 = self.settings.compiler == "apple-clang" and Version(self.settings.compiler.version) >= "12.0"
-        if not is_apple_clang12:
-            for filename in ['zconf.h', 'zconf.h.cmakein', 'zconf.h.in']:
-                filepath = os.path.join(self.source_folder, filename)
-                replace_in_file(self, filepath,
-                                      '#ifdef HAVE_UNISTD_H    '
-                                      '/* may be set to #if 1 by ./configure */',
-                                      '#if defined(HAVE_UNISTD_H) && (1-HAVE_UNISTD_H-1 != 0)')
-                replace_in_file(self, filepath,
-                                      '#ifdef HAVE_STDARG_H    '
-                                      '/* may be set to #if 1 by ./configure */',
-                                      '#if defined(HAVE_STDARG_H) && (1-HAVE_STDARG_H-1 != 0)')
-
     def build(self):
-        self._patch_sources()
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
 
-    def _extract_license(self):
-        tmp = load(self, os.path.join(self.source_folder, "zlib.h"))
-        license_contents = tmp[2:tmp.find("*/", 1)]
-        return license_contents
-
     def package(self):
-        save(self, os.path.join(self.package_folder, "licenses", self.name, "LICENSE"), self._extract_license())
+        copy(self, "LICENSE", src=self.source_folder, dst=os.path.join(self.package_folder, "licenses", self.name)) # ASWF per package license dir
         cmake = CMake(self)
         cmake.install()
+        rmdir(self, os.path.join(self.package_folder, "share"))
+        # rmdir(self, os.path.join(self.package_folder, "lib", "cmake")) # ASWF: keep cmake files
+        rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
+        rm(self, "*.pdb", os.path.join(self.package_folder, "bin"))
+
 
     def package_info(self):
         self.cpp_info.set_property("cmake_find_mode", "both")
@@ -110,6 +88,3 @@ class ZlibConan(ConanFile):
         else:
             libname = "z"
         self.cpp_info.libs = [libname]
-
-        self.cpp_info.names["cmake_find_package"] = "ZLIB"
-        self.cpp_info.names["cmake_find_package_multi"] = "ZLIB"

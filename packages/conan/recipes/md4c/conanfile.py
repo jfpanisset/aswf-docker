@@ -85,13 +85,15 @@ class Md4cConan(ConanFile):
 
     def _patch_sources(self):
         apply_conandata_patches(self)
-        # Honor encoding option
-        replace_in_file(
-            self,
-            os.path.join(self.source_folder, "src", "CMakeLists.txt"),
-            "COMPILE_FLAGS \"-DMD4C_USE_UTF8\"",
-            "",
-        )
+        # ASWF: no longer in 0.5.3
+        if Version(self.version) < "0.5.3":
+            # Honor encoding option
+            replace_in_file(
+                self,
+                os.path.join(self.source_folder, "src", "CMakeLists.txt"),
+                "COMPILE_FLAGS \"-DMD4C_USE_UTF8\"",
+                "",
+            )
 
     def build(self):
         cmake = CMake(self)

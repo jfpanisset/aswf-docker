@@ -2,9 +2,12 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/c29c3a06d0c5d4fd98529a34586c4f60ab00f659/recipes/onetbb/all/conandata.yml
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/onetbb/all/conandata.yml
 
 sources:
+  "2023.0.0":
+    url: "https://github.com/uxlfoundation/oneTBB/archive/v2023.0.0.tar.gz"
+    sha256: "f8767b971ec6aea25dde58ae0f593e94e7aa75a739a86f67967012f69e2199b1"
   "2022.1.0":
     url: "https://github.com/oneapi-src/oneTBB/archive/refs/tags/v2022.1.0.tar.gz"
     sha256: "ed067603ece0dc832d2881ba5c516625ac2522c665d95f767ef6304e34f961b5"

@@ -105,7 +105,15 @@ class FreetypeConan(ConanFile):
     def _patch_sources(self):
         # Do not accidentally enable dependencies we have disabled
         cmakelists = os.path.join(self.source_folder, "CMakeLists.txt")
-        if_harfbuzz_found = "if ({})".format("HARFBUZZ_FOUND" if Version(self.version) < "2.11.0" else "HarfBuzz_FOUND")
+        if Version(self.version) < "2.11.0":  # pylint: disable=conan-condition-evals-to-constant
+            harfbuzz_found_condition = "HARFBUZZ_FOUND"
+        elif Version(self.version) < "2.14.0":  # pylint: disable=conan-condition-evals-to-constant
+            harfbuzz_found_condition = "HarfBuzz_FOUND"
+        else:
+            harfbuzz_found_condition = (
+                "HarfBuzz_FOUND AND (NOT FT_DYNAMIC_HARFBUZZ_ENABLED)"
+            )
+        if_harfbuzz_found = "if ({})".format(harfbuzz_found_condition)
         replace_in_file(self, cmakelists, "find_package(HarfBuzz ${HARFBUZZ_MIN_VERSION})", "")
         replace_in_file(self, cmakelists, if_harfbuzz_found, "if(0)")
         if not self.options.with_png:

@@ -22,7 +22,7 @@ c-blosc/*: c-blosc/1.21.6@{{ org }}/vfx2027
 ceres-solver/*: ceres-solver/2.2.0@{{ org }}/vfx2027
 cimg/*: cimg/3.7.6@{{ org }}/vfx2027
 cppunit/*: cppunit/1.15.1@{{ org }}/vfx2027
-cpython/*: cpython/3.13.13@{{ org }}/vfx2027
+cpython/*: cpython/3.13.14@{{ org }}/vfx2027
 dbus/*: dbus/system@{{ org }}/vfx2027
 double-conversion/*: double-conversion/system@{{ org }}/vfx2027
 eigen/*: eigen/3.4.1@{{ org }}/vfx2027
@@ -125,7 +125,7 @@ zstd/*: zstd/1.5.7@{{ org }}/vfx2027
 [replace_tool_requires]
 b2/*: b2/5.4.2@{{ org }}/vfx2027
 bison/*: bison/3.7.4@system
-cpython/*: cpython/3.13.13@{{ org }}/vfx2027
+cpython/*: cpython/3.13.14@{{ org }}/vfx2027
 flex/*: flex/2.6.4@system
 gperf/*: gperf/3.1.13@system
 libtool/*: libtool/2.4.6@system

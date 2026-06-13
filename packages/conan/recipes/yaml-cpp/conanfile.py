@@ -2,7 +2,7 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/3375dfbcae9df4cee7b4eb6323b584fb60a2c8d0/recipes/yaml-cpp/all/conanfile.py
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/yaml-cpp/all/conanfile.py
 
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
@@ -12,7 +12,6 @@ from conan.tools.files import apply_conandata_patches, collect_libs, copy, expor
 from conan.tools.microsoft import is_msvc, is_msvc_static_runtime
 from conan.tools.scm import Version
 import os
-import textwrap
 
 required_conan_version = ">=2.1"
 
@@ -72,6 +71,8 @@ class YamlCppConan(ConanFile):
         if is_msvc(self):
             tc.variables["YAML_MSVC_SHARED_RT"] = not is_msvc_static_runtime(self)
             tc.preprocessor_definitions["_NOEXCEPT"] = "noexcept"
+        if Version(self.version) >= "0.9.0":
+            tc.cache_variables["YAML_ENABLE_PIC"] = self.options.get_safe("fPIC", "OFF")
         tc.generate()
 
     def build(self):

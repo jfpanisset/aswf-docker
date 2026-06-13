@@ -23,7 +23,7 @@ cppunit/*: cppunit/1.15.1@{{ org }}/vfx2023
 cpython/*: cpython/3.10.20@{{ org }}/vfx2023
 dbus/*: dbus/system@{{ org }}/vfx2023
 double-conversion/*: double-conversion/system@{{ org }}/vfx2023
-eigen/*: eigen/3.4.0@{{ org }}/vfx2023
+eigen/*: eigen/3.4.1@{{ org }}/vfx2023
 embree/*: embree/4.2.0@{{ org }}/vfx2023
 expat/*: expat/2.6.4@{{ org }}/vfx2023
 fmt/*: fmt/11.2.0@{{ org }}/vfx2023
@@ -111,7 +111,7 @@ pystring/*: pystring/1.1.4@{{ org }}/vfx2023
 qt/*: qt/5.15.18@{{ org }}/vfx2023
 random123/*: random123/1.14.0@{{ org }}/vfx2023
 rapidjson/*: rapidjson/cci.20250205@{{ org }}/vfx2023
-rawtoaces/*: rawtoaces/2.1.0@{{ org }}/vfx2023
+rawtoaces/*: rawtoaces/2.1.1@{{ org }}/vfx2023
 snappy/*: snappy/1.1.10@{{ org }}/vfx2023
 spdlog/*: spdlog/1.15.3@{{ org }}/vfx2023
 sqlite3/*: sqlite3/system@{{ org }}/vfx2023
