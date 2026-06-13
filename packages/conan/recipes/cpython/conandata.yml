@@ -2,9 +2,12 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/6aeda9d870a1253535297cb50b01bebfc8c62910/recipes/cpython/all/conandata.yml
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/cpython/all/conandata.yml
 
 sources:
+  "3.13.14":
+    url: "https://www.python.org/ftp/python/3.13.14/Python-3.13.14.tgz"
+    sha256: "5ae535a36af0ebca6fca176ecb8197f5db9c1cb8c8f0cd12cdf1787046db1f41"
   "3.13.12":
     url: "https://www.python.org/ftp/python/3.13.12/Python-3.13.12.tgz"
     sha256: "12e7cb170ad2d1a69aee96a1cc7fc8de5b1e97a2bdac51683a3db016ec9a2996"
@@ -63,6 +66,13 @@ sources:
     url: "https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tgz"
     sha256: "d62e3015f2f89c970ac52343976b406694931742fbde2fed8d1ce8ebb4e1f8ff"
 patches:
+  "3.13.14":
+    - patch_file: "patches/3.13/3.13.0-0002-remove-module-deps.patch"
+      patch_description: "Remove section of solution file forcing projects to be built that might not be used for this recipe"
+      patch_type: "conan"
+    - patch_file: "patches/3.13/3.13.0-0003-relocatable-python-config.patch"
+      patch_description: "Allow package to be relocatable"
+      patch_type: "conan"
   "3.13.12":
     - patch_file: "patches/3.13/3.13.0-0002-remove-module-deps.patch"
       patch_description: "Remove section of solution file forcing projects to be built that might not be used for this recipe"

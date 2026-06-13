@@ -2,9 +2,12 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/9a66422e07df06d2c502501de6e00b8b1213b563/recipes/yaml-cpp/all/conandata.yml
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/yaml-cpp/all/conandata.yml
 
 sources:
+  "0.9.0":
+    url: "https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.9.0.tar.gz"
+    sha256: "25cb043240f828a8c51beb830569634bc7ac603978e0f69d6b63558dadefd49a"
   "0.8.0":
     url: "https://github.com/jbeder/yaml-cpp/archive/refs/tags/0.8.0.tar.gz"
     sha256: "fbe74bbdcee21d656715688706da3c8becfd946d92cd44705cc6098bb23b3a16"

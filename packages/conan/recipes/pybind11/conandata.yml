@@ -2,9 +2,15 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/59cab50aa90f922e61a746eef7c488dd788e4989/recipes/pybind11/all/conandata.yml
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/pybind11/all/conandata.yml
 
 sources:
+  "3.0.4":
+    url: "https://github.com/pybind/pybind11/archive/v3.0.4.tar.gz"
+    sha256: "74b6a2c2b4573a400cafb6ecbf60c98df300cd3d0041296b913d02b2cbbb2676"
+  "3.0.1":
+    url: "https://github.com/pybind/pybind11/archive/v3.0.1.tar.gz"
+    sha256: "741633da746b7c738bb71f1854f957b9da660bcd2dce68d71949037f0969d0ca"
   "2.13.6":
     url: "https://github.com/pybind/pybind11/archive/v2.13.6.tar.gz"
     sha256: "e08cb87f4773da97fa7b5f035de8763abc656d87d5773e62f6da0587d1f0ec20"

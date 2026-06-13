@@ -135,7 +135,7 @@ Contains:
 * numpy-1.20
 * vfxplatform-2022
 
-## [aswf/ci-osl:2023-clang14.3](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2023-clang14.3)
+## [aswf/ci-osl:2023-clang14.4](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2023-clang14.4)
 
 Contains:
 * osl-1.12.14.0
@@ -144,7 +144,7 @@ Contains:
 * numpy-1.23.5
 * vfxplatform-2023
 
-## [aswf/ci-osl:2023-clang15.3](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2023-clang15.3)
+## [aswf/ci-osl:2023-clang15.4](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2023-clang15.4)
 
 Contains:
 * osl-1.12.14.0
@@ -153,7 +153,7 @@ Contains:
 * numpy-1.23.5
 * vfxplatform-2023
 
-## [aswf/ci-osl:2024-clang16.7](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2024-clang16.7)
+## [aswf/ci-osl:2024-clang16.8](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2024-clang16.8)
 
 Contains:
 * osl-1.13.11.0
@@ -162,7 +162,7 @@ Contains:
 * numpy-1.24.3
 * vfxplatform-2024
 
-## [aswf/ci-osl:2024-clang17.7](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2024-clang17.7)
+## [aswf/ci-osl:2024-clang17.8](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2024-clang17.8)
 
 Contains:
 * osl-1.13.11.0
@@ -171,25 +171,25 @@ Contains:
 * numpy-1.24.3
 * vfxplatform-2024
 
-## [aswf/ci-osl:2025-clang18.6](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2025-clang18.6)
+## [aswf/ci-osl:2025-clang18.7](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2025-clang18.7)
 
 Contains:
-* osl-1.14.9.0
+* osl-1.14.11.0
 * cuda-12.6.3
 * optix-8.0.0
 * numpy-1.26.4
 * vfxplatform-2025
 
-## [aswf/ci-osl:2025-clang19.6](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2025-clang19.6)
+## [aswf/ci-osl:2025-clang19.7](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2025-clang19.7)
 
 Contains:
-* osl-1.14.9.0
+* osl-1.14.11.0
 * cuda-12.6.3
 * optix-8.0.0
 * numpy-1.26.4
 * vfxplatform-2025
 
-## [aswf/ci-osl:2026-clang19.4](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2026-clang19.4)
+## [aswf/ci-osl:2026-clang19.5](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2026-clang19.5)
 
 Contains:
 * osl-1.15.5.0
@@ -198,7 +198,7 @@ Contains:
 * numpy-2.3.2
 * vfxplatform-2026
 
-## [aswf/ci-osl:2026-clang20.4](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2026-clang20.4)
+## [aswf/ci-osl:2026-clang20.5](https://hub.docker.com/r/aswf/ci-osl/tags?page=1&name=2026-clang20.5)
 
 Contains:
 * osl-1.15.5.0

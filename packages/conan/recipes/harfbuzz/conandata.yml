@@ -2,9 +2,15 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/bad5c95b810e859c1c31553b92584246fe436d69/recipes/harfbuzz/all/conandata.yml
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/harfbuzz/all/conandata.yml
 
 sources:
+  "14.2.1":
+    url: "https://github.com/harfbuzz/harfbuzz/releases/download/14.2.1/harfbuzz-14.2.1.tar.xz"
+    sha256: "a54a5d8e9380a41fbb762ce367bcbf7704792dfca0d93f1bbca86c5a57902e0e"
+  "12.3.0":
+    url: "https://github.com/harfbuzz/harfbuzz/releases/download/12.3.0/harfbuzz-12.3.0.tar.xz"
+    sha256: "8660ebd3c27d9407fc8433b5d172bafba5f0317cb0bb4339f28e5370c93d42b7"
   "11.2.1":
     url: "https://github.com/harfbuzz/harfbuzz/releases/download/11.2.1/harfbuzz-11.2.1.tar.xz"
     sha256: "093714c8548a285094685f0bdc999e202d666b59eeb3df2ff921ab68b8336a49"

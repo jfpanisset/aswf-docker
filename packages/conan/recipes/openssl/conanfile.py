@@ -33,14 +33,14 @@ class SystemOpenSSLConan(ConanFile):
 
         # Component: Crypto
         self.cpp_info.components["crypto"].set_property("cmake_target_name", "OpenSSL::Crypto")
-        self.cpp_info.components["crypto"].libs = ["crypto"]
+        self.cpp_info.components["crypto"].system_libs = ["crypto"]
         self.cpp_info.components["crypto"].includedirs = ["/usr/include"]
         self.cpp_info.components["crypto"].libdirs = [] # in standard search path
         self.cpp_info.components["crypto"].system_libs = ["dl", "pthread"]
 
         # Component: SSL
         self.cpp_info.components["ssl"].set_property("cmake_target_name", "OpenSSL::SSL")
-        self.cpp_info.components["ssl"].libs = ["ssl"]
+        self.cpp_info.components["ssl"].system_libs = ["ssl"]
         self.cpp_info.components["ssl"].includedirs = ["/usr/include"]
         self.cpp_info.components["ssl"].libdirs = [] # in standard search path
         self.cpp_info.components["ssl"].requires = ["crypto"]

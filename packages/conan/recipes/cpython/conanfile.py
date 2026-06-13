@@ -249,6 +249,10 @@ class CPythonConan(ConanFile):
             ]
         if not is_apple_os(self):
             tc.extra_ldflags.append('-Wl,--as-needed')
+            # ASWF: find our own expat at runtime instead of system installed one
+            if self._supports_modules:
+                expat_libdir = self.dependencies["expat"].cpp_info.aggregated_components().libdirs[0]
+                tc.extra_ldflags.append(f'-Wl,--enable-new-dtags,-rpath,{expat_libdir}')
 
         # ASWF: as per https://github.com/python/cpython/issues/95957 starting with
         # version 3.11 options --with-tcltk-libs and --with-tcltk-includes are no longer

@@ -77,7 +77,7 @@ Contains:
 * numpy-1.20
 * vfxplatform-2022
 
-## [aswf/ci-base:2023.3](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2023.3)
+## [aswf/ci-base:2023.4](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2023.4)
 
 Contains:
 * b2-5.2.1
@@ -110,7 +110,7 @@ Contains:
 * numpy-1.23.5
 * vfxplatform-2023
 
-## [aswf/ci-base:2024.7](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2024.7)
+## [aswf/ci-base:2024.8](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2024.8)
 
 Contains:
 * b2-5.2.1
@@ -131,7 +131,7 @@ Contains:
 * onetbb-2020.3
 * zlib-1.3.1
 * zstd-1.5.6
-* cpython-3.11.13
+* cpython-3.11.15
 * freetype-2.13.2
 * gdbm-system
 * glew-2.2.0
@@ -143,7 +143,7 @@ Contains:
 * numpy-1.24.3
 * vfxplatform-2024
 
-## [aswf/ci-base:2025.6](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2025.6)
+## [aswf/ci-base:2025.7](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2025.7)
 
 Contains:
 * b2-5.2.1
@@ -164,7 +164,7 @@ Contains:
 * onetbb-2021.13.0
 * zlib-1.3.1
 * zstd-1.5.6
-* cpython-3.11.13
+* cpython-3.11.15
 * freetype-2.13.2
 * gdbm-system
 * glew-2.2.0
@@ -176,7 +176,7 @@ Contains:
 * numpy-1.26.4
 * vfxplatform-2025
 
-## [aswf/ci-base:2026.4](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2026.4)
+## [aswf/ci-base:2026.5](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2026.5)
 
 Contains:
 * b2-5.3.2
@@ -197,7 +197,7 @@ Contains:
 * onetbb-2022.1.0
 * zlib-1.3.1
 * zstd-1.5.7
-* cpython-3.13.13
+* cpython-3.13.14
 * freetype-2.13.2
 * gdbm-system
 * glew-2.2.0
@@ -230,7 +230,7 @@ Contains:
 * onetbb-2023.0.0
 * zlib-1.3.2
 * zstd-1.5.7
-* cpython-3.13.13
+* cpython-3.13.14
 * freetype-2.14.3
 * gdbm-system
 * glew-2.3.1
