@@ -43,7 +43,11 @@ if [[ "$BASEOS_MAJORVERSION" -gt "7" ]]; then
     fi
     # Ignore any DNF metadata cached in base image
     dnf clean all
+    # Disable CUDA repo since that doesn't upgrade cleanly
+    dnf config-manager --set-disabled cuda
     dnf -y upgrade
+    # Re-enable the CUDA repo after the upgrade
+    dnf config-manager --set-enabled cuda
 fi
 
 yum install --setopt=tsflags=nodocs -y \

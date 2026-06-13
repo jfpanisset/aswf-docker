@@ -243,7 +243,7 @@ Contains:
 * clang-19.1.7
 * cmake-4.0.6
 * ninja-1.13.2
-* cuda-12.9.1
+* cuda-12.9.2
 * optix-8.0.0
 * glvnd-1.7.0
 * ccache-4.13.6
@@ -258,7 +258,7 @@ Contains:
 * clang-20.1.7
 * cmake-4.0.6
 * ninja-1.13.2
-* cuda-12.9.1
+* cuda-12.9.2
 * optix-8.0.0
 * glvnd-1.7.0
 * ccache-4.13.6

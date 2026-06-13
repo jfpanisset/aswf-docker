@@ -193,7 +193,7 @@ Contains:
 
 Contains:
 * osl-1.15.5.0
-* cuda-12.9.1
+* cuda-12.9.2
 * optix-8.0.0
 * numpy-2.3.2
 * vfxplatform-2026
@@ -202,7 +202,7 @@ Contains:
 
 Contains:
 * osl-1.15.5.0
-* cuda-12.9.1
+* cuda-12.9.2
 * optix-8.0.0
 * numpy-2.3.2
 * vfxplatform-2026

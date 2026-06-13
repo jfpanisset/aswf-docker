@@ -59,7 +59,7 @@ Contains:
 ## [aswf/ci-baseos-gl-conan:6.4](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=6.4)
 
 Contains:
-* cuda-12.9.1
+* cuda-12.9.2
 * optix-8.0.0
 * glvnd-1.7.0
 * ccache-4.13.6
