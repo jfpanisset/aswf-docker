@@ -1144,7 +1144,7 @@ versions:
       ASWF_FONTCONFIG_VERSION: "system"
       ASWF_GDBM_VERSION: "system"
       ASWF_GIFLIB_VERSION: "5.2.1"
-      ASWF_GLIB_VERSION: "2.64.4"
+      ASWF_GLIB_VERSION: "2.68.4"
       ASWF_ICU_VERSION: "system"
       ASWF_LIBALSA_VERSION: "system"
       ASWF_LIBAOM_AV1_VERSION: "system"

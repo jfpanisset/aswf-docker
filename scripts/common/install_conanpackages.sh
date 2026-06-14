@@ -106,22 +106,6 @@ else
             done
         fi
 
-        # OpenUSD installs a number of Python scripts and bakes in the conan cache path in the shebang
-        if [[ $INSTALLED_PACKAGE == openusd ]]; then
-            for f in $1/full_deploy/host/openusd/${INSTALLED_PACKAGE_VERSION}/${RELEASE_DIR}/bin/*; do
-                [[ -f $f ]] || continue
-                read -r first < "$f" || continue
-                case "$first" in
-                    "#!"*python*)   # any python* interpreter
-                        sed -i -E '1s@^#!/opt/conan_home/d/b/cpyth.*/bin/(.*)$@#!/usr/bin/env \1@' "$f"
-                        ;;
-                    *)
-                        : # not a Python script; skip
-                        ;;
-                esac
-            done
-        fi
-
         rsync --remove-source-files --exclude conaninfo.txt --exclude conanmanifest.txt -a $1/full_deploy/host/${INSTALLED_PACKAGE}/${INSTALLED_PACKAGE_VERSION}/${RELEASE_DIR}/ $1/
     done
 

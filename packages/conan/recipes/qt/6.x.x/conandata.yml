@@ -2,7 +2,7 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/5aa8fda35e023ceeaefb5a670ae9c0c3ca4fdf25/recipes/qt/6.x.x/conandata.yml
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/qt/6.x.x/conandata.yml
 
 sources:
   "6.8.3":
@@ -150,7 +150,52 @@ patches:
       "patch_file": "patches/CVE-2025-5683-qtimageformats-6.8.patch"
       "patch_source": "https://download.qt.io/archive/qt/6.8/CVE-2025-5683-qtimageformats-6.8.patch"
       "patch_description": "CVE-2025-5683 ICNS image format crash"
+    # Fixed in 6.8.4: CVE-2025-5992
+    - "base_path": "qtbase"
+      "patch_file": "patches/CVE-2025-5992-qtbase-6.8.patch"
+      "patch_source": "https://download.qt.io/archive/qt/6.8/CVE-2025-5992-qtbase-6.8.patch"
+      "patch_description": "CVE-2025-5992 Add clamping to QColorTransferGenericFunction"
+    # Fixed in 6.8.4: CVE-2025-6338
+    - "base_path": "qtbase"
+      "patch_file": "patches/CVE-2025-6338-qtbase-6.8.patch"
+      "patch_source": "https://download.qt.io/archive/qt/6.8/CVE-2025-6338-qtbase-6.8.patch"
+      "patch_description": "CVE-2025-6338 Denial of service in QtNetwork Schannel"
+    # Fixed in 6.8.5: CVE-2025-10728
+    - "base_path": "qtsvg"
+      "patch_file": "patches/CVE-2025-10728-qtsvg-6.8.diff"
+      "patch_source": "https://download.qt.io/archive/qt/6.8/CVE-2025-10728-qtsvg-6.8.diff"
+      "patch_description": "CVE-2025-10728 Stack overflow in SVG rendering"
+    # Fixed in 6.8.5: CVE-2025-10729
+    - "base_path": "qtsvg"
+      "patch_file": "patches/CVE-2025-10729-qtsvg-6.8.diff"
+      "patch_source": "https://download.qt.io/archive/qt/6.8/CVE-2025-10729-qtsvg-6.8.diff"
+      "patch_description": "CVE-2025-10729 Use after free in SVG rendering"
+    # Fixed in 6.8.6: CVE-2025-12385
+    - "base_path": "qtdeclarative"
+      "patch_file": "patches/CVE-2025-12385-qtdeclarative-6.8-0001.diff"
+      "patch_source": "https://download.qt.io/archive/qt/6.8/CVE-2025-12385-qtdeclarative-6.8-0001.diff"
+      "patch_description": "CVE-2025-12385 Improper validation of img tag size in Text component parser"
+    # Fixed in 6.8.6: CVE-2025-12385
+    - "base_path": "qtdeclarative"
+      "patch_file": "patches/CVE-2025-12385-qtdeclarative-6.8-0002.diff"
+      "patch_source": "https://download.qt.io/archive/qt/6.8/CVE-2025-12385-qtdeclarative-6.8-0002.diff"
+      "patch_description": "CVE-2025-12385 Improper validation of img tag size in Text component parser"
+    # Fixed in 6.8.4: CVE-2025-14575
+    - "base_path": "qtbase"
+      "patch_file": "patches/CVE-2025-14575-qtbase-6.8.diff"
+      "patch_source": "https://download.qt.io/archive/qt/6.8/CVE-2025-14575-qtbase-6.8.diff"
+      "patch_description": "CVE-2025-14575 Untrusted Search Path vulnerability in OpenSSL backend certificate loading mechanism"
+    # Fixed in 6.8.6: CVE-2025-14576
+    - "base_path": "qtdeclarative"
+      "patch_file": "patches/CVE-2025-14576-qtdeclarative-6.8.diff"
+      "patch_source": "https://download.qt.io/archive/qt/6.8/CVE-2025-14576-qtdeclarative-6.8.diff"
+      "patch_description": "CVE-2025-14576 QML Code Injection in VectorImage Component in Qt declarative"
     # Fixed in 6.8.2: CVE-2025-23050
+    # Fixed in 6.8.8: CVE-2026-6210
+    - "base_path": "qtsvg"
+      "patch_file": "patches/CVE-2026-6210-qtsvg-6.8.diff"
+      "patch_source": "https://download.qt.io/archive/qt/6.8/CVE-2026-6210-qtsvg-6.8.diff"
+      "patch_description": "CVE_2026-6210 Type confusion and heap-buffer-overflow vulnerability in Qt SVG marker handling"
     - "base_path": "qtwebengine"
       "patch_description": "Workaround for too long .rps file name"
       "patch_file": "patches/c72097e_6.8.3.diff"
