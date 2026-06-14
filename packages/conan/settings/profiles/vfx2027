@@ -34,7 +34,7 @@ gdbm/*: gdbm/system@{{ org }}/vfx2027
 giflib/*: giflib/5.2.1@{{ org }}/vfx2027
 glew/*: glew/2.3.1@{{ org }}/vfx2027
 glfw/*: glfw/3.4@{{ org }}/vfx2027
-glib/*: glib/2.64.4@{{ org }}/vfx2027
+glib/*: glib/2.68.4@{{ org }}/vfx2027
 gtest/*: gtest/1.17.0@{{ org }}/vfx2027
 harfbuzz/*: harfbuzz/14.2.1@{{ org }}/vfx2027
 hdf5/*: hdf5/1.14.6@{{ org }}/vfx2027

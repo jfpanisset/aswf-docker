@@ -2,9 +2,14 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/b96b04ffad873992cbcfb98f0d84f6f44beb169d/recipes/highway/all/conandata.yml
-
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/highway/all/conandata.yml
 sources:
+  "1.4.0":
+    url: "https://github.com/google/highway/archive/1.4.0.tar.gz"
+    sha256: "e72241ac9524bb653ae52ced768b508045d4438726a303f10181a38f764a453c"
+  "1.3.0":
+    url: "https://github.com/google/highway/archive/1.3.0.tar.gz"
+    sha256: "07b3c1ba2c1096878a85a31a5b9b3757427af963b1141ca904db2f9f4afe0bc2"
   "1.2.0":
     url: "https://github.com/google/highway/archive/1.2.0.tar.gz"
     sha256: "7e0be78b8318e8bdbf6fa545d2ecb4c90f947df03f7aadc42c1967f019e63343"

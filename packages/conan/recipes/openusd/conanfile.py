@@ -184,6 +184,7 @@ class OpenUSDConan(ConanFile):
         tc.variables["PXR_ENABLE_OSL_SUPPORT"] = self.options.with_osl               # ASWF: build OpenShadingLanguage components
         tc.variables["PXR_ENABLE_PTEX_SUPPORT"] = self.options.with_ptex             # ASWF: build Ptex support
         tc.variables["PXR_ENABLE_PYTHON_SUPPORT"] = self.options.with_python         # ASWF: build Python support
+        tc.variables["PXR_PYTHON_SHEBANG"] = "/usr/bin/env python3"                  # ASWF: don't bake Conan paths into Python scripts
        
         tc.variables["OPENSUBDIV_LIBRARIES"] = "OpenSubdiv::osdcpu;OpenSubdiv::osdgpu"
         tc.variables["OPENSUBDIV_INCLUDE_DIR"] = self.dependencies['opensubdiv'].cpp_info.includedirs[0].replace("\\", "/")
