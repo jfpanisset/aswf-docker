@@ -4,6 +4,8 @@
 #
 # From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/lcms/all/conanfile.py
 
+import os
+
 from conan import ConanFile
 from conan.tools.apple import fix_apple_shared_install_name
 from conan.tools.files import copy, get, rm, rmdir

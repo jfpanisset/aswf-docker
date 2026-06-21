@@ -4,6 +4,9 @@
 #
 
 sources:
+  "2.1.1":
+    url: "https://github.com/AcademySoftwareFoundation/rawtoaces/archive/refs/tags/v2.1.1.tar.gz"
+    sha256: "69e846978935ee2fb9751f3604f71d212b8db4aed40d64660a9d68cd3c8e7ac1"
   "2.1.0":
     url: "https://github.com/AcademySoftwareFoundation/rawtoaces/archive/refs/tags/v2.1.0.tar.gz"
     sha256: "0c40400b795da27e9d65f77fba6f7e78b61846508f4900811f33b8fdae7264bf"
@@ -18,6 +21,10 @@ sources:
     sha256: "773451aa3cd05bcf91af7ff4150678e2230f1f5c495fd93030cde8c77e6c0c07"
 
 patches:
+  "2.1.1":
+    - patch_file: "patches/2.1.0-cmake-lensfun.diff"
+      patch_description: "Conan CMake knows lensfun version"
+      patch_type: "conan"
   "2.1.0":
     - patch_file: "patches/2.1.0-cmake-lensfun.diff"
       patch_description: "Conan CMake knows lensfun version"

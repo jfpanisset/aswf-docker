@@ -449,7 +449,7 @@ class OpenUSDConan(ConanFile):
         self.cpp_info.components["usd_usdRi"].libs = ["usd_usdRi"]
         self.cpp_info.components["usd_usdRi"].requires = ["usd_tf", "usd_vt", "usd_sdf", "usd_usd", "usd_usdShade", "usd_usdGeom"]
 
-        if Version(self.version) >= "24.08":
+        if Version(self.version) >= "24.08" and Version(self.version) < "26.05":
             self.cpp_info.components["usd_usdRiPxrImaging"].libs = ["usd_usdRiPxrImaging"]
             self.cpp_info.components["usd_usdRiPxrImaging"].requires = ["usd_gf", "usd_tf", "usd_plug", "usd_trace", "usd_vt", "usd_work", "usd_hd", "usd_pxOsd", "usd_sdf", "usd_usd", "usd_usdGeom", "usd_usdLux", "usd_usdShade", "usd_usdImaging", "usd_usdVol", "usd_ar"]
             if self.options.shared:

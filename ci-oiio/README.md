@@ -46,7 +46,7 @@ Contains:
 
 Contains:
 * qt-6.8.3
-* openimageio-3.1.14.0
+* openimageio-3.1.14.1
 * numpy-2.3.2
 * vfxplatform-2026
 
@@ -54,7 +54,7 @@ Contains:
 
 Contains:
 * qt-6.8.3
-* openimageio-3.1.14.0
+* openimageio-3.1.14.1
 * numpy-2.4.6
 * vfxplatform-2027
 

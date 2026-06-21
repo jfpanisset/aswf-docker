@@ -5,6 +5,9 @@
 # From: https://github.com/conan-io/conan-center-index/blob/9a66422e07df06d2c502501de6e00b8b1213b563/recipes/openimageio/all/conandata.yml
 
 sources:
+  "3.1.14.1":
+    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/v3.1.14.1.tar.gz"
+    sha256: "3c3e7c637aad57008b290ebee803df88fa7326c23e39712fdcb0a5b520032cd1"
   "3.1.13.1":
     url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/v3.1.13.1.tar.gz"
     sha256: "0fc59b8e2708ded02d3793b8f3331f037ed49bfcde38158f05ac0e876ebb85b7"
@@ -73,6 +76,16 @@ sources:
     sha256: "7fe81d8e5bce30cc4a212f020ac3cc4344e6b7c1c0842475e3a048515099c65c"
 
 patches:
+  "3.1.14.1":
+    - patch_file: "patches/3.1.13.1-cmake-fmt.patch"
+      patch_description: "fmt vs fmt-header-only"
+      patch_type: "conan"
+    - patch_file: "patches/3.1.13.1-utils-includes-libs.patch"
+      patch_description: "Link binaries against libdeflate"
+      patch_type: "conan"
+    - patch_file: "patches/3.1.10.0-raw-jp2k-cmake.patch"
+      patch_description: "Find local builds of LibRaw, OpenJPEG"
+      patch_type: "conan"
   "3.1.13.1":
     - patch_file: "patches/3.1.13.1-cmake-fmt.patch"
       patch_description: "fmt vs fmt-header-only"

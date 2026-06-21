@@ -2,6 +2,61 @@
 
 All notable changes to this project will be documented in this file.
 
+# 2026-06-21
+
+- Draft support for [VFX Platform 2027](https://vfxplatform.com/)
+  - base image is now Rocky Linux 9.8 for glibc 2.34
+  - CUDA 13.3.0
+  - OptiX 9.1.0
+  - clang/llvm 21.1.8 / 22.1.7
+  - MaterialX 1.39.5
+  - OpenUSD 26.05
+  - images tagged `draft` / `2027.0` since some packages called for by VFX Platform 2027 only release later in the year
+    - OpenColorIO 2.6.x (2027 draft uses 2.5.2)
+    - OpenEXR 3.5.x (2027 draft uses 3.4.13)
+    - OpenVDB 14.x (2027 draft uses 13.0.0)
+    - OpenSubdiv 3.8.x (2027 draft uses 3.7.0)
+- All releases
+  - Conan 2.26.2 to 2.29.0
+  - Sonar Scanner 8.0.1.6346 to 8.1.0.6389
+  - Eigen 3.4.0 to 3.4.1 (5.0.x breaks ceres-solver)
+  - [rawtoaces 2.1.0 to 2.1.1](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/424)
+  - [OpenUSD built using PXR_PYTHON_SHEBANG to avoid leaking Conan cache paths into Python tools](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/423)
+- 2023.4 releases
+  - [minizip-ng 3.0.10 to 4.0.10 to address invalid hex constant in mz.h which can break downstream consumers](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/401)
+- 2024.8 releases
+  - OpenEXR 3.2.9 to 3.2.10
+  - Python 3.11.13 to 3.11.15
+- 2025.7 releases
+  - OpenEXR 3.3.11 to 3.3.12
+  - [OpenShadingLanguage 1.14.9.0 to 1.14.11.0](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/421)
+  - Python 3.11.13 to 3.11.15
+- 2026.5 releases
+  - CUDA 12.9.1 to 12.9.2
+  - [OpenColorIO 2.5.1 to 2.5.2](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/394)
+  - [OpenEXR 3.4.11 to 3.4.13](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/417)
+  - [OpenImageIO 3.1.13.1 to 3.1.14.1](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/419)
+  - [OpenShadingLanguage 1.15.4.0 to 1.15.5.0](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/421)
+  - Python 3.13.12 to 3.13.14
+
+# 2026-06-18
+
+- Initial support for Moonray
+  - [Additional Conan packages](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/396)
+    - gnutls wrapper
+    - embree
+    - ispc (wrapper around pre-built download)
+    - jsoncpp
+    - libcgroup
+    - libmicrohttpd
+    - lua
+    - openimagedenoise
+    - ramdom123
+    - moonray (dependencies only for now)
+  - [ci-moonray image](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/388)
+    - includes all dependencies to build Moonray
+    - moonray Conan package to be extended to build Moonray for inclusing in ci-vfxall
+
 # 2026-05-19
 
 - All releases

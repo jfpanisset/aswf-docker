@@ -25,7 +25,7 @@ sources:
     sha256: "39514e1b53a5333fcff817e19565371f016ea536c36fd2d13a9c4d8da8f0be0c"
 patches:
   "4.2.9":
-    - patch_file: "patches/4.2.0-0003-deterministic-libname.patch"
+    - patch_file: "patches/4.2.9-0003-deterministic-libname.patch"
       patch_description: "No generator dependent libname"
       patch_type: "conan"
   "4.2.5":

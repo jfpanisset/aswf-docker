@@ -73,11 +73,11 @@ class OpenImageIOConan(ConanFile):
         "with_raw": True,  # libraw is available under CDDL-1.0 or LGPL-2.1, for this reason it is disabled by default ASWF: enable for rawtoaces
         "with_openjpeg": True,
         "with_openjph": True,
-        "with_openvdb": False,  # FIXME: broken on M1
+        "with_openvdb": True,  # ASWF: enable OpenVDB
         "with_ptex": True,
         "with_libwebp": True,
         "with_libultrahdr": True,
-        "with_iv": True,
+        "with_iv": False, # ASWF: no clean way to avoid Qt dependency for consumers
         "with_python": True, # ASWF: build Python bindings
     }
 
@@ -116,7 +116,7 @@ class OpenImageIOConan(ConanFile):
         self.requires("pugixml/1.14")
         self.requires("libsquish/1.15")
         self.requires("tsl-robin-map/1.2.1")
-        self.requires("fmt/10.2.1", transitive_headers=True)
+        self.requires("fmt/[>=10.2.1 <13]", transitive_headers=True)
         self.requires("pybind11/[>=2.0.0]") # ASWF: OIIO now uses pybind11
 
         # Optional libraries
@@ -158,8 +158,12 @@ class OpenImageIOConan(ConanFile):
         # TODO: R3DSDK dependency
         # TODO: Nuke dependency
         if self.options.with_iv:# ASWF: need Qt and OpenGL to build iv
-           self.requires("opengl/system", visible=False)
-           self.requires("qt/6.8.3", visible=False)
+           # visible=True (default): Conan 2 forbids visible=False deps from appearing in
+           # cpp_info.components[].requires, but package_info() must reference all direct deps.
+           # iv has no .libs (only bindirs), so consumers won't accidentally link Qt/OpenGL
+           # unless they explicitly target OpenImageIO::iv (which is an executable, not a library).
+           self.requires("opengl/system")
+           self.requires("qt/6.8.3")
         if self.options.with_python: # ASWF: build Python bindings
            self.requires("cpython/[>=3.0.0")
         self.tool_requires("cmake/[>=3.18]")
@@ -416,9 +420,10 @@ class OpenImageIOConan(ConanFile):
             # Make sure consumers can locate the binary if needed
             iv.set_property("cmake_file_name", "OpenImageIO")
             iv.set_property("cmake_target_name", "OpenImageIO::iv")
-            # Do NOT add "qt" (or Qt components) to the library components' requires
-            # or to iv component itself, otherwise clients will try to link to Qt
-            # iv.requires = ["qt::qt", "opengl::opengl"]
+            # iv has no .libs so CMakeDeps only sets link targets on OpenImageIO::iv, which
+            # no consumer links against (it is an executable). Main library consumers using
+            # OpenImageIO::openimageio are unaffected by these Qt/OpenGL targets.
+            iv.requires = ["qt::qt", "opengl::opengl"]
             # ASWF: this may not set QT_PLUGIN_PATH to find the Qt libraries plugins
 
         if not self.options.shared:

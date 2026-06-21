@@ -48,6 +48,25 @@ if [[ $ASWF_OPENUSD_VERSION == 24.08 ]]; then
     curl --location "https://patch-diff.githubusercontent.com/raw/PixarAnimationStudios/OpenUSD/pull/3159.diff" | patch -p1
 fi
 
+if [[ $ASWF_OPENUSD_VERSION == 26.05 ]]; then
+
+cat << 'EOF' | patch -p0
+diff --git pxr/base/work/workTBB/dispatcher_impl.h pxr/base/work/workTBB/dispatcher_impl.h
+index d99dd79ac..bfda2778a 100644
+--- pxr/base/work/workTBB/dispatcher_impl.h
++++ pxr/base/work/workTBB/dispatcher_impl.h
+@@ -12,6 +12,7 @@
+
+ // Blocked range is not used in this file, but this header happens to pull in
+ // the TBB version header in a way that works in all TBB versions.
++#include <tbb/version.h>
+ #include <tbb/blocked_range.h>
+ #include <tbb/concurrent_vector.h>
+ #if TBB_INTERFACE_VERSION_MAJOR >= 12
+EOF
+
+fi
+
 mkdir build
 cd build
 

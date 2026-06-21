@@ -62,3 +62,17 @@ index d99dd79ac..bfda2778a 100644
               HINTS
               ${LIBRAW_LIBDIR_HINT}
               ${PC_LIBRAW_R_LIBDIR}
+diff --git src/openvdb.imageio/CMakeLists.txt src/openvdb.imageio/CMakeLists.txt
+index d99dd79ac..bfda2778a 100644
+--- src/openvdb.imageio/CMakeLists.txt
++++ src/openvdb.imageio/CMakeLists.txt
+@@ -4,7 +4,7 @@
+
+ if (OpenVDB_FOUND)
+     add_oiio_plugin (openvdbinput.cpp
+-                     INCLUDE_DIRS  ${OPENVDB_INCLUDES} ${TBB_INCLUDE_DIRS}
+-                     LINK_LIBRARIES  ${OPENVDB_LIBRARIES}
++                     INCLUDE_DIRS  ${OpenVDB_INCLUDES} ${TBB_INCLUDE_DIRS}
++                     LINK_LIBRARIES  ${OpenVDB_LIBRARIES}
+                                      $<TARGET_NAME_IF_EXISTS:TBB::tbb>)
+ endif()

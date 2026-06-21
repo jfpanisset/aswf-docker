@@ -54,7 +54,7 @@ class AlembicConan(ConanFile):
         self.requires(f"cpython/3.13.3")
         self.requires(f"boost/1.88.0")
         # ASWF: imath half.h is part of Alembic API
-        self.requires(f"imath/3.1.12", transitive_headers = True, transitive_libs = True)
+        self.requires(f"imath/[>=3.1.9 <4]", transitive_headers = True, transitive_libs = True)
         self.requires(f"openexr/3.3.4")
         if self.options.with_hdf5:
             self.requires("hdf5/1.14.3")
@@ -111,5 +111,3 @@ class AlembicConan(ConanFile):
         # TODO: to remove in conan v2 once cmake_find_package* generators removed
         self.cpp_info.names["cmake_find_package"] = "Alembic"
         self.cpp_info.names["cmake_find_package_multi"] = "Alembic"
-
-

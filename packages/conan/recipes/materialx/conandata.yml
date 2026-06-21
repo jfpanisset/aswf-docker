@@ -2,9 +2,12 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/2a3cb93885141024c1b405a01a79fb3abc239b12/recipes/materialx/all/conandata.yml
+# From: https://github.com/conan-io/conan-center-index/blob/383c5be6372dffa0639cad9566bb224db168b540/recipes/materialx/all/conandata.yml
 
 sources:
+  "1.39.5":
+    url: "https://github.com/AcademySoftwareFoundation/MaterialX/archive/v1.39.5.tar.gz"
+    sha256: "c0d739b70a36f6f72888a0e8e66db5c83ae87c40737cc9b51c108166804f3a3b"
   "1.39.4":
     url: "https://github.com/AcademySoftwareFoundation/MaterialX/archive/v1.39.4.tar.gz"
     sha256: "ce9c1a3b84a060d6280d355a72bf42b53837ee7bcc5a566cab1e927c64078fd9"
@@ -33,6 +36,13 @@ sources:
     url: "https://github.com/AcademySoftwareFoundation/MaterialX/archive/v1.38.5.tar.gz"
     sha256: "af1e1ddb7980b299171803c0410d2a189653eb8624beb49541fd15978b784f1d"
 patches:
+  "1.39.5":
+    - patch_file: "patches/pybind11-cmake.patch"
+      patch_description: "CMake: Must call find_package() on Python3 before pybind11"
+      patch_type: "conan"
+    - patch_file: "patches/1.39.5-cmake-libraries.patch"
+      patch_descriptions: "MaterialX support files in share/MaterialX https://github.com/AcademySoftwareFoundation/MaterialX/issues/2874"
+      patch_type: "conan"
   "1.39.4":
     - patch_file: "patches/pybind11-cmake.patch"
       patch_description: "CMake: Must call find_package() on Python3 before pybind11"

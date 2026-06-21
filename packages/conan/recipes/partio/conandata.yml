@@ -3,6 +3,9 @@
 # SPDX-License-Identifier: MIT
 
 sources:
+  "1.20.0":
+    url: "https://github.com/wdas/partio/archive/v1.20.0.tar.gz"
+    sha256: "e60a89364f2b5d9c9b1f143175fc1a5018027a59bb31af56e5df88806b506e49"
   "1.19.0":
     url: "https://github.com/wdas/partio/archive/v1.19.0.tar.gz"
     sha256: "128913266a88a0939aaa4bc951ae4d4da1c380408bcc0ea9e7f526556afeaad0"

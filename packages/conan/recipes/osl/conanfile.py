@@ -108,6 +108,8 @@ class OpenShadingLanguageConan(ConanFile):
         tc.variables["OPTIXHOME"] = "/usr/local/NVIDIA-OptiX-SDK-9.0.0" # ASWF FIXME
         if Version(self.version) < "1.14":
             tc.variables["INSTALL_DOCS"] = "OFF" # skip documentation build for 1.13 and older
+        if Version(os.environ['ASWF_CUDA_VERSION']) >= "13": # ASWF FIXME: should have CUDA wrapper package
+            tc.variables["CUDA_TARGET_ARCH"] = "sm_75" # CUDA 13 drops pre-Turing archs
 
         tc.generate()
         cd = CMakeDeps(self)

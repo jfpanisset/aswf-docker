@@ -3,6 +3,9 @@
 # SPDX-License-Identifier: MIT
 
 sources:
+  "1.15.5.0":
+    url: "https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/archive/refs/tags/v1.15.5.0.tar.gz"
+    sha256: "a83fb396ca5b6724dbaae534840cf07ee6c593f0dbd877a8fa5ed2c32099c934"
   "1.15.4.0":
     url: "https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/archive/refs/tags/v1.15.4.0.tar.gz"
     sha256: "c721a1487d9dafdf77aec86ff9ff84efc4347f3c296a10ec2036b5849facf334"
@@ -37,6 +40,16 @@ sources:
     url: "https://github.com/AcademySoftwareFoundation/OpenShadingLanguage/archive/refs/tags/v1.11.13.0.tar.gz"
     sha256: "5fface4b487b9bf9448ac5f5a370dbe2075d2941dd11c396448a86ac11663002"
 patches:
+  "1.15.5.0":
+    - patch_file: "patches/1.15.5.0-find-llvm-binaries.patch"
+      patch_description: "Allow CMake to find LLVM binaries when building inside Conan"
+      patch_type: "conan"
+    - patch_file: "patches/1.15.5.0-cmake-oiio-imath-includes.patch"
+      patch_description: "Allow imath, oiio, and fmt to be found when building inside Conan"
+      patch_type: "conan"
+    - patch_file: "patches/1.15.5.0-oslcomp-llvm-filesystem.patch"
+      patch_description: "Build oslcomp with LLVM 22"
+      patch_type: "conan"
   "1.15.4.0":
     - patch_file: "patches/1.15.1.0-find-llvm-binaries.patch"
       patch_description: "Allow CMake to find LLVM binaries when building inside Conan"

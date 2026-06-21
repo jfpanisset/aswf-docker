@@ -1,7 +1,0 @@
-include(ci_common2)
-
-[settings]
-python=3.9
-[options]
-[tool_requires]
-[buildenv]

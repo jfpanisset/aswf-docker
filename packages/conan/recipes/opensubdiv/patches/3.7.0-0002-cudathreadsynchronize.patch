@@ -1,0 +1,13 @@
+diff --git a/opensubdiv/osd/CMakeLists.txt b/opensubdiv/osd/CMakeLists.txt
+index b82773a1..bab1bdac 100644
+--- opensubdiv/osd/cudaEvaluator.cpp
++++ opensubdiv/osd/cudaEvaluator.cpp
+@@ -359,7 +359,7 @@
+ /* static */
+ void
+ CudaEvaluator::Synchronize(void * /*deviceContext*/) {
+-    cudaThreadSynchronize();
++    cudaDeviceSynchronize();
+ }
+
+ }  // end namespace Osd

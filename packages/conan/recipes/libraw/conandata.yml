@@ -2,9 +2,15 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/5aa8fda35e023ceeaefb5a670ae9c0c3ca4fdf25/recipes/libraw/all/conandata.yml
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/libraw/all/conandata.yml
 
 sources:
+  "0.22.1":
+    url: "https://github.com/LibRaw/LibRaw/archive/0.22.1.tar.gz"
+    sha256: "e676248284075605aa2697a66eeed7dc258820bd1d4988c724d29edffd726726"
+  "0.21.5b":
+    url: "https://github.com/LibRaw/LibRaw/archive/0.21.5b.tar.gz"
+    sha256: "f60e8377dec42e50f59ed2860ba00bcb59773e04afbf7bd6bd9367ac3529e0e8"
   "0.21.4":
     url: "https://github.com/LibRaw/LibRaw/archive/0.21.4.tar.gz"
     sha256: "8baeb5253c746441fadad62e9c5c43ff4e414e41b0c45d6dcabccb542b2dff4b"
