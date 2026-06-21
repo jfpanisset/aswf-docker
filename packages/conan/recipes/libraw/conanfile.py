@@ -2,7 +2,7 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/5aa8fda35e023ceeaefb5a670ae9c0c3ca4fdf25/recipes/libraw/all/conanfile.py
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/libraw/all/conanfile.py
 
 import os
 
@@ -62,15 +62,15 @@ class LibRawConan(ConanFile):
         # TODO: RawSpeed dependency (-DUSE_RAWSPEED)
         # TODO: DNG SDK dependency (-DUSE_DNGSDK)
         if self.options.with_jpeg == "libjpeg":
-            self.requires("libjpeg/9e")
+            self.requires("libjpeg/[>=9e]")
         elif self.options.with_jpeg == "libjpeg-turbo":
-            self.requires("libjpeg-turbo/3.0.0", transitive_libs=True) # ASWF: force DSO to be found
+            self.requires("libjpeg-turbo/[>=3.0.0 <4]", transitive_libs=True) # ASWF: force DSO to be found
         elif self.options.with_jpeg == "mozjpeg":
-            self.requires("mozjpeg/4.1.3")
+            self.requires("mozjpeg/[>=4.1.3 <5]")
         if self.options.with_lcms:
-            self.requires("lcms/2.16")
+            self.requires("lcms/[>=2.16 <3]")
         if self.options.with_jasper:
-            self.requires("jasper/4.0.0")
+            self.requires("jasper/[>=4.0.0 <5]")
 
     def validate(self):
         if self.settings.compiler.get_safe("cppstd"):

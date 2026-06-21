@@ -452,9 +452,9 @@ Contains:
 * alembic-1.8.10
 * imath-3.2.2
 * opencolorio-2.5.2
-* openexr-3.4.12
+* openexr-3.4.13
 * openfx-1.5.1
-* openimageio-3.1.14.0
+* openimageio-3.1.14.1
 * opentimelineio-0.18.1
 * openusd-26.03
 * openvdb-13.0.0
@@ -479,9 +479,9 @@ Contains:
 * alembic-1.8.10
 * imath-3.2.2
 * opencolorio-2.5.2
-* openexr-3.4.12
+* openexr-3.4.13
 * openfx-1.5.1
-* openimageio-3.1.14.0
+* openimageio-3.1.14.1
 * opentimelineio-0.18.1
 * openusd-26.03
 * openvdb-13.0.0
@@ -506,9 +506,9 @@ Contains:
 * alembic-1.8.11
 * imath-3.2.2
 * opencolorio-2.5.2
-* openexr-3.4.12
+* openexr-3.4.13
 * openfx-1.5.1
-* openimageio-3.1.14.0
+* openimageio-3.1.14.1
 * opentimelineio-0.18.1
 * openusd-26.05
 * openvdb-13.0.0
@@ -533,9 +533,9 @@ Contains:
 * alembic-1.8.11
 * imath-3.2.2
 * opencolorio-2.5.2
-* openexr-3.4.12
+* openexr-3.4.13
 * openfx-1.5.1
-* openimageio-3.1.14.0
+* openimageio-3.1.14.1
 * opentimelineio-0.18.1
 * openusd-26.05
 * openvdb-13.0.0

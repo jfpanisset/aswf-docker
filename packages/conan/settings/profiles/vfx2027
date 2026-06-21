@@ -82,10 +82,10 @@ openal-soft/*: openal-soft/system@{{ org }}/vfx2027
 opencl-headers/*: opencl-headers/system@{{ org }}/vfx2027
 opencl-icd-loader/*: opencl-icd-loader/system@{{ org }}/vfx2027
 opencolorio/*: opencolorio/2.5.2@{{ org }}/vfx2027
-openexr/*: openexr/3.4.12@{{ org }}/vfx2027
+openexr/*: openexr/3.4.13@{{ org }}/vfx2027
 openfx/*: openfx/1.5.1@{{ org }}/vfx2027
 opengl/*: opengl/system@{{ org }}/vfx2027
-openimageio/*: openimageio/3.1.14.0@{{ org }}/vfx2027
+openimageio/*: openimageio/3.1.14.1@{{ org }}/vfx2027
 openjpeg/*: openjpeg/2.4.0@{{ org }}/vfx2027
 openjph/*: openjph/0.27.4@{{ org }}/vfx2027
 opensubdiv/*: opensubdiv/3.7.0@{{ org }}/vfx2027

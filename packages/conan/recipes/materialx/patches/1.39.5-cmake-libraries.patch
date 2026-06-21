@@ -1,0 +1,66 @@
+--- cmake/modules/MaterialXConfig.cmake.in
++++ cmake/modules/MaterialXConfig.cmake.in
+@@ -22,7 +22,7 @@
+ set_and_check(MATERIALX_BASE_DIR "@PACKAGE_CMAKE_INSTALL_PREFIX@")
+ set_and_check(MATERIALX_STDLIB_DIR "@PACKAGE_CMAKE_INSTALL_PREFIX@/@MATERIALX_INSTALL_STDLIB_PATH@")
+ if(@MATERIALX_BUILD_PYTHON@ AND @MATERIALX_INSTALL_PYTHON@)
+-    set_and_check(MATERIALX_PYTHON_DIR "@PACKAGE_CMAKE_INSTALL_PREFIX@/python")
++    set_and_check(MATERIALX_PYTHON_DIR "@PACKAGE_CMAKE_INSTALL_PREFIX@/@MATERIALX_PYTHON_FOLDER_NAME@")
+ endif()
+
+ # Dependencies when building static libraries:
+@@ -36,7 +36,7 @@
+ endif()
+
+ if(@MATERIALX_BUILD_RENDER@ AND @MATERIALX_INSTALL_RESOURCES@)
+-    set_and_check(MATERIALX_RESOURCES_DIR "@PACKAGE_CMAKE_INSTALL_PREFIX@/resources")
++    set_and_check(MATERIALX_RESOURCES_DIR "@PACKAGE_CMAKE_INSTALL_PREFIX@/@MATERIALX_INSTALL_RESOURCES_PATH@")
+ endif()
+
+ if(UNIX AND NOT APPLE)
+--- resources/CMakeLists.txt
++++ resources/CMakeLists.txt
+@@ -1,4 +1,4 @@
+ if(NOT SKBUILD)
+     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+-            DESTINATION "resources" MESSAGE_NEVER)
++            DESTINATION "${MATERIALX_INSTALL_RESOURCES_PATH}" MESSAGE_NEVER)
+ endif()
+--- python/CMakeLists.txt
++++ python/CMakeLists.txt
+@@ -1,6 +1,6 @@
+ if(NOT SKBUILD)
+-  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/MaterialX" DESTINATION "python" MESSAGE_NEVER)
+-  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Scripts" DESTINATION "python" MESSAGE_NEVER)
++  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/MaterialX" DESTINATION ${MATERIALX_PYTHON_FOLDER_NAME} MESSAGE_NEVER)
++  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Scripts" DESTINATION ${MATERIALX_PYTHON_FOLDER_NAME} MESSAGE_NEVER)
+ endif()
+
+ if(SKBUILD)
+@@ -12,6 +12,6 @@
+ endif()
+
+ if(MATERIALX_INSTALL_PYTHON AND PYTHON_EXECUTABLE AND NOT SKBUILD)
+-  set(PYPROJECT_TOML "${CMAKE_INSTALL_PREFIX}/python/pyproject.toml")
++  set(PYPROJECT_TOML "${CMAKE_INSTALL_PREFIX}/${MATERIALX_PYTHON_FOLDER_NAME}/pyproject.toml")
+   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml.in" "${PYPROJECT_TOML}")
+ endif()
+--- CMakeLists.txt
++++ CMakeLists.txt
+@@ -133,6 +133,7 @@
+ set(MATERIALX_INSTALL_BIN_PATH "bin" CACHE STRING "Install bin path (e.g. 'bin').")
+ set(MATERIALX_INSTALL_LIB_PATH "lib" CACHE STRING "Install lib path (e.g. 'libs', 'lib').")
+ set(MATERIALX_INSTALL_STDLIB_PATH "libraries" CACHE STRING "Install path for mtlx std libs (e.g. 'libraries').")
++set(MATERIALX_INSTALL_RESOURCES_PATH "resources" CACHE STRING "Install path for mtlx resources / test files (e.g. 'resources').")
+
+ # Helpers for OSL validation
+ set(MATERIALX_OSL_BINARY_OSLC "" CACHE FILEPATH "Full path to the OSL compiler binary.")
+@@ -142,7 +143,7 @@
+ # Helpers for Slang validation
+ set(MATERIALX_SLANG_RHI_SOURCE_DIR "" CACHE PATH "Full path to the Slang RHI build directory.")
+
+-set(MATERIALX_PYTHON_FOLDER_NAME "python/MaterialX" CACHE INTERNAL "Folder name to user for installing the Python library.")
++set(MATERIALX_PYTHON_FOLDER_NAME "python/MaterialX" CACHE STRING "Folder name to use for installing the Python library.")
+
+ if(SKBUILD)
+     set(MATERIALX_PYTHON_FOLDER_NAME "MaterialX")

@@ -28,6 +28,9 @@ patches:
     - patch_file: "patches/3.7.0-0001-cmake-no-rpath.patch"
       patch_description: "CMake: do not populate rpath with absolute paths"
       patch_type: "conan"
+    - patch_file: "patches/3.7.0-0002-cudathreadsynchronize.patch"
+      patch_description: "cudaTHreadSynchronize() is deprecated"
+      patch_type: "conan"
   "3.6.1":
     - patch_file: "patches/3.6.0-0002-cmake-no-rpath.patch"
       patch_description: "CMake: do not populate rpath with absolute paths"

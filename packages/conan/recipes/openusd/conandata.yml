@@ -5,6 +5,9 @@
 # From: https://github.com/EstebanDugueperoux2/conan-center-index/blob/1d8986d11305e1303b1581532f327cdd9d32ed20/recipes/openusd/all/conandata.yml
 
 sources:
+  "26.05":
+    url: "https://github.com/PixarAnimationStudios/OpenUSD/archive/refs/tags/v26.05.tar.gz"
+    sha256: "bf514f62ac9508d3c5b121dc1107f3b29bf3c954473b9b0bf8324b7cf04c64c1"
   "26.03":
     url: "https://github.com/PixarAnimationStudios/OpenUSD/archive/refs/tags/v26.03.tar.gz"
     sha256: "590ea75ffa3ac0c35fdd080df04d61a696733b8f3d6a79bdc3f13f8077162d36"
@@ -25,6 +28,20 @@ sources:
     sha256: "f5c3e72cd584bab383a8054628b6ed98aa17b1cbbe896eb98257ac19641d10c7"
 
 patches:
+  "26.05":
+    # Cannot compile with C++ 20 until https://github.com/PixarAnimationStudios/OpenUSD/issues/4017 is resolved
+    # - patch_file: "patches/26.03-cxx-standard.patch"
+    #   patch_description: "Don't overrride C++ version"
+    #   patch_type: "conan"
+    - patch_file: "patches/26.03-dependency-cache.patch"
+      patch_description: "Missing parameter for std::atomic<bool>::store() https://github.com/PixarAnimationStudios/OpenUSD/issues/4016"
+      patch_type: "conan"
+    - patch_file: "patches/26.03-cmake-packages.patch"
+      patch_description: "Emulate behavior of custom CMake modules when building with Conan"
+      patch_type: "conan"
+    - patch_file: "patches/26.05-onetbb-version.patch"
+      patch_description: "Fix oneTBB 2023 version detection"
+      patch_type: "conan"
   "26.03":
     # Cannot compile with C++ 20 until https://github.com/PixarAnimationStudios/OpenUSD/issues/4017 is resolved
     # - patch_file: "patches/26.03-cxx-standard.patch"

@@ -2,9 +2,12 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/cceee569179c10fa56d1fd9c3582f3371944ba59/recipes/openexr/3.x/conandata.yml
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/openexr/3.x/conandata.yml
 
 sources:
+  "3.4.13":
+    url: "https://github.com/AcademySoftwareFoundation/openexr/releases/download/v3.4.13/openexr-3.4.13.tar.gz"
+    sha256: "fe99c9cf06e41803db75ae4f5c9bb9955b7033ff47f05b02bc60bc5dba391996"
   "3.4.11":
     url: "https://github.com/AcademySoftwareFoundation/openexr/releases/download/v3.4.11/openexr-3.4.11.tar.gz"
     sha256: "25f6a008e4060441a9e9d805bceda58fb811e0adef64b39807dfd73b94e12c91"

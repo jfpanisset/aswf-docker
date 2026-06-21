@@ -22,7 +22,7 @@ class SystemGiflibConan(ConanFile):
     def package_info(self):
         self.cpp_info.includedirs = ["/usr/include"]
         self.cpp_info.libdirs = [] # in standard search path
-        self.cpp_info.libs = ["gif"]
+        self.cpp_info.system_libs = ["gif"]
         
         self.cpp_info.set_property("cmake_file_name", "GIF")
         self.cpp_info.set_property("cmake_target_name", "GIF::GIF")

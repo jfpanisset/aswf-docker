@@ -2,9 +2,12 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
 #
-# From: https://github.com/conan-io/conan-center-index/blob/b96b04ffad873992cbcfb98f0d84f6f44beb169d/recipes/libjxl/all/conandata.yml
+# From: https://github.com/conan-io/conan-center-index/blob/1ce15d41e0301e69706f20bf3d6d942221d8baae/recipes/libjxl/all/conandata.yml
 
 sources:
+  "0.11.2":
+    url: "https://github.com/libjxl/libjxl/archive/v0.11.2.tar.gz"
+    sha256: "ab38928f7f6248e2a98cc184956021acb927b16a0dee71b4d260dc040a4320ea"
   "0.11.1":
     url: "https://github.com/libjxl/libjxl/archive/v0.11.1.tar.gz"
     sha256: "1492dfef8dd6c3036446ac3b340005d92ab92f7d48ee3271b5dac1d36945d3d9"

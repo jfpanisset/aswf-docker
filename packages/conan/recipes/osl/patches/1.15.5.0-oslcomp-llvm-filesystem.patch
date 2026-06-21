@@ -1,0 +1,14 @@
+diff --git src/liboslcomp/oslcomp.cpp src/liboslcomp/oslcomp.cpp
+index d99dd79ac..bfda2778a 100644
+--- src/liboslcomp/oslcomp.cpp
++++ src/liboslcomp/oslcomp.cpp
+@@ -200,6 +200,9 @@
+
+     inst.setTarget(target);
+
++#if OSL_LLVM_VERSION >= 220
++    inst.createVirtualFileSystem();
++#endif
+     inst.createFileManager();
+ #if OSL_LLVM_VERSION >= 220
+     inst.createSourceManager();
