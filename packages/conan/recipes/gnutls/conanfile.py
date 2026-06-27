@@ -28,6 +28,5 @@ class SystemGnuTLSConan(ConanFile):
         self.cpp_info.set_property("pkg_config_name", "gnutls")
 
         self.cpp_info.includedirs = ["/usr/include"]
-        self.cpp_info.libdirs = ["/usr/lib64"]
-        self.cpp_info.libs = ["gnutls"]
-        self.cpp_info.system_libs = ["dl", "pthread", "z", "m"]
+        self.cpp_info.libdirs = [] # in standard search path
+        self.cpp_info.system_libs = ["gnutls", "dl", "pthread", "z", "m"]

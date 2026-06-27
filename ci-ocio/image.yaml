@@ -6,6 +6,7 @@ description: |
   Warning: this image does *not* contain OpenColorIO itself as it is used to *build* OpenColorIO!
 packages:
   - glew # hidden dependency for GUI tools
+  - openimageio # OCIO wants to be able to build OCIO tools which depend on OIIO
   - opencolorio # all dependencies will be installed except opencolorio itself
 implicit_packages:
   - numpy

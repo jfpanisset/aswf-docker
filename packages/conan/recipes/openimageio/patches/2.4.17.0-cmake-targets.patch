@@ -413,3 +413,16 @@ index ed42f1c94..82d2b9770 100644
 +                     INCLUDE_DIRS ${ptex_INCLUDE_DIRS}
                       DEFINITIONS "-DUSE_PTEX")
  endif ()
+--- src/openvdb.imageio/CMakeLists.txt
++++ src/openvdb.imageio/CMakeLists.txt
+@@ -4,7 +4,7 @@
+
+ if (OpenVDB_FOUND)
+     add_oiio_plugin (openvdbinput.cpp
+-                     INCLUDE_DIRS  ${OPENVDB_INCLUDES} ${TBB_INCLUDE_DIRS}
+-                     LINK_LIBRARIES  ${OPENVDB_LIBRARIES}
++                     INCLUDE_DIRS  ${OpenVDB_INCLUDES} ${TBB_INCLUDE_DIRS}
++                     LINK_LIBRARIES  ${OpenVDB_LIBRARIES}
+                                      $<TARGET_NAME_IF_EXISTS:TBB::tbb>)
+ endif()
+  

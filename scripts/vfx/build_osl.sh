@@ -41,10 +41,32 @@ EOF
 
 fi
 
-if [[ $ASWF_DTS_VERSION == 9 && $ASWF_CUDA_VERSION == 10* ]]; then
-    CUDA_COMPUTE_VERSION=compute_30
+if [[ $ASWF_OSL_VERSION == 1.15.5.0 ]]; then
+# Build oslcomp with LLVM 22
+
+cat << 'EOF' | patch -p1
+diff --git a/src/liboslcomp/oslcomp.cpp b/src/liboslcomp/oslcomp.cpp
+index d99dd79ac..bfda2778a 100644
+--- a/src/liboslcomp/oslcomp.cpp
++++ b/src/liboslcomp/oslcomp.cpp
+@@ -200,6 +200,9 @@
+
+     inst.setTarget(target);
+
++#if OSL_LLVM_VERSION >= 220
++    inst.createVirtualFileSystem();
++#endif
+     inst.createFileManager();
+ #if OSL_LLVM_VERSION >= 220
+     inst.createSourceManager();
+EOF
+
+fi
+
+if [[ ${ASWF_CUDA_VERSION%%.*} -ge 13 ]]; then
+    CUDA_TARGET_ARCH=sm_75
 else
-    CUDA_COMPUTE_VERSION=compute_50
+    CUDA_TARGET_ARCH=sm_50
 fi
 
 mkdir build
@@ -58,6 +80,8 @@ cmake -DCMAKE_INSTALL_PREFIX="${ASWF_INSTALL_PREFIX}" \
       -DOSL_USE_OPTIX=ON \
       -DOPTIX_VERSION=${ASWF_OPTIX_VERSION} \
       -DOPTIXHOME=${ASWF_INSTALL_PREFIX}/NVIDIA-OptiX-SDK-${ASWF_OPTIX_VERSION} \
+      -DCUDA_TARGET_ARCH=${CUDA_TARGET_ARCH} \
+      -DPYTHON_VERSION=${ASWF_CONAN_PYTHON_VERSION} \
       ../.
 cmake --build . -j$(nproc)
 cmake --install .

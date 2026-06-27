@@ -2,14 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-# 2026-06-21
+# 2026-06-22
 
 - Draft support for [VFX Platform 2027](https://vfxplatform.com/)
   - base image is now Rocky Linux 9.8 for glibc 2.34
   - CUDA 13.3.0
   - OptiX 9.1.0
   - clang/llvm 21.1.8 / 22.1.7
-  - MaterialX 1.39.5
+  - [MaterialX 1.39.5](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/416)
   - OpenUSD 26.05
   - images tagged `draft` / `2027.0` since some packages called for by VFX Platform 2027 only release later in the year
     - OpenColorIO 2.6.x (2027 draft uses 2.5.2)
@@ -20,13 +20,22 @@ All notable changes to this project will be documented in this file.
   - Conan 2.26.2 to 2.29.0
   - Sonar Scanner 8.0.1.6346 to 8.1.0.6389
   - Eigen 3.4.0 to 3.4.1 (5.0.x breaks ceres-solver)
+  - [ci-ocio images now include openimageio build](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/402)
+    - allows OCIO CI to build tools which depend on OIIO
+    - OCIO package build keeps OIIO dependency disabled to avoid circular dependency
+    - building with -DOCIO_USE_OIIO_FOR_APPS=ON will not work when trying to build a newer OCIO in an older ci-ocio container since bundled OIIO is linked against OCIO DSOs
   - [rawtoaces 2.1.0 to 2.1.1](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/424)
   - [OpenUSD built using PXR_PYTHON_SHEBANG to avoid leaking Conan cache paths into Python tools](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/423)
+  - strip rpath from pre-built OpenImageDenoise DSOs to allow finding our libTBB
 - 2023.4 releases
   - [minizip-ng 3.0.10 to 4.0.10 to address invalid hex constant in mz.h which can break downstream consumers](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/401)
+    - this requires patching OCIO 2.2.1 for API changes between minizip 3 and 4
+  - dowgrade OpenImageDenoise 2.3.3 to 1.2.4 for OneTBB 2020 compatibility
+  - [OpenImageIO built with libraw for rawtoaces support](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/400)
 - 2024.8 releases
   - OpenEXR 3.2.9 to 3.2.10
   - Python 3.11.13 to 3.11.15
+  - dowgrade OpenImageDenoise 2.3.3 to 1.2.4 for OneTBB 2020 compatibility
 - 2025.7 releases
   - OpenEXR 3.3.11 to 3.3.12
   - [OpenShadingLanguage 1.14.9.0 to 1.14.11.0](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/421)
