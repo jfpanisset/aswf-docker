@@ -22,6 +22,7 @@ Warning: this image does *not* contain OpenColorIO itself as it is used to *buil
 
 Contains:
 * glew-2.1.0
+* openimageio-2.0.8
 * opencolorio-1.1.0
 * numpy-1.14
 * vfxplatform-2019
@@ -30,6 +31,7 @@ Contains:
 
 Contains:
 * glew-2.1.0
+* openimageio-2.1.13.0
 * opencolorio-1.1.1
 * numpy-1.16
 * vfxplatform-2020
@@ -38,6 +40,7 @@ Contains:
 
 Contains:
 * glew-2.1.0
+* openimageio-2.2.14.0
 * opencolorio-2.0.1
 * numpy-1.19
 * vfxplatform-2021
@@ -46,6 +49,7 @@ Contains:
 
 Contains:
 * glew-2.1.0
+* openimageio-2.4.5.0
 * opencolorio-2.1.1
 * numpy-1.20
 * vfxplatform-2022
@@ -54,6 +58,7 @@ Contains:
 
 Contains:
 * glew-2.2.0
+* openimageio-2.4.17.0
 * opencolorio-2.2.1
 * numpy-1.23.5
 * vfxplatform-2023
@@ -62,6 +67,7 @@ Contains:
 
 Contains:
 * glew-2.2.0
+* openimageio-2.5.19.1
 * opencolorio-2.3.2
 * numpy-1.24.3
 * vfxplatform-2024
@@ -70,6 +76,7 @@ Contains:
 
 Contains:
 * glew-2.2.0
+* openimageio-3.1.6.2
 * opencolorio-2.4.2
 * numpy-1.26.4
 * vfxplatform-2025
@@ -78,6 +85,7 @@ Contains:
 
 Contains:
 * glew-2.2.0
+* openimageio-3.1.14.1
 * opencolorio-2.5.2
 * numpy-2.3.2
 * vfxplatform-2026
@@ -86,6 +94,7 @@ Contains:
 
 Contains:
 * glew-2.3.1
+* openimageio-3.1.14.1
 * opencolorio-2.5.2
 * numpy-2.4.6
 * vfxplatform-2027

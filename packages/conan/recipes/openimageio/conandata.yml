@@ -6,23 +6,23 @@
 
 sources:
   "3.1.14.1":
-    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/v3.1.14.1.tar.gz"
-    sha256: "3c3e7c637aad57008b290ebee803df88fa7326c23e39712fdcb0a5b520032cd1"
+    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/releases/download/v3.1.14.1/OpenImageIO-3.1.14.1.tar.gz"
+    sha256: "747341fd98f10d82868ec7663f1f3763cf6fb9acf8a2ed81fc3f25256ef019be"
   "3.1.13.1":
-    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/v3.1.13.1.tar.gz"
-    sha256: "0fc59b8e2708ded02d3793b8f3331f037ed49bfcde38158f05ac0e876ebb85b7"
+    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/releases/download/v3.1.13.1/OpenImageIO-3.1.13.1.tar.gz"
+    sha256: "b0d81f4f041fd72f034bd2a6c5ad9db1880008f67af101233cf3992f9e59217f"
   "3.1.12.0":
-    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/v3.1.12.0.tar.gz"
-    sha256: "24aa5a7af5c7a98887a8f495e18079d82ef73913370e906fa5d73016d37964c7"
+    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/releases/download/v3.1.12.0/OpenImageIO-3.1.12.0.tar.gz"
+    sha256: "704511376faf32767cdcd9aa9a6d0be2b03b91f849ad9008227dc9f0e14bc265"
   "3.1.10.0":
-    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/v3.1.10.0.tar.gz"
-    sha256: "6b62ceb83c8131ec49a999e0008750b52d98162d79265af47430cf83ed03ec0b"
+    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/releases/download/v3.0.15.0/OpenImageIO-3.0.15.0.tar.gz"
+    sha256: "f1c07ca0f80c0ef6cd87386d4afcb6a3cc3e42fede02ec42bbe11fd2ce70cf70"
   "3.1.7.0":
-    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/v3.1.7.0.tar.gz"
-    sha256: "d5160dc44a62897104f44488ebdb19249a78448a25fbae3504fc1ea6fda54878"
+    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/releases/download/v3.1.7.0/OpenImageIO-3.1.7.0.tar.gz"
+    sha256: "d9b49b568c36993f6b3849bfafd9ac3178a56ff57efd8bd2c1dd81f7ae3ee318"
   "3.1.6.2":
-    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/v3.1.6.2.tar.gz"
-    sha256: "a1e515e6a6ea9925a70c23db21dda37f3ce2c24780a6bfedd8685fea063f698a"
+    url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/releases/download/v3.1.6.2/OpenImageIO-3.1.6.2.tar.gz"
+    sha256: "a78156112c03b669827115ac34102b358569dc6d6872a45db719617eff33360b"
   "3.0.9.1":
     url: "https://github.com/AcademySoftwareFoundation/OpenImageIO/archive/refs/tags/v3.0.9.1.tar.gz"
     sha256: "bbc5db069b7d8e4e2fccf994d55a262953057745a5e398e44a2e5235a8736d1d"
@@ -168,7 +168,7 @@ patches:
       patch_description: "Missing includes when Imath from Conan package"
       patch_type: "conan"
   "2.5.19.1":
-    - patch_file: "patches/2.5.19.0-cmake-targets.patch"
+    - patch_file: "patches/2.5.19.1-cmake-targets.patch"
       patch_description: "Ensure project builds correctly with Conan (don't pick up disabled dependencies from the system, fix different spelling of libraries)"
       patch_type: "conan"
     - patch_file: "patches/2.5.19.0-raw-jp2k-cmake.patch"
@@ -201,6 +201,9 @@ patches:
     - patch_file: "patches/2.4.17.0-cmake-targets.patch"
       patch_description: "Ensure project builds correctly with Conan (don't pick up disabled dependencies from the system, fix different spelling of libraries)"
       patch_type: "conan"
+    - patch_file: "patches/2.4.17.0-raw-jp2k-cmake.patch"
+      patch_description: "Find local builds of LibRaw, OpenJPEG"
+      patch_type: "conan"
   "2.4.7.1":
     - patch_file: "patches/2.4.7.1-cmake-targets.patch"
       patch_description: "Ensure project builds correctly with Conan (don't pick up disabled dependencies from the system, fix different spelling of libraries)"
@@ -208,4 +211,3 @@ patches:
     - patch_file: "patches/2.4.7.1-fix-msvc2017.patch"
       patch_description: "Fix compile error with MSVC 2017"
       patch_type: "official"
-

@@ -8,3 +8,8 @@ sources:
   "4.2.0":
     url: "https://github.com/RenderKit/embree/archive/refs/tags/v4.2.0.tar.gz"
     sha256: "b0479ce688045d17aa63ce6223c84b1cdb5edbf00d7eda71c06b7e64e21f53a0"
+patches:
+  "4.2.0":
+    - patch_file: "patches/4.2.0-0001-cmake-minimum.patch"
+      patch_description: "CMake 4 removes pre-3.5 compatibility"
+      patch_type: "conan"

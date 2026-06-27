@@ -35,6 +35,23 @@ if [[ $ASWF_IMATH_VERSION == 3* && $ASWF_OPENVDB_VERSION == 8* ]]; then
     patch -p1 < /tmp/openvdb-imath.patch
 fi
 
+if [[ $ASWF_OPENVDB_VERSION == 13* ]]; then
+
+cat <<EOF | patch -p0
+diff -ur openvdb/openvdb/thread/Threading.h openvdb/openvdb/thread/Threading.h
+--- openvdb/openvdb/thread/Threading.h
++++ openvdb/openvdb/thread/Threading.h
+@@ -22,6 +22,7 @@
+ ///   software doesn't need to provide compile time defines.
+ #include <tbb/blocked_range.h>
+ #include <tbb/task.h>
++#include <tbb/task_arena.h>
+ #include <tbb/task_group.h>
+
+ namespace openvdb {
+EOF
+fi
+
 mkdir build
 cd build
 

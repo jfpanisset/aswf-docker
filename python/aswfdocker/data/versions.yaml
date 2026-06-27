@@ -310,6 +310,7 @@ versions:
       ASWF_CCACHE_VERSION: "4.13.6"
       ASWF_CMAKE_VERSION: "4.3.3"
       ASWF_OPENSSL_VERSION: "3.5.5"
+      ASWF_GNUTLS_VERSION: "3.8.10"
       ASWF_NINJA_VERSION: "1.13.2"
       ASWF_SONAR_VERSION: "8.1.0.6389"
       ASWF_YQ_VERSION: "4.53.3"
@@ -634,8 +635,8 @@ versions:
       ASWF_MINIZIP_NG_VERSION: "4.0.10"
       ASWF_NANOBIND_VERSION: "2.11.0"
       ASWF_NLOHMANN_JSON_VERSION: "3.12.0"
+      ASWF_OPENIMAGEDENOISE_VERSION: "1.2.4"
       ASWF_OPENJPH_VERSION: "0.24.5"
-      ASWF_OPENIMAGEDENOISE_VERSION: "2.3.3"
       ASWF_PARTIO_VERSION: "1.19.0"
       ASWF_PUGIXML_VERSION: "1.14"
       ASWF_PYBIND11_VERSION: "2.13.6"
@@ -646,7 +647,6 @@ versions:
       ASWF_SPDLOG_VERSION: "1.15.3"
       ASWF_TSL_ROBIN_MAP_VERSION: "1.3.0"
       ASWF_OPENUSD_VERSION: "23.08"
-      ASWF_MOONRAY_VERSION: "3.6.0.1"
       ASWF_YAML_CPP_VERSION: "0.8.0"
       ASWF_ZLIB_VERSION: "1.3.1"
       ASWF_ZSTD_VERSION: "1.5.6"
@@ -667,6 +667,7 @@ versions:
       # ASWF packages
       ASWF_IMATH_VERSION: "3.1.12"
       ASWF_MATERIALX_VERSION: "1.38.7"
+      ASWF_MOONRAY_VERSION: "3.6.0.1"
       ASWF_OPENCOLORIO_CONFIGS_VERSION: "1.0_r2"
       ASWF_OPENCOLORIO_VERSION: "2.2.1"
       ASWF_OPENIMAGEIO_VERSION: "2.4.17.0"
@@ -781,8 +782,8 @@ versions:
       ASWF_MINIZIP_NG_VERSION: "4.0.10"
       ASWF_NANOBIND_VERSION: "2.11.0"
       ASWF_NLOHMANN_JSON_VERSION: "3.12.0"
+      ASWF_OPENIMAGEDENOISE_VERSION: "1.2.4"
       ASWF_OPENJPH_VERSION: "0.24.5"
-      ASWF_OPENIMAGEDENOISE_VERSION: "2.3.3"
       ASWF_PARTIO_VERSION: "1.19.0"
       ASWF_PUGIXML_VERSION: "1.14"
       ASWF_PYBIND11_VERSION: "2.13.6"
@@ -793,7 +794,6 @@ versions:
       ASWF_SPDLOG_VERSION: "1.15.3"
       ASWF_TSL_ROBIN_MAP_VERSION: "1.3.0"
       ASWF_OPENUSD_VERSION: "24.08"
-      ASWF_MOONRAY_VERSION: "3.6.0.1"
       ASWF_YAML_CPP_VERSION: "0.8.0"
       ASWF_ZLIB_VERSION: "1.3.1"
       ASWF_ZSTD_VERSION: "1.5.6"
@@ -814,10 +814,11 @@ versions:
       # ASWF packages
       ASWF_IMATH_VERSION: "3.1.12"
       ASWF_MATERIALX_VERSION: "1.39.1"
+      ASWF_MOONRAY_VERSION: "3.6.0.1"
       ASWF_OPENCOLORIO_CONFIGS_VERSION: "1.0_r2"
       ASWF_OPENCOLORIO_VERSION: "2.3.2"
       ASWF_OPENIMAGEIO_VERSION: "2.5.19.1"
-      ASWF_OPENEXR_VERSION: "3.2.9"
+      ASWF_OPENEXR_VERSION: "3.2.10"
       ASWF_OPENFX_VERSION: "1.5s"
       ASWF_OPENRV_VERSION: "2.1.0"
       ASWF_OPENVDB_VERSION: "11.0.0"
@@ -928,8 +929,8 @@ versions:
       ASWF_MINIZIP_NG_VERSION: "4.0.10"
       ASWF_NANOBIND_VERSION: "2.11.0"
       ASWF_NLOHMANN_JSON_VERSION: "3.12.0"
-      ASWF_OPENJPH_VERSION: "0.24.5"
       ASWF_OPENIMAGEDENOISE_VERSION: "2.3.3"
+      ASWF_OPENJPH_VERSION: "0.24.5"
       ASWF_PARTIO_VERSION: "1.19.0"
       ASWF_PUGIXML_VERSION: "1.14"
       ASWF_PYBIND11_VERSION: "2.13.6"
@@ -940,7 +941,6 @@ versions:
       ASWF_SPDLOG_VERSION: "1.15.3"
       ASWF_TSL_ROBIN_MAP_VERSION: "1.3.0"
       ASWF_OPENUSD_VERSION: "25.05.01"
-      ASWF_MOONRAY_VERSION: "3.6.0.1"
       ASWF_YAML_CPP_VERSION: "0.8.0"
       ASWF_ZLIB_VERSION: "1.3.1"
       ASWF_ZSTD_VERSION: "1.5.6"
@@ -961,10 +961,11 @@ versions:
       # ASWF packages
       ASWF_IMATH_VERSION: "3.1.12"
       ASWF_MATERIALX_VERSION: "1.39.3"
+      ASWF_MOONRAY_VERSION: "3.6.0.1"
       ASWF_OPENCOLORIO_CONFIGS_VERSION: "1.0_r2"
       ASWF_OPENCOLORIO_VERSION: "2.4.2"
       ASWF_OPENIMAGEIO_VERSION: "3.1.6.2"
-      ASWF_OPENEXR_VERSION: "3.3.11"
+      ASWF_OPENEXR_VERSION: "3.3.12"
       ASWF_OPENFX_VERSION: "1.5s"
       ASWF_OPENRV_VERSION: "2.1.0"
       ASWF_OPENVDB_VERSION: "12.1.1"
@@ -1076,8 +1077,8 @@ versions:
       ASWF_MINIZIP_NG_VERSION: "4.0.10"
       ASWF_NANOBIND_VERSION: "2.11.0"
       ASWF_NLOHMANN_JSON_VERSION: "3.12.0"
-      ASWF_OPENJPH_VERSION: "0.24.5"
       ASWF_OPENIMAGEDENOISE_VERSION: "2.3.3"
+      ASWF_OPENJPH_VERSION: "0.24.5"
       ASWF_PARTIO_VERSION: "1.19.0"
       ASWF_PUGIXML_VERSION: "1.15"
       ASWF_PYBIND11_VERSION: "2.13.6"
@@ -1088,7 +1089,6 @@ versions:
       ASWF_SPDLOG_VERSION: "1.15.3"
       ASWF_TSL_ROBIN_MAP_VERSION: "1.4.0"
       ASWF_OPENUSD_VERSION: "26.03"
-      ASWF_MOONRAY_VERSION: "3.6.0.1"
       ASWF_YAML_CPP_VERSION: "0.8.0"
       ASWF_ZLIB_VERSION: "1.3.1"
       ASWF_ZSTD_VERSION: "1.5.7"
@@ -1109,6 +1109,7 @@ versions:
       # ASWF packages
       ASWF_IMATH_VERSION: "3.2.2"
       ASWF_MATERIALX_VERSION: "1.39.4"
+      ASWF_MOONRAY_VERSION: "3.6.0.1"
       ASWF_OPENCOLORIO_CONFIGS_VERSION: "1.0_r2"
       ASWF_OPENCOLORIO_VERSION: "2.5.2"
       ASWF_OPENIMAGEIO_VERSION: "3.1.14.1"
@@ -1192,6 +1193,7 @@ versions:
       ASWF_CIMG_VERSION: "3.7.6"
       ASWF_CPPUNIT_VERSION: "1.15.1"
       ASWF_EIGEN_VERSION: "3.4.1"
+      ASWF_EMBREE_VERSION: "4.2.0"
       ASWF_EXPAT_VERSION: "2.8.1"
       ASWF_FMT_VERSION: "12.1.0"
       ASWF_FREETYPE_VERSION: "2.14.3"
@@ -1201,30 +1203,37 @@ versions:
       ASWF_HARFBUZZ_VERSION: "14.2.1"
       ASWF_HDF5_VERSION: "1.14.6"
       ASWF_HIGHWAY_VERSION: "1.4.0"
+      ASWF_ISPC_VERSION: "1.21.0"
       ASWF_JASPER_VERSION: "4.2.9"
+      ASWF_JSONCPP_VERSION: "1.9.5"
       ASWF_LCMS_VERSION: "2.19.1"
       ASWF_LENSFUN_VERSION: "0.3.4"
       ASWF_LIBBACKTRACE_VERSION: "cci.20240730"
+      ASWF_LIBCGROUP_VERSION: "0.42.2"
       ASWF_LIBDEFLATE_VERSION: "1.25"
       ASWF_LIBICONV_VERSION: "1.19"
       ASWF_LIBJPEG_TURBO_VERSION: "3.1.4.1"
       ASWF_LIBJXL_VERSION: "0.11.2"
+      ASWF_LIBMICROHTTPD_VERSION: "0.9.72"
       ASWF_LIBRAW_VERSION: "0.22.1"
       ASWF_LIBULTRAHDR_VERSION: "1.4.0"
       ASWF_LIBWEBP_VERSION: "1.6.0"
       ASWF_LIBXCRYPT_VERSION: "4.5.2"
       ASWF_LOG4CPLUS_VERSION: "2.1.2"
+      ASWF_LUA_VERSION: "5.4.4"
       ASWF_LZ4_VERSION: "1.10.0"
       ASWF_MD4C_VERSION: "0.5.3"
       ASWF_MINIZIP_NG_VERSION: "4.2.1"
       ASWF_NANOBIND_VERSION: "2.12.0"
       ASWF_NLOHMANN_JSON_VERSION: "3.12.0"
+      ASWF_OPENIMAGEDENOISE_VERSION: "2.3.3"
       ASWF_OPENJPH_VERSION: "0.27.4"
       ASWF_OPENUSD_VERSION: "26.05"
       ASWF_PARTIO_VERSION: "1.20.0"
       ASWF_PUGIXML_VERSION: "1.15"
       ASWF_PYBIND11_VERSION: "3.0.4"
       ASWF_PYSTRING_VERSION: "1.1.5"
+      ASWF_RANDOM123_VERSION: "1.14.0"
       ASWF_RAPIDJSON_VERSION: "cci.20250205"
       ASWF_SNAPPY_VERSION: "1.2.2"
       ASWF_SPDLOG_VERSION: "1.17.0"
@@ -1249,6 +1258,7 @@ versions:
       # ASWF packages
       ASWF_IMATH_VERSION: "3.2.2"
       ASWF_MATERIALX_VERSION: "1.39.5"
+      ASWF_MOONRAY_VERSION: "3.6.0.1"
       ASWF_OPENCOLORIO_CONFIGS_VERSION: "1.0_r2"
       ASWF_OPENCOLORIO_VERSION: "2.5.2"
       ASWF_OPENIMAGEIO_VERSION: "3.1.14.1"
@@ -1404,50 +1414,58 @@ ci-packages:
     - "2026.5"
     - "2027.0"
   embree:
-    - "2023.3"
-    - "2024.7"
-    - "2025.6"
-    - "2026.4"
+    - "2023.4"
+    - "2024.8"
+    - "2025.7"
+    - "2026.5"
+    - "2027.0"
   ispc:
-    - "2023.3"
-    - "2024.7"
-    - "2025.6"
-    - "2026.4"
+    - "2023.4"
+    - "2024.8"
+    - "2025.7"
+    - "2026.5"
+    - "2027.0"
   jsoncpp:
-    - "2023.3"
-    - "2024.7"
-    - "2025.6"
-    - "2026.4"
+    - "2023.4"
+    - "2024.8"
+    - "2025.7"
+    - "2026.5"
+    - "2027.0"
   libcgroup:
-    - "2023.3"
-    - "2024.7"
-    - "2025.6"
-    - "2026.4"
+    - "2023.4"
+    - "2024.8"
+    - "2025.7"
+    - "2026.5"
+    - "2027.0"
   libmicrohttpd:
-    - "2023.3"
-    - "2024.7"
-    - "2025.6"
-    - "2026.4"
+    - "2023.4"
+    - "2024.8"
+    - "2025.7"
+    - "2026.5"
+    - "2027.0"
   lua:
-    - "2023.3"
-    - "2024.7"
-    - "2025.6"
-    - "2026.4"
+    - "2023.4"
+    - "2024.8"
+    - "2025.7"
+    - "2026.5"
+    - "2027.0"
   openimagedenoise:
-    - "2023.3"
-    - "2024.7"
-    - "2025.6"
-    - "2026.4"
+    - "2023.4"
+    - "2024.8"
+    - "2025.7"
+    - "2026.5"
+    - "2027.0"
   random123:
-    - "2023.3"
-    - "2024.7"
-    - "2025.6"
-    - "2026.4"
+    - "2023.4"
+    - "2024.8"
+    - "2025.7"
+    - "2026.5"
+    - "2027.0"
   moonray:
-    - "2023.3"
-    - "2024.7"
-    - "2025.6"
-    - "2026.4"
+    - "2023.4"
+    - "2024.8"
+    - "2025.7"
+    - "2026.5"
     - "2027.0"
   gtest:
     - "2019.0"
@@ -2342,11 +2360,10 @@ ci-images:
     - "2027-clang21.0"
     - "2027-clang22.0"
   moonray:
-    - "2023.3"
-    - "2024.7"
-    - "2025.6"
-    - "2026.4"
-    - "2027.0"
+    - "2023.4"
+    - "2024.8"
+    - "2025.7"
+    - "2026.5"
     - "2027.0"
 
 groups:
@@ -2389,6 +2406,7 @@ groups:
         - fmt
         - gtest
         - ispc
+        - jsoncpp
         - libbacktrace
         - libcgroup
         - libdeflate
@@ -2397,7 +2415,6 @@ groups:
         - libxcrypt
         - lua
         - lz4
-        - jsoncpp
         - nlohmann_json
         - onetbb
         - random123
@@ -2461,6 +2478,7 @@ groups:
       vfx1-1:
         - aces_container
         - cimg
+        - embree
         - hdf5
         - highway
         - imath
@@ -2468,9 +2486,8 @@ groups:
         - lcms
         - lensfun
         - libultrahdr
-        - openjph
-        - embree
         - openimagedenoise
+        - openjph
         - opensubdiv
         - partio
         - ptex

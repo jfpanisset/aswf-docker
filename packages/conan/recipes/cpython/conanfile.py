@@ -329,7 +329,7 @@ class CPythonConan(ConanFile):
                                 f"openssl_libdirs = {openssl.libdirs + zlib.libdirs} #")
                 replace_in_file(self, setup_py,
                                 "openssl_libs = ",
-                                f"openssl_libs = {openssl.libs + zlib.libs} #")
+                                f"openssl_libs = {openssl.system_libs + zlib.libs} #") # ASWF: openssl package is a wrapper
 
             if Version(self.version) < "3.11":
                 replace_in_file(self, setup_py, "if (MACOS and self.detect_tkinter_darwin())", "if (False)")

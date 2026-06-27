@@ -344,7 +344,7 @@ Contains:
 * alembic-1.8.8
 * imath-3.1.12
 * opencolorio-2.3.2
-* openexr-3.2.9
+* openexr-3.2.10
 * openfx-1.5s
 * openimageio-2.5.19.1
 * opentimelineio-0.17.0
@@ -371,7 +371,7 @@ Contains:
 * alembic-1.8.8
 * imath-3.1.12
 * opencolorio-2.3.2
-* openexr-3.2.9
+* openexr-3.2.10
 * openfx-1.5s
 * openimageio-2.5.19.1
 * opentimelineio-0.17.0
@@ -398,7 +398,7 @@ Contains:
 * alembic-1.8.8
 * imath-3.1.12
 * opencolorio-2.4.2
-* openexr-3.3.11
+* openexr-3.3.12
 * openfx-1.5s
 * openimageio-3.1.6.2
 * opentimelineio-0.17.0
@@ -425,7 +425,7 @@ Contains:
 * alembic-1.8.8
 * imath-3.1.12
 * opencolorio-2.4.2
-* openexr-3.3.11
+* openexr-3.3.12
 * openfx-1.5s
 * openimageio-3.1.6.2
 * opentimelineio-0.17.0

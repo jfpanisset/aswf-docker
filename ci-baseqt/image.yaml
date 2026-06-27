@@ -9,13 +9,19 @@ packages:
   - expat
   - fmt
   - gtest
+  - jsoncpp
   - libbacktrace
+  - libcgroup
   - libdeflate
   - libiconv
+  - libmicrohttpd
   - libxcrypt
+  - lua
   - lz4
   - pugixml
   - pystring
+  - random123
+  - rapidjson
   - snappy
   - onetbb
   - tsl-robin-map

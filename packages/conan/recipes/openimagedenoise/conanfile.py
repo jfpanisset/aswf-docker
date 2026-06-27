@@ -23,6 +23,9 @@ class OpenImageDenoiseConan(ConanFile):
     package_type = "shared-library"
     settings = "os", "arch"
 
+    def requirements(self):
+        self.requires("onetbb/2023.0.0")
+
     def validate(self):
         if self.settings.os != "Linux":
             raise ConanInvalidConfiguration(
@@ -55,6 +58,10 @@ class OpenImageDenoiseConan(ConanFile):
         copy(self, "libOpenImageDenoise*",
              src=os.path.join(self.build_folder, "lib"),
              dst=os.path.join(self.package_folder, "lib"))
+        # Remove the rpath from the DSOs as it prevents finding our libtbb
+        import glob
+        for lib in glob.glob(os.path.join(self.package_folder, "lib", "libOpenImageDenoise*")):
+            self.run(f"/usr/bin/patchelf --remove-rpath {lib}")
         # ASWF: keep cmake config files
         copy(self, "*",
              src=os.path.join(self.build_folder, "lib", "cmake"),
