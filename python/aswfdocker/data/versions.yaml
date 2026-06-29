@@ -2411,7 +2411,6 @@ groups:
         - libcgroup
         - libdeflate
         - libiconv
-        - libmicrohttpd
         - libxcrypt
         - lua
         - lz4
@@ -2434,6 +2433,7 @@ groups:
         - freetype
         - glew
         - glfw
+        - libmicrohttpd
         - log4cplus
         - minizip-ng
       base1-3:
