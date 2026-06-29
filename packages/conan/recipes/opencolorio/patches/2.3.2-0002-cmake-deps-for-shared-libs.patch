@@ -11,14 +11,4 @@ index 0eaec4be..e711295c 100755
      if (APPLE)
          # Store the previous value of CMAKE_FIND_FRAMEWORK and CMAKE_FIND_APPBUNDLE.
          set(_PREVIOUS_CMAKE_FIND_FRAMEWORK ${CMAKE_FIND_FRAMEWORK})
-@@ -53,8 +53,8 @@
-         endif()
-     endif()
 
--    if (NOT TARGET MINIZIP::minizip-ng)
--        find_dependency(minizip-ng @minizip-ng_VERSION@)
-+    if (NOT TARGET MINIZIP::minizip)
-+        find_dependency(minizip @minizip_VERSION@)
-     endif()
-
-     # Remove OCIO custom find module path.

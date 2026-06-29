@@ -1276,7 +1276,7 @@ versions:
   "2027-clang22":
     parent_versions: ["7", "7-clang22", "2027"]
     major_version: "2027"
-    tags: ["latest"]
+    tags: ["draft"]
     use_major_version_as_tag: true
     ci_common_version: "7"
 

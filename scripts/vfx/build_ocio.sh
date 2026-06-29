@@ -135,11 +135,56 @@ EOF
 
 fi
 
+if [[ $ASWF_OPENCOLORIO_VERSION == 2.3.2 ]]; then
+
+cat << 'EOF' | patch -p1
+diff --git a/share/cmake/modules/FindExtPackages.cmake b/share/cmake/modules/FindExtPackages.cmake
+index d99dd79ac..bfda2778a 100644
+--- a/share/cmake/modules/FindExtPackages.cmake
++++ b/share/cmake/modules/FindExtPackages.cmake
+@@ -170,6 +170,7 @@
+     ocio_handle_dependency(  Python REQUIRED
+                              COMPONENTS ${_Python_COMPONENTS}
+                              MIN_VERSION ${OCIO_PYTHON_VERSION}
++                             MAX_VERSION ${OCIO_PYTHON_VERSION} EXACT
+                              RECOMMENDED_VERSION ${OCIO_PYTHON_VERSION}
+                              RECOMMENDED_VERSION_REASON "Latest version tested with OCIO")
+
+EOF
+
+fi
+
+if [[ $ASWF_OPENCOLORIO_VERSION == 2.4.2 ]]; then
+
+cat << 'EOF' | patch -p1
+diff --git a/share/cmake/modules/FindExtPackages.cmake b/share/cmake/modules/FindExtPackages.cmake
+index d99dd79ac..bfda2778a 100644
+--- a/share/cmake/modules/FindExtPackages.cmake
++++ b/share/cmake/modules/FindExtPackages.cmake
+@@ -170,6 +170,7 @@
+     ocio_handle_dependency(  Python REQUIRED
+                              COMPONENTS ${_Python_COMPONENTS}
+                              MIN_VERSION ${OCIO_PYTHON_VERSION}
++                             MAX_VERSION ${OCIO_PYTHON_VERSION} EXACT
+                              RECOMMENDED_VERSION ${OCIO_PYTHON_VERSION}
+                              RECOMMENDED_VERSION_REASON "Latest version tested with OCIO")
+
+EOF
+
+fi
+
+# We only support building against bundled libOpenImageIO when the version matches the VFX Platform year
+# since libOpenImageIO itself is linked against libOpenColorIO.
+OCIO_USE_OIIO=OFF
+case "${ASWF_VFXPLATFORM_VERSION}:${ASWF_OPENCOLORIO_VERSION}" in
+    2023:2.2.*|2024:2.3.*|2025:2.4.*|2026:2.5.*|2027:2.5.*) OCIO_USE_OIIO=ON ;;
+esac
+
 mkdir build
 cd build
 cmake \
     -DCMAKE_INSTALL_PREFIX="${ASWF_INSTALL_PREFIX}" \
-    -DOCIO_USE_OIIO_FOR_APPS=ON \
+    -DOCIO_USE_OIIO_FOR_APPS="${OCIO_USE_OIIO}" \
     -DOCIO_BUILD_STATIC=OFF \
     -DOCIO_BUILD_APPS=ON \
     -DOCIO_BUILD_NUKE=OFF \

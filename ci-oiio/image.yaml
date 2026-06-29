@@ -6,6 +6,9 @@ description: |
   Warning: this image does *not* contain OpenImageIO itself as it is used to *build* OpenImageIO!
 packages:
   - qt # hidden dependency for building iv
+  - libjxl      # allow OIIO 3.x to build in VFX 2023 / 2024
+  - libultrahdr # allow OIIO 3.x to build in VFX 2023 / 2024
+  - openjph     # allow OIIO 3.x to build in VFX 2023 / 2024
   - openimageio # all dependencies will be installed except openimageio itself
 implicit_packages:
   - numpy
