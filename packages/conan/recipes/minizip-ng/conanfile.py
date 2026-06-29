@@ -126,9 +126,10 @@ class MinizipNgConan(ConanFile):
         rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
 
     def package_info(self):
-        self.cpp_info.set_property("cmake_file_name", "minizip")
-        self.cpp_info.set_property("cmake_target_name", "MINIZIP::minizip")
-        self.cpp_info.set_property("pkg_config_name", "minizip")
+        # ASWF: OCIO is only client, expects minizip-ng
+        self.cpp_info.set_property("cmake_file_name", "minizip-ng")
+        self.cpp_info.set_property("cmake_target_name", "MINIZIP::minizip-ng")
+        self.cpp_info.set_property("pkg_config_name", "minizip-ng")
 
         suffix = "" if self.options.mz_compatibility else "-ng"
         self.cpp_info.components["minizip"].libs = [f"minizip{suffix}"]

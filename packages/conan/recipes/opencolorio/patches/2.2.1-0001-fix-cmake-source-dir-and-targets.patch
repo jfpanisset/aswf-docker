@@ -29,7 +29,7 @@ index 5455a08..420fbd4 100644
  # minizip-ng
  # https://github.com/zlib-ng/minizip-ng
 -find_package(minizip-ng 3.0.7 REQUIRED)
-+find_package(minizip REQUIRED)
++find_package(minizip-ng REQUIRED)
  
  if(OCIO_BUILD_APPS)
  
@@ -77,29 +77,3 @@ index a50e87e..37174ea 100755
          OpenColorIO
  )
  
-diff --git a/src/apps/ocioarchive/CMakeLists.txt b/src/apps/ocioarchive/CMakeLists.txt
-index a50e87e..37174ea 100755
---- a/src/apps/ocioarchive/CMakeLists.txt
-+++ b/src/apps/ocioarchive/CMakeLists.txt
-@@ -19,7 +19,7 @@
-     PRIVATE
-         apputils
-         OpenColorIO
--        MINIZIP::minizip-ng
-+        MINIZIP::minizip
- )
-
- install(TARGETS ocioarchive
-diff --git a/src/OpenCOlorIO/CMakeLists.txt b/src/OpenColorIO/CMakeLists.txt
-index a50e87e..37174ea 100755
---- a/src/OpenColorIO/CMakeLists.txt
-+++ b/src/OpenColorIO/CMakeLists.txt
-@@ -289,7 +289,7 @@
-         "$<BUILD_INTERFACE:utils::strings>"
-         "$<BUILD_INTERFACE:xxHash>"
-         yaml-cpp
--        MINIZIP::minizip-ng
-+        MINIZIP::minizip
- )
-
- if(APPLE)
