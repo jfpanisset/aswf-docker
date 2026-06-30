@@ -48,6 +48,8 @@ ARG ASWF_NINJA_VERSION
 ENV ASWF_NINJA_VERSION=${ASWF_NINJA_VERSION}
 ARG ASWF_CLANG_VERSION
 ENV ASWF_CLANG_VERSION=${ASWF_CLANG_VERSION}
+ARG ASWF_OSL_CLANG_VERSION
+ENV ASWF_OSL_CLANG_VERSION=${ASWF_OSL_CLANG_VERSION}
 ARG ASWF_PYSIDE_CLANG_VERSION
 ENV ASWF_PYSIDE_CLANG_VERSION=${ASWF_PYSIDE_CLANG_VERSION}
 ARG ASWF_CPYTHON_VERSION
@@ -135,6 +137,23 @@ ENV ASWF_PKG_YML=${ASWF_PKG_DIR}/config.yml
 #    --mount=type=secret,id=conan_login_username,env=CONAN_LOGIN_USERNAME \
 #    --mount=type=secret,id=conan_password,env=CONAN_PASSWORD \
 #    conan list
+
+# When you want to generate an HTML dependency graph
+#RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=${ASWF_CONAN_HOME}/d \
+#    --mount=type=cache,id=aswf-ccache,sharing=locked,target=${CCACHE_DIR} \
+#    --mount=type=bind,rw,target=${ASWF_CONAN_HOME}/.conan2,source=packages/conan/settings \
+#    --mount=type=bind,rw,target=${ASWF_CONAN_HOME}/recipes,source=packages/conan/recipes \
+#    --mount=type=secret,id=conan_login_username,env=CONAN_LOGIN_USERNAME \
+#    --mount=type=secret,id=conan_password,env=CONAN_PASSWORD \
+#    conan graph info \
+#      --profile:all "${ASWF_CONAN_HOME}"/.conan2/profiles/"${ASWF_CONAN_CHANNEL}" \
+#      --name "${ASWF_PKG_NAME}" \
+#      --version "${ASWF_PKG_VERSION}" \
+#      --user "${ASWF_PKG_ORG}" \
+#      --channel "${ASWF_CONAN_CHANNEL}" \
+#      --format html \
+#      --out-file ${ASWF_CONAN_HOME}/d/${ASWF_PKG_NAME}_conandeps.html \
+#      "${ASWF_PKG_DIR}"/$(if [[ -f "${ASWF_PKG_YML}" ]] ; then yq '.versions["'"${ASWF_PKG_VERSION}"'"].folder' "${ASWF_PKG_YML}" ; fi)
 
 RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=${ASWF_CONAN_HOME}/d \
     --mount=type=cache,id=aswf-ccache,sharing=locked,target=${CCACHE_DIR} \
