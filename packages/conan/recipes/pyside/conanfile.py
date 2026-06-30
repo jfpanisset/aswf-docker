@@ -47,7 +47,6 @@ class PySide6Conan(ConanFile):
         # Conan profile provides real versions
         self.requires("cpython/[>=3.0.0]")
         self.requires("qt/[>=5.0.0]")
-        self.requires(f"clang/{os.environ['ASWF_PYSIDE_CLANG_VERSION']}@{self.user}/ci_common{os.environ['CI_COMMON_VERSION']}")
         self.requires("md4c/[>=0.0.0]")
         self.requires("freetype/[>=2.0.0]")
         self.requires("libjpeg-turbo/[>=1.0.0]")
@@ -69,7 +68,7 @@ class PySide6Conan(ConanFile):
         if Version(self.version) < "6.0":
             self.tool_requires("cpython/[>=3.0.0]")
             self.tool_requires("qt/[>=5.0.0]")
-            self.tool_requires(f"clang/{os.environ['ASWF_PYSIDE_CLANG_VERSION']}@{self.user}/ci_common{os.environ['CI_COMMON_VERSION']}")
+        self.tool_requires(f"clang/{os.environ['ASWF_PYSIDE_CLANG_VERSION']}@{self.user}/ci_common{os.environ['CI_COMMON_VERSION']}")
 
     def export_sources(self):
         export_conandata_patches(self)
@@ -173,7 +172,7 @@ class PySide6Conan(ConanFile):
         qtpathName = "qtpaths6" if Version(self.version) >= "6.0" else "qmake"
         qmakePath = os.path.join(qtBinPath, qtpathName)
 
-        llvmInfo = self.dependencies["clang"]
+        llvmInfo = self.dependencies.build["clang"]
 
         pythonInfo = self.dependencies["cpython"]
         pythonBinPath = os.path.join(
@@ -221,7 +220,7 @@ class PySide6Conan(ConanFile):
         qtpathName = "qtpaths6" if Version(self.version) >= "6.0" else "qmake"
         qmakePath = os.path.join(qtBinPath, qtpatName)
 
-        llvmInfo = self.dependencies["clang"]
+        llvmInfo = self.dependencies.build["clang"]
 
         pythonInfo = self.dependencies["cpython"]
         pythonBinPath = os.path.join(
@@ -244,7 +243,7 @@ class PySide6Conan(ConanFile):
         qtpathName = "qtpaths6.exe" if Version(self.version) >= "6.0" else "qmake.exe"
         qmakePath = os.path.join(qtBinPath, qtpathName)
 
-        llvmInfo = self.dependencies["clang"]
+        llvmInfo = self.dependencies.build["clang"]
 
         pythonBinPath = os.path.join(
             self.pythonLocalRoot, "bin", self.dependencies["cpython"].conf_info.python_interp
@@ -338,7 +337,7 @@ class PySide6Conan(ConanFile):
             )
 
         self.copy(
-            src=os.path.join(self.dependencies["clang"].package_folder, "lib"),
+            src=os.path.join(self.dependencies.build["clang"].package_folder, "lib"),
             pattern="libclang.dylib",
             dst="bin",
         )
