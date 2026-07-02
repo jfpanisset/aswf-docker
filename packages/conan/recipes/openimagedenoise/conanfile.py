@@ -6,6 +6,7 @@ import os
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.files import copy, get
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 
 required_conan_version = ">=2.1"
 
@@ -21,7 +22,10 @@ class OpenImageDenoiseConan(ConanFile):
     homepage = "https://www.openimagedenoise.org/"
     topics = ("denoising", "rendering", "deep-learning", "intel")
     package_type = "shared-library"
-    settings = "os", "arch"
+    settings = "os", "arch", "compiler", "build_type"
+
+    def layout(self):
+        cmake_layout(self, src_folder="src")
 
     def requirements(self):
         self.requires("onetbb/2023.0.0")
