@@ -55,5 +55,8 @@ class MoonrayConan(ConanFile):
         self.requires("openimagedenoise/2.3.3")  # mcrt_denoise
         self.requires("random123/1.14.0")     # stochastic sampling
 
+        # ---- Build Tools ----
+        self.requires("ispc/[>=1.21.0]")      # should be a tool_requires() but we need it in the ci-moonray image
+
     def package_id(self):
         self.info.clear()
