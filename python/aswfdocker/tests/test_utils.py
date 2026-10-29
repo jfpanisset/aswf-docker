@@ -4,13 +4,50 @@
 Tests for the utility commands
 """
 
+import os
 import unittest
 import logging
+from unittest.mock import patch
 
 from click.testing import CliRunner
 
 from aswfdocker import utils, index, constants
 from aswfdocker.cli import aswfdocker
+
+
+class TestConanRemotePolicy(unittest.TestCase):
+    def test_auto_is_local_outside_github_actions(self):
+        with patch.dict(os.environ):
+            os.environ.pop("GITHUB_ACTIONS", None)
+            self.assertEqual(
+                utils.resolve_conan_remote(constants.CONAN_REMOTE_AUTO, "aswf"),
+                constants.CONAN_REMOTE_LOCAL,
+            )
+
+    def test_auto_is_package_org_on_github_actions(self):
+        with patch.dict(os.environ, {"GITHUB_ACTIONS": "true"}):
+            self.assertEqual(
+                utils.resolve_conan_remote(constants.CONAN_REMOTE_AUTO, "aswf"),
+                "aswf",
+            )
+
+    def test_explicit_policy_ignores_environment(self):
+        with patch.dict(os.environ, {"GITHUB_ACTIONS": "true"}):
+            self.assertEqual(
+                utils.resolve_conan_remote(constants.CONAN_REMOTE_LOCAL, "aswf"),
+                constants.CONAN_REMOTE_LOCAL,
+            )
+            self.assertEqual(
+                utils.resolve_conan_remote("aswftesting", "aswf"), "aswftesting"
+            )
+
+    def test_remote_args(self):
+        self.assertEqual(
+            utils.conan_remote_args(constants.CONAN_REMOTE_LOCAL), ["--no-remote"]
+        )
+        self.assertEqual(utils.conan_remote_args("aswf"), ["--remote", "aswf"])
+        with self.assertRaises(ValueError):
+            utils.conan_remote_args(constants.CONAN_REMOTE_AUTO)
 
 
 class TestUtils(unittest.TestCase):

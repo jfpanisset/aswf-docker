@@ -24,16 +24,19 @@ class Builder:
         build_info: aswfinfo.ASWFInfo,
         group_info: groupinfo.GroupInfo,
         push: bool = False,
+        conan_remote: str = constants.CONAN_REMOTE_AUTO,
     ):
         self.push = push
         self.build_info = build_info
         self.group_info = group_info
         self.index = index.Index()
+        self.conan_remote = utils.resolve_conan_remote(
+            conan_remote, build_info.package_org
+        )
 
     def make_bake_dict(
         self,
         build_missing: bool,
-        no_remote: bool,
     ) -> typing.Dict[str, dict]:
         # pylint: disable=too-many-locals
         root: typing.Dict[str, dict] = {}
@@ -76,6 +79,11 @@ class Builder:
                 channel,
             )
             args["ASWF_VERSION"] = version
+            # Both package builds (conan create) and image builds (conan
+            # install) resolve packages, so both get the remote policy.
+            args["ASWF_CONAN_REMOTE_ARGS"] = " ".join(
+                utils.conan_remote_args(self.conan_remote)
+            )
             if self.group_info.type == constants.ImageType.PACKAGE:
                 # params as env var needed for conan build
                 args.update(
@@ -87,7 +95,6 @@ class Builder:
                         "ASWF_CONAN_BUILD_MISSING": (
                             "--build=missing" if build_missing else ""
                         ),
-                        "ASWF_CONAN_NO_REMOTE": "--no-remote" if no_remote else "",
                         "ASWF_CONAN_PUSH": "TRUE" if self.push else "",
                     }
                 )
@@ -118,9 +125,8 @@ class Builder:
     def make_bake_jsonfile(
         self,
         build_missing: bool,
-        no_remote: bool,
     ) -> typing.Optional[str]:
-        d = self.make_bake_dict(build_missing, no_remote)
+        d = self.make_bake_dict(build_missing)
         if not d["group"]["default"]["targets"]:
             return None
         groups = "-".join(self.group_info.names)
@@ -179,7 +185,6 @@ class Builder:
         dry_run: bool = False,
         progress: str = "",
         build_missing=False,
-        no_remote=False,
     ) -> None:
         images_and_versions = []
         for image, version in self.group_info.iter_images_versions(get_image=True):
@@ -188,7 +193,7 @@ class Builder:
         if not images_and_versions:
             return
 
-        path = self.make_bake_jsonfile(build_missing, no_remote)
+        path = self.make_bake_jsonfile(build_missing)
         if path:
             if self.group_info.type == constants.ImageType.IMAGE:
                 self._run(

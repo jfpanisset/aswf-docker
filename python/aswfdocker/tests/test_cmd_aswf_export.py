@@ -41,13 +41,6 @@ class _FakeRef:
         return self._text
 
 
-class _FakeRemotesAPI:
-    @staticmethod
-    def list(pattern):
-        assert pattern is None
-        return ["remote"]
-
-
 class _FakeLocalAPI:
     @staticmethod
     def get_conanfile_path(path, cwd, py):
@@ -82,7 +75,6 @@ class _FakeExportAPI:
 
 class _FakeConanAPI:
     def __init__(self):
-        self.remotes = _FakeRemotesAPI()
         self.local = _FakeLocalAPI()
         self.lockfile = _FakeLockfileAPI()
         self.export = _FakeExportAPI()
@@ -99,6 +91,7 @@ class TestExportAll(unittest.TestCase):
                 ["recipes/cmake", "cmake", "4.3.3", "aswf", "ci_common7"],
             ],
             "/work",
+            ["remote"],
         )
         self.assertEqual(
             [r.repr_notime() for r in refs],

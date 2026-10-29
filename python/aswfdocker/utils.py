@@ -4,6 +4,7 @@
 Utility functions
 """
 
+import os
 import re
 import subprocess
 import datetime
@@ -89,6 +90,33 @@ def get_image_spec(name: str):
     version = m.group("version")
     logger.debug("get_image_spec found %s: %s/%s:%s", image_type, org, image, version)
     return org, image_type, image, version
+
+
+def resolve_conan_remote(conan_remote: str, package_org: str) -> str:
+    """Which Conan remote(s) package resolution may use: "local" (the local
+    Conan cache only) or the name of the one remote to consult.
+
+    "auto" picks by environment: local builds only ever use the local cache,
+    while on GitHub Actions (GITHUB_ACTIONS=true, set on every runner) the
+    one remote is `package_org` -- the same Artifactory remote packages get
+    uploaded to, so later builds find earlier uploads. Any other value is
+    an explicit choice and returned as-is.
+    """
+    if conan_remote != constants.CONAN_REMOTE_AUTO:
+        return conan_remote
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        return package_org
+    return constants.CONAN_REMOTE_LOCAL
+
+
+def conan_remote_args(conan_remote: str) -> typing.List[str]:
+    """Conan command-line arguments enforcing an already-resolved remote
+    policy (see resolve_conan_remote())."""
+    if conan_remote == constants.CONAN_REMOTE_AUTO:
+        raise ValueError("conan_remote must be resolved before use")
+    if conan_remote == constants.CONAN_REMOTE_LOCAL:
+        return ["--no-remote"]
+    return ["--remote", conan_remote]
 
 
 def package_version_key(package_name: str) -> str:
