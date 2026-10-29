@@ -224,10 +224,12 @@ class TestExportAllCommand(unittest.TestCase):
             ["/opt/conan_home/recipes/osl", "osl", OSL_TEST_VERSION, "aswf", "vfx2027"],
             ["/opt/conan_home/recipes/zlib", "zlib", ZLIB_TEST_VERSION, "aswf", "x'y"],
         ]
-        argv = shlex.split(buildorder._export_all_command(entries))
-        self.assertEqual(argv[:2], ["conan", "aswf-export"])
-        self.assertEqual(len(argv), 3)
-        self.assertEqual(json.loads(argv[2]), entries)
+        argv = shlex.split(
+            buildorder._export_all_command(entries, ["--remote", "aswftesting"])
+        )
+        self.assertEqual(argv[:4], ["conan", "aswf-export", "--remote", "aswftesting"])
+        self.assertEqual(len(argv), 5)
+        self.assertEqual(json.loads(argv[4]), entries)
 
 
 class TestBuildOrderCommand(unittest.TestCase):
@@ -236,7 +238,9 @@ class TestBuildOrderCommand(unittest.TestCase):
             [("pkga", PKGA_TEST_VERSION), ("pkgb", PKGB_TEST_VERSION)],
             TEST_PACKAGE_ORG,
             TEST_CHANNEL,
+            ["--no-remote"],
         )
+        self.assertIn(" --no-remote ", cmd)
         self.assertIn(f"--requires={_ref('pkga', PKGA_TEST_VERSION)}", cmd)
         self.assertIn(f"--requires={_ref('pkgb', PKGB_TEST_VERSION)}", cmd)
         self.assertIn("--reduce", cmd)
@@ -332,7 +336,11 @@ class TestComputeBuildOrder(unittest.TestCase):
             ],
         }
 
-    def _compute(self, members=None):
+    def _compute(
+        self, members=None, conan_remote=buildorder.constants.CONAN_REMOTE_LOCAL
+    ):
+        # conan_remote is explicit by default so these tests don't depend on
+        # GITHUB_ACTIONS when run on CI.
         return buildorder.compute_build_order(
             self.repo_root,
             TEST_PACKAGE_ORG,
@@ -340,6 +348,7 @@ class TestComputeBuildOrder(unittest.TestCase):
             "7",
             TEST_CHANNEL,
             self.members if members is None else members,
+            conan_remote=conan_remote,
         )
 
     def test_empty_members_skips_subprocess(self):
@@ -441,7 +450,7 @@ class TestComputeBuildOrder(unittest.TestCase):
         export_part, graph_part = script.split(" && ")
         argv = shlex.split(export_part)
         self.assertEqual(argv[:2], ["conan", "aswf-export"])
-        exported = [tuple(entry[1:]) for entry in json.loads(argv[2])]
+        exported = [tuple(entry[1:]) for entry in json.loads(argv[-1])]
         self.assertEqual(
             exported,
             [
@@ -455,6 +464,25 @@ class TestComputeBuildOrder(unittest.TestCase):
         self.assertIn(f"--requires={_ref('pkgb', PKGB_TEST_VERSION)}", graph_part)
         self.assertNotIn("--requires=pkgc", graph_part)
         self.assertNotIn("--requires=pkgd", graph_part)
+
+    def test_remote_policy_applies_to_export_and_graph(self):
+        for conan_remote, expected in (
+            (buildorder.constants.CONAN_REMOTE_LOCAL, ["--no-remote"]),
+            ("aswftesting", ["--remote", "aswftesting"]),
+        ):
+            captured = {}
+            with patch.object(
+                buildorder.subprocess,
+                "run",
+                side_effect=self._fake_bake_run(json.dumps(self.fixture), captured),
+            ):
+                self._compute(conan_remote=conan_remote)
+            target = captured["bake_dict"]["target"][buildorder.BAKE_TARGET_NAME]
+            export_part, graph_part = target["args"]["ASWF_CONAN_GRAPH_SCRIPT"].split(
+                " && "
+            )
+            self.assertEqual(shlex.split(export_part)[2:-1], expected)
+            self.assertIn(f" {' '.join(expected)} ", graph_part)
 
     def test_nonzero_exit_raises(self):
         mock_result = MagicMock(returncode=1, stdout="", stderr="boom")

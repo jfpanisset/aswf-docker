@@ -35,7 +35,7 @@ class TestBuilder(unittest.TestCase):
                 targets=[],
             ),
         )
-        baked = b.make_bake_dict(False, False)
+        baked = b.make_bake_dict(False)
         self.assertEqual(
             baked["target"]["ci-base-2019"]["platforms"],
             ["linux/amd64"],
@@ -53,7 +53,7 @@ class TestBuilder(unittest.TestCase):
         )
         for plat in ("linux", "win32"):
             with patch.object(builder.sys, "platform", plat):
-                baked = b.make_bake_dict(False, False)
+                baked = b.make_bake_dict(False)
             self.assertNotIn(
                 "platforms",
                 baked["target"]["ci-base-2019"],
@@ -73,7 +73,7 @@ class TestBuilder(unittest.TestCase):
         opentimelineio_version = list(
             index.Index().iter_versions(constants.ImageType.PACKAGE, "opentimelineio")
         )[0]
-        baked = b.make_bake_dict(False, False)
+        baked = b.make_bake_dict(False)
         self.assertIn(
             "ASWF_OPENTIMELINEIO_VERSION",
             baked["target"]["ci-package-opentimelineio-2019"]["args"],
@@ -95,6 +95,28 @@ class TestBuilder(unittest.TestCase):
             "packages/common/Dockerfile",
         )
 
+    def test_package_remote_args_follow_environment(self):
+        group_info = groupinfo.GroupInfo(
+            names=["vfx1-2"],
+            versions=["2019"],
+            type_=constants.ImageType.PACKAGE,
+            targets=["opentimelineio"],
+        )
+        for env, expected in (
+            ({}, "--no-remote"),
+            # package_org for this test's build_info is aswftesting
+            ({"GITHUB_ACTIONS": "true"}, "--remote aswftesting"),
+        ):
+            with patch.dict(os.environ, env):
+                if not env:
+                    os.environ.pop("GITHUB_ACTIONS", None)
+                baked = builder.Builder(self.build_info, group_info).make_bake_dict(
+                    False
+                )
+            args = baked["target"]["ci-package-opentimelineio-2019"]["args"]
+            self.assertEqual(args["ASWF_CONAN_REMOTE_ARGS"], expected)
+            self.assertNotIn("ASWF_CONAN_NO_REMOTE", args)
+
     def test_image_base_2019_dict(self):
         b = builder.Builder(
             self.build_info,
@@ -108,7 +130,7 @@ class TestBuilder(unittest.TestCase):
         base_version = list(
             index.Index().iter_versions(constants.ImageType.IMAGE, "base")
         )[0]
-        baked = b.make_bake_dict(False, False)
+        baked = b.make_bake_dict(False)
         self.assertEqual(
             baked["target"]["ci-base-2019"]["tags"],
             [
@@ -130,12 +152,14 @@ class TestBuilder(unittest.TestCase):
                 type_=constants.ImageType.IMAGE,
                 targets=["openvdb"],
             ),
+            # Explicit, so the expected args don't depend on GITHUB_ACTIONS.
+            conan_remote=constants.CONAN_REMOTE_LOCAL,
         )
         openvdb_version = list(
             index.Index().iter_versions(constants.ImageType.IMAGE, "openvdb")
         )[3]
         self.assertEqual(
-            b.make_bake_dict(False, False),
+            b.make_bake_dict(False),
             {
                 "group": {"default": {"targets": ["ci-openvdb-2019-clang9"]}},
                 "target": {
@@ -151,6 +175,7 @@ class TestBuilder(unittest.TestCase):
                             "ASWF_CLANG_VERSION": "9.0.1",
                             "ASWF_CMAKE_VERSION": "3.12.4",
                             "ASWF_CONAN_CHANNEL": "vfx2019",
+                            "ASWF_CONAN_REMOTE_ARGS": "--no-remote",
                             "ASWF_CONAN_HOME": "/opt/conan_home",
                             "ASWF_CONAN_PYTHON_VERSION": "3.9.11",
                             "ASWF_CONAN_VERSION": "1.47.0",
@@ -224,12 +249,14 @@ class TestBuilder(unittest.TestCase):
                 type_=constants.ImageType.IMAGE,
                 targets=["base"],
             ),
+            # Explicit, so the expected args don't depend on GITHUB_ACTIONS.
+            conan_remote=constants.CONAN_REMOTE_LOCAL,
         )
         base_versions = list(
             index.Index().iter_versions(constants.ImageType.IMAGE, "base")
         )
         self.assertEqual(
-            b.make_bake_dict(False, False),
+            b.make_bake_dict(False),
             {
                 "group": {"default": {"targets": ["ci-base-2019", "ci-base-2020"]}},
                 "target": {
@@ -247,6 +274,7 @@ class TestBuilder(unittest.TestCase):
                             "ASWF_CLANG_VERSION": "7.1.0",
                             "ASWF_CMAKE_VERSION": "3.18.4",
                             "ASWF_CONAN_CHANNEL": "vfx2020",
+                            "ASWF_CONAN_REMOTE_ARGS": "--no-remote",
                             "ASWF_CONAN_HOME": "/opt/conan_home",
                             "ASWF_CONAN_PYTHON_VERSION": "3.9.11",
                             "ASWF_CONAN_VERSION": "1.47.0",
@@ -319,6 +347,7 @@ class TestBuilder(unittest.TestCase):
                             "ASWF_CMAKE_VERSION": "3.12.4",
                             "ASWF_CPPUNIT_VERSION": "1.14.0",
                             "ASWF_CONAN_CHANNEL": "vfx2019",
+                            "ASWF_CONAN_REMOTE_ARGS": "--no-remote",
                             "ASWF_CONAN_HOME": "/opt/conan_home",
                             "ASWF_CONAN_PYTHON_VERSION": "3.9.11",
                             "ASWF_CONAN_VERSION": "1.47.0",

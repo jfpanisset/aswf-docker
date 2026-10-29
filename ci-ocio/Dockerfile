@@ -34,6 +34,7 @@ ARG ASWF_PKG_ORG
 ARG ASWF_VERSION
 ARG CI_COMMON_VERSION
 ARG ASWF_CONAN_CHANNEL
+ARG ASWF_CONAN_REMOTE_ARGS
 ARG ASWF_CXX_STANDARD
 
 
@@ -110,6 +111,7 @@ RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=/opt/conan_home
     --mount=type=bind,rw,target=/opt/conan_home/.conan2,source=packages/conan/settings \
     conan install /usr/local \
         --profile:all "${ASWF_CONAN_CHANNEL}" \
+        ${ASWF_CONAN_REMOTE_ARGS} \
         --deployer aswf_deploy \
         --deployer-folder /usr/local \
         --conf user.aswf:exclude_package="opencolorio" \

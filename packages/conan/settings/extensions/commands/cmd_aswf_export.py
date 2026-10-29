@@ -25,12 +25,12 @@ from conan.api.output import ConanOutput
 from conan.cli.command import conan_command
 
 
-def export_all(conan_api, exports, cwd):
+def export_all(conan_api, exports, cwd, remotes):
     """Exports each (path, name, version, user, channel) entry, in order.
+    `remotes` is only consulted for python_requires, as in `conan export`.
 
     Returns the exported RecipeReferences.
     """
-    remotes = conan_api.remotes.list(None)
     refs = []
     for path, name, version, user, channel in exports:
         conanfile_path = conan_api.local.get_conanfile_path(path, cwd, py=True)
@@ -60,5 +60,21 @@ def aswf_export(conan_api, parser, *args):
         "exports",
         help="JSON list of [path, name, version, user, channel] entries",
     )
+    # Same remote options as the built-in `conan export`.
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "-r",
+        "--remote",
+        action="append",
+        default=None,
+        help="Look in the specified remote or remotes server",
+    )
+    group.add_argument(
+        "-nr",
+        "--no-remote",
+        action="store_true",
+        help="Do not use remote, resolve exclusively in the cache",
+    )
     args = parser.parse_args(*args)
-    export_all(conan_api, json.loads(args.exports), os.getcwd())
+    remotes = [] if args.no_remote else conan_api.remotes.list(args.remote)
+    export_all(conan_api, json.loads(args.exports), os.getcwd(), remotes)

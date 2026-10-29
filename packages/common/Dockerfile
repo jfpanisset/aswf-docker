@@ -29,7 +29,10 @@ ARG ASWF_CONAN_VERSION
 ARG ASWF_CONAN_REMOTE
 ARG ASWF_CONAN_PYTHON_VERSION
 ARG ASWF_CONAN_BUILD_MISSING
-ARG ASWF_CONAN_NO_REMOTE
+# Conan remote policy for conan create, e.g. "--no-remote" (local builds:
+# local Conan cache only) or "--remote aswf" (GitHub Actions) -- see
+# utils.resolve_conan_remote().
+ARG ASWF_CONAN_REMOTE_ARGS
 ARG ASWF_CONAN_PUSH
 # When set, the build runs this script instead of `conan create` below, and
 # writes its stdout to /aswf-build-order.json for ci-conan-graph-output to
@@ -177,7 +180,7 @@ RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=${ASWF_CONAN_HO
     else \
       conan create \
         ${ASWF_CONAN_BUILD_MISSING} \
-        ${ASWF_CONAN_NO_REMOTE} \
+        ${ASWF_CONAN_REMOTE_ARGS} \
         --profile:all "${ASWF_CONAN_HOME}"/.conan2/profiles/"${ASWF_CONAN_CHANNEL}" \
         --name "${ASWF_PKG_NAME}" \
         --version "${ASWF_PKG_VERSION}" \

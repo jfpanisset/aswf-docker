@@ -33,6 +33,7 @@ ARG ASWF_PKG_ORG
 ARG ASWF_VERSION
 ARG CI_COMMON_VERSION
 ARG ASWF_CONAN_CHANNEL
+ARG ASWF_CONAN_REMOTE_ARGS
 ARG ASWF_CXX_STANDARD
 
 
@@ -107,6 +108,7 @@ RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=/opt/conan_home
     --mount=type=bind,rw,target=/opt/conan_home/.conan2,source=packages/conan/settings \
     conan install /usr/local \
         --profile:all "${ASWF_CONAN_CHANNEL}" \
+        ${ASWF_CONAN_REMOTE_ARGS} \
         --deployer aswf_deploy \
         --deployer-folder /usr/local \
         --conf user.aswf:exclude_package="openrv" \
@@ -115,9 +117,10 @@ RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=/opt/conan_home
 # Workaround: Reinstall Qt to a temporary location to prevent conflicts with PySide during OpenRV builds.
 # This is effectively a copy since Qt is already in the cache from previous steps.
 # This approach may be revisited if OpenRV uses PySide2 package from Artifactory.
-RUN --mount=type=cache,target=/opt/conan_home/d \
+RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=/opt/conan_home/d \
     --mount=type=bind,rw,target=/opt/conan_home/.conan2,source=packages/conan/settings \
     conan install --requires qt/"${ASWF_QT_VERSION}"@"${ASWF_PKG_ORG}"/"${ASWF_CONAN_CHANNEL}" \
         --profile:all "${ASWF_CONAN_CHANNEL}" \
+        ${ASWF_CONAN_REMOTE_ARGS} \
         --deployer aswf_deploy \
         --deployer-folder /tmp/qttemp

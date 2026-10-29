@@ -179,16 +179,27 @@ def _export_entry(
     return [container_folder, name, version, package_org, channel]
 
 
-def _export_all_command(entries: typing.Sequence[typing.Sequence[str]]) -> str:
+def _shell_args(args: typing.Sequence[str]) -> str:
+    return " ".join(shlex.quote(arg) for arg in args)
+
+
+def _export_all_command(
+    entries: typing.Sequence[typing.Sequence[str]],
+    remote_args: typing.Sequence[str],
+) -> str:
     # One Conan process for every export, instead of one `conan export`
     # (and one interpreter start) per recipe.
-    return f"conan aswf-export {shlex.quote(json.dumps(list(entries)))}"
+    return (
+        f"conan aswf-export {_shell_args(remote_args)} "
+        f"{shlex.quote(json.dumps(list(entries)))}"
+    )
 
 
 def _build_order_command(
     members: typing.Sequence[typing.Tuple[str, str]],
     package_org: str,
     channel: str,
+    remote_args: typing.Sequence[str],
 ) -> str:
     profile = os.path.join(constants.ASWF_CONAN_HOME, ".conan2", "profiles", channel)
     requires = " ".join(
@@ -198,7 +209,7 @@ def _build_order_command(
     profile_arg = shlex.quote(profile)
     return (
         f"conan graph build-order {requires} "
-        f"--profile:all {profile_arg} --build=missing "
+        f"--profile:all {profile_arg} {_shell_args(remote_args)} --build=missing "
         "--order-by=recipe --reduce --format=json"
     )
 
@@ -264,6 +275,7 @@ def _graph_script(
     channel: str,
     members: typing.Sequence[typing.Tuple[str, str]],
     exports: typing.Sequence[typing.Tuple[str, str, str]],
+    remote_args: typing.Sequence[str],
 ) -> str:
     to_export = list(exports)
     for name, version in members:
@@ -274,8 +286,8 @@ def _graph_script(
         for name, version, export_channel in to_export
     ]
     return (
-        f"{_export_all_command(entries)} && "
-        f"{_build_order_command(members, package_org, channel)}"
+        f"{_export_all_command(entries, remote_args)} && "
+        f"{_build_order_command(members, package_org, channel, remote_args)}"
     )
 
 
@@ -360,6 +372,7 @@ def compute_build_order(
     ci_common_version: str,
     channel: str,
     members: typing.Sequence[typing.Tuple[str, str]],
+    conan_remote: str = constants.CONAN_REMOTE_AUTO,
     progress: str = "quiet",
 ) -> BuildOrder:
     """Computes the build order for `members` (a sequence of (name, version)
@@ -368,12 +381,20 @@ def compute_build_order(
     package builds use (see module docstring for why this has to be bake
     and not a plain `docker run`). Every package the `channel` profile can
     redirect a dependency to is exported first (see profile_refs()).
+    `conan_remote` is the same remote policy real builds apply (see
+    utils.resolve_conan_remote()), so "what needs building" is answered
+    against the same cache/remote a real build would use.
     """
     if not members:
         return BuildOrder([])
 
+    remote_args = utils.conan_remote_args(
+        utils.resolve_conan_remote(conan_remote, package_org)
+    )
     exports = profile_refs(repo_root, channel)
-    script = _graph_script(repo_root, package_org, channel, members, exports)
+    script = _graph_script(
+        repo_root, package_org, channel, members, exports, remote_args
+    )
     bake_dict = _bake_dict(
         docker_org, package_org, ci_common_version, channel, script, uuid.uuid4().hex
     )

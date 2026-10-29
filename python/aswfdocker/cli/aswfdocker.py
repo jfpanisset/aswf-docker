@@ -190,10 +190,14 @@ def get_group_info(build_info, ci_image_type, groups, versions, full_name, targe
     help="Instruct Conan to build missing binary packages from source.",
 )
 @click.option(
-    "--no-remote",
-    "-nr",
-    is_flag=True,
-    help="Do not use Conan remote, resolve exclusively in the cache",
+    "--conan-remote",
+    "-cr",
+    default=constants.CONAN_REMOTE_AUTO,
+    show_default=True,
+    help=f'Conan remote policy. "{constants.CONAN_REMOTE_AUTO}": only the local '
+    "Conan cache, except on GitHub Actions where only the remote named after the "
+    f'package org (aswf or aswftesting) is used; "{constants.CONAN_REMOTE_LOCAL}": '
+    "only the local Conan cache; any other value: only that named remote.",
 )
 @pass_build_info
 def build(
@@ -207,7 +211,7 @@ def build(
     dry_run,
     progress,
     build_missing,
-    no_remote,
+    conan_remote,
 ):
     """Builds a Conan package or ci-image Docker image."""
     if push == "YES":
@@ -220,12 +224,16 @@ def build(
     group_info = get_group_info(
         build_info, ci_image_type, group, version, full_name, target
     )
-    b = builder.Builder(build_info=build_info, group_info=group_info, push=pushb)
+    b = builder.Builder(
+        build_info=build_info,
+        group_info=group_info,
+        push=pushb,
+        conan_remote=conan_remote,
+    )
     b.build(
         dry_run=dry_run,
         progress=progress,
         build_missing=build_missing,
-        no_remote=no_remote,
     )
 
 

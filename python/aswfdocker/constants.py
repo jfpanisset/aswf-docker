@@ -39,6 +39,11 @@ ALL = "all"
 
 ASWF_CONAN_HOME = "/opt/conan_home"
 
+# Conan remote policy values (see utils.resolve_conan_remote()): any other
+# value names the single Conan remote to use.
+CONAN_REMOTE_AUTO = "auto"
+CONAN_REMOTE_LOCAL = "local"
+
 # Dockerfile (relative to the repo root) every Conan package build and the
 # Conan dependency-graph grapher are baked from.
 CONAN_PACKAGE_DOCKERFILE = "packages/common/Dockerfile"
