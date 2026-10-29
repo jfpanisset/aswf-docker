@@ -6,13 +6,12 @@ CI Image and Package Builder
 
 import logging
 import subprocess
-import json
 import os
 import sys
 import tempfile
 import typing
 
-from aswfdocker import constants, aswfinfo, utils, groupinfo, index
+from aswfdocker import bake, constants, aswfinfo, utils, groupinfo, index
 
 logger = logging.getLogger(__name__)
 
@@ -60,37 +59,30 @@ class Builder:
                         [version, major_version],
                     )
                 )
-                docker_file = "packages/common/Dockerfile"
+                docker_file = constants.CONAN_PACKAGE_DOCKERFILE
             else:
                 tags = version_info.get_tags(version, self.build_info.docker_org, image)
                 docker_file = f"{image}/Dockerfile"
 
-            major_version_no_clang = major_version.split("-")[0]
-            if version_info.ci_common_version == major_version_no_clang:
-                channel = f"ci_common{major_version_no_clang}"
-            else:
-                channel = f"vfx{version_info.major_version}"
-            args = {
-                "ASWF_ORG": self.build_info.docker_org,
-                "ASWF_PKG_ORG": self.build_info.package_org,
-                "ASWF_VERSION": version,
-                "CI_COMMON_VERSION": version_info.ci_common_version,
-                "ASWF_CONAN_CHANNEL": channel,
-                # Needed by every Dockerfile's own `conan install` (both IMAGE and
-                # PACKAGE types), so CONAN_HOME lines up with the bind-mounted
-                # packages/conan/settings and its profiles are found.
-                "ASWF_CONAN_HOME": constants.ASWF_CONAN_HOME,
-            }
+            channel = utils.conan_channel(
+                version_info.ci_common_version,
+                major_version,
+                version_info.major_version,
+            )
+            args = utils.common_conan_bake_args(
+                self.build_info.docker_org,
+                self.build_info.package_org,
+                version_info.ci_common_version,
+                channel,
+            )
+            args["ASWF_VERSION"] = version
             if self.group_info.type == constants.ImageType.PACKAGE:
                 # params as env var needed for conan build
                 args.update(
                     {
                         "ASWF_PKG_NAME": image.replace("ci-package-", ""),
                         "ASWF_PKG_VERSION": version_info.package_versions.get(
-                            "ASWF_"
-                            # Handle dependencies with hyphens in their name.
-                            + image.replace("ci-package-", "").upper().replace("-", "_")
-                            + "_VERSION"
+                            utils.package_version_key(image.replace("ci-package-", ""))
                         ),
                         "ASWF_CONAN_BUILD_MISSING": (
                             "--build=missing" if build_missing else ""
@@ -137,73 +129,15 @@ class Builder:
             tempfile.gettempdir(),
             f"docker-bake-{self.group_info.type.name}-{groups}-{versions}.json",
         )
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(d, f, indent=4, sort_keys=True)
+        bake.write_bake_jsonfile(path, d)
         return path
 
-    def _run(self, cmd: str, dry_run: bool):
+    def _run(self, cmd: typing.List[str], dry_run: bool):
         if dry_run:
-            logger.info("Would run: '%s'", cmd)
+            logger.info("Would run: '%s'", " ".join(cmd))
         else:
-            logger.info("Building: '%s'", cmd)
-            subprocess.run(cmd, shell=True, check=True, cwd=self.build_info.repo_root)
-
-    def _run_in_docker(self, base_cmd, cmd, dry_run):
-        self._run(
-            " ".join(base_cmd + cmd),
-            dry_run=dry_run,
-        )
-
-    def _get_conan_env_vars(self, version_info):
-        envs = {
-            "ASWF_CONAN_HOME": constants.ASWF_CONAN_HOME,
-            "CONAN_HOME": os.path.join(constants.ASWF_CONAN_HOME, ".conan2"),
-            "CCACHE_DIR": "/tmp/ccache",
-            "CONAN_NON_INTERACTIVE": "1",
-        }
-        if "CONAN_LOGIN_USERNAME" in os.environ:
-            envs["CONAN_LOGIN_USERNAME"] = os.environ["CONAN_LOGIN_USERNAME"]
-        if "ARTIFACTORY_USER" in os.environ:
-            envs["CONAN_LOGIN_USERNAME"] = os.environ["ARTIFACTORY_USER"]
-        if "CONAN_PASSWORD" in os.environ:
-            envs["CONAN_PASSWORD"] = os.environ["CONAN_PASSWORD"]
-        if "ARTIFACTORY_TOKEN" in os.environ:
-            envs["CONAN_PASSWORD"] = os.environ["ARTIFACTORY_TOKEN"]
-        for name, value in version_info.all_package_versions.items():
-            envs[name] = value
-        return envs
-
-    # We should leverage this to avoid repeating volume definitions in packages/common/Dockerfiles
-    def _get_conan_vols(self):
-        conan_base = os.path.join(utils.get_git_top_level(), "packages", "conan")
-        vols = {
-            os.path.join(conan_base, "settings"): os.path.join(
-                constants.ASWF_CONAN_HOME, ".conan2"
-            ),
-            os.path.join(conan_base, "data"): os.path.join(
-                constants.ASWF_CONAN_HOME, "d"
-            ),
-            os.path.join(conan_base, "recipes"): os.path.join(
-                constants.ASWF_CONAN_HOME, "recipes"
-            ),
-            os.path.join(conan_base, "ccache"): "/tmp/ccache",
-        }
-        return vols
-
-    def _get_conan_base_cmd(self, version_info):
-        base_cmd = ["docker", "run"]
-        for name, value in self._get_conan_env_vars(version_info).items():
-            base_cmd.append("-e")
-            base_cmd.append(f"{name}={value}")
-        for name, value in self._get_conan_vols().items():
-            base_cmd.append("-v")
-            base_cmd.append(f"{name}:{value}")
-        tag = (
-            f"{constants.DOCKER_REGISTRY}/{self.build_info.docker_org}"
-            + f"/ci-baseos-gl-conan:{version_info.ci_common_version}"
-        )
-        base_cmd.append(tag)
-        return base_cmd
+            logger.info("Building: '%s'", " ".join(cmd))
+            subprocess.run(cmd, check=True, cwd=self.build_info.repo_root)
 
     def _build_conan_package(
         self,
@@ -225,10 +159,14 @@ class Builder:
         # - conan create
         # - conan upload main version (conditional)
         #
-        runcmd = (
-            f"docker buildx bake -f {bake_jsonfile} --set=*.output=type=cacheonly "
-            f"--set=*.target=ci-conan-package-builder --progress {progress} "
-            f"ci-package-{image}-{major_version}"
+        runcmd = bake.bake_command(
+            bake_jsonfile,
+            build_targets=[f"ci-package-{image}-{major_version}"],
+            overrides={
+                "output": "type=cacheonly",
+                "target": "ci-conan-package-builder",
+            },
+            progress=progress,
         )
 
         self._run(
@@ -254,7 +192,9 @@ class Builder:
         if path:
             if self.group_info.type == constants.ImageType.IMAGE:
                 self._run(
-                    f"docker buildx bake -f {path} --progress {progress}",
+                    bake.bake_command(
+                        path, build_targets=[], overrides={}, progress=progress
+                    ),
                     dry_run=dry_run,
                 )
             else:

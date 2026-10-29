@@ -31,6 +31,21 @@ ARG ASWF_CONAN_PYTHON_VERSION
 ARG ASWF_CONAN_BUILD_MISSING
 ARG ASWF_CONAN_NO_REMOTE
 ARG ASWF_CONAN_PUSH
+# When set, the build runs this script instead of `conan create` below, and
+# writes its stdout to /aswf-build-order.json for ci-conan-graph-output to
+# pick up -- see buildorder.py. Built entirely in Python (a `conan
+# aswf-export` of every recipe the profile can reach + a single `conan graph
+# build-order` call); the Dockerfile only ever runs it verbatim, never
+# constructs it.
+ARG ASWF_CONAN_GRAPH_SCRIPT
+# Unique per graph run (buildorder.py), so BuildKit never replays a cached
+# result of the RUN below: its layer cache ignores --mount=type=cache
+# contents, so a replay would report a stale build order after the Conan
+# cache changed. A changed ARG value forces the RUN to execute; don't use
+# --no-cache/no-cache-filter for this instead, since that also gives the RUN
+# fresh, empty cache mounts that replace the shared aswf-conan-cache and
+# aswf-ccache, discarding every locally built package.
+ARG ASWF_CONAN_GRAPH_NONCE
 ARG ASWF_CUDA_VERSION
 ENV ASWF_CUDA_VERSION=${ASWF_CUDA_VERSION}
 ARG ASWF_OPTIX_VERSION
@@ -157,15 +172,19 @@ RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=${ASWF_CONAN_HO
     --mount=type=bind,rw,target=${ASWF_CONAN_HOME}/recipes,source=packages/conan/recipes \
     --mount=type=secret,id=conan_login_username,env=CONAN_LOGIN_USERNAME \
     --mount=type=secret,id=conan_password,env=CONAN_PASSWORD \
-    conan create \
-      ${ASWF_CONAN_BUILD_MISSING} \
-      ${ASWF_CONAN_NO_REMOTE} \
-      --profile:all "${ASWF_CONAN_HOME}"/.conan2/profiles/"${ASWF_CONAN_CHANNEL}" \
-      --name "${ASWF_PKG_NAME}" \
-      --version "${ASWF_PKG_VERSION}" \
-      --user "${ASWF_PKG_ORG}" \
-      --channel "${ASWF_CONAN_CHANNEL}" \
-      "${ASWF_PKG_DIR}"/$(if [[ -f "${ASWF_PKG_YML}" ]] ; then yq '.versions["'"${ASWF_PKG_VERSION}"'"].folder' "${ASWF_PKG_YML}" ; fi)
+    if [ -n "${ASWF_CONAN_GRAPH_SCRIPT}" ] ; then \
+      eval "${ASWF_CONAN_GRAPH_SCRIPT}" > /aswf-build-order.json ; \
+    else \
+      conan create \
+        ${ASWF_CONAN_BUILD_MISSING} \
+        ${ASWF_CONAN_NO_REMOTE} \
+        --profile:all "${ASWF_CONAN_HOME}"/.conan2/profiles/"${ASWF_CONAN_CHANNEL}" \
+        --name "${ASWF_PKG_NAME}" \
+        --version "${ASWF_PKG_VERSION}" \
+        --user "${ASWF_PKG_ORG}" \
+        --channel "${ASWF_CONAN_CHANNEL}" \
+        "${ASWF_PKG_DIR}"/$(if [[ -f "${ASWF_PKG_YML}" ]] ; then yq '.versions["'"${ASWF_PKG_VERSION}"'"].folder' "${ASWF_PKG_YML}" ; fi) ; \
+    fi
 
 # Upload build to repository if called for
 RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=${ASWF_CONAN_HOME}/d \
@@ -179,3 +198,16 @@ RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=${ASWF_CONAN_HO
     else \
       echo "conan upload of package ${ASWF_PKG_NAME} skipped" ; \
     fi
+
+#################### ci-conan-graph-output ####################
+# Extracts the JSON file produced by ci-conan-package-builder's
+# ASWF_CONAN_GRAPH_SCRIPT branch above, for `docker buildx bake
+# --set=*.target=ci-conan-graph-output --set=*.output=type=local,dest=...`
+# to copy onto the host (see buildorder.py). type=local exports a stage's
+# entire final filesystem, so this stays a minimal scratch stage rather
+# than exporting ci-conan-package-builder's whole rootfs. Never built for
+# a normal `conan create` bake call, since that targets
+# ci-conan-package-builder directly and this stage isn't in its dependency
+# chain.
+FROM scratch AS ci-conan-graph-output
+COPY --from=ci-conan-package-builder /aswf-build-order.json /aswf-build-order.json

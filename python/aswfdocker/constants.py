@@ -38,3 +38,7 @@ IMAGE_NAME_REGEX = r"(refs/tags/)?(?P<org>[a-z]+)/ci-(?P<package>package\-)?(?P<
 ALL = "all"
 
 ASWF_CONAN_HOME = "/opt/conan_home"
+
+# Dockerfile (relative to the repo root) every Conan package build and the
+# Conan dependency-graph grapher are baked from.
+CONAN_PACKAGE_DOCKERFILE = "packages/common/Dockerfile"
