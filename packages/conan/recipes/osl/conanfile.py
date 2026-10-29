@@ -26,6 +26,7 @@ class OpenShadingLanguageConan(ConanFile):
     license = "BSD-3-Clause"
     homepage = "https://github.com/AcademySoftwareFoundation/OpenShadingLanguage"
     url = "https://github.com/conan-io/conan-center-index"
+    package_type = "library"
 
     settings = "os", "arch", "compiler", "build_type"
     options = {

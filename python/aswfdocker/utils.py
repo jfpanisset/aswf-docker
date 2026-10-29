@@ -8,6 +8,7 @@ import re
 import subprocess
 import datetime
 import logging
+import typing
 import requests
 
 from aswfdocker import constants
@@ -88,6 +89,44 @@ def get_image_spec(name: str):
     version = m.group("version")
     logger.debug("get_image_spec found %s: %s/%s:%s", image_type, org, image, version)
     return org, image_type, image, version
+
+
+def package_version_key(package_name: str) -> str:
+    """The versions.yaml key pinning a Conan package's version, e.g.
+    "util-linux-libuuid" -> "ASWF_UTIL_LINUX_LIBUUID_VERSION"."""
+    return f"ASWF_{package_name.upper().replace('-', '_')}_VERSION"
+
+
+def conan_channel(
+    ci_common_version: str, major_version: str, vfx_major_version: str
+) -> str:
+    """The Conan channel a given (major_version, VersionInfo) pair builds
+    under: the ci_common<N> channel for a plain common-tier version, or
+    vfx<year> once a clang variant or VFX-year version diverges from its
+    ci_common_version. Shared by builder.py (real package/image builds) and
+    buildorder.py (the Conan dependency-graph grapher), so both always
+    agree on which profile a given version resolves to.
+    """
+    major_version_no_clang = major_version.split("-")[0]
+    if ci_common_version == major_version_no_clang:
+        return f"ci_common{major_version_no_clang}"
+    return f"vfx{vfx_major_version}"
+
+
+def common_conan_bake_args(
+    docker_org: str, package_org: str, ci_common_version: str, channel: str
+) -> typing.Dict[str, str]:
+    """The subset of packages/common/Dockerfile build ARGs needed by every
+    bake target built from it, whether a real `conan create` package build
+    (builder.py) or the read-only dependency-graph grapher (buildorder.py).
+    """
+    return {
+        "ASWF_ORG": docker_org,
+        "ASWF_PKG_ORG": package_org,
+        "CI_COMMON_VERSION": ci_common_version,
+        "ASWF_CONAN_CHANNEL": channel,
+        "ASWF_CONAN_HOME": constants.ASWF_CONAN_HOME,
+    }
 
 
 def get_dockerhub_token(username, password):

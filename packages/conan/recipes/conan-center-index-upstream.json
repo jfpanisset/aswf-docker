@@ -116,6 +116,9 @@
     "glib": {
       "class": "system"
     },
+    "gnutls": {
+      "class": "system"
+    },
     "gtest": {
       "class": "cci",
       "folder": "all",
@@ -378,6 +381,9 @@
       "class": "cci",
       "folder": "all",
       "sha": "61524a015a51e481cf247e250d3f966f2c12698e"
+    },
+    "openssl": {
+      "class": "system"
     },
     "opensubdiv": {
       "class": "cci",

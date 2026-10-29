@@ -88,6 +88,7 @@ include = '''
 (
     ^/python/.*\.py$
   | ^/packages/conan/settings/extensions/deployers/.*\.py$
+  | ^/packages/conan/settings/extensions/commands/.*\.py$
   | ^/setup\.py$
 )
 '''
