@@ -18,34 +18,6 @@ Warning: this image does *not* contain OpenUSD itself as it is used to *build* O
 
 [Docker Image Source](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/ci-usd/Dockerfile)
 
-## [aswf/ci-usd:2019.9](https://hub.docker.com/r/aswf/ci-usd/tags?page=1&name=2019.9)
-
-Contains:
-* openusd-19.11
-* numpy-1.14
-* vfxplatform-2019
-
-## [aswf/ci-usd:2020.8](https://hub.docker.com/r/aswf/ci-usd/tags?page=1&name=2020.8)
-
-Contains:
-* openusd-20.11
-* numpy-1.16
-* vfxplatform-2020
-
-## [aswf/ci-usd:2021.6](https://hub.docker.com/r/aswf/ci-usd/tags?page=1&name=2021.6)
-
-Contains:
-* openusd-21.05
-* numpy-1.19
-* vfxplatform-2021
-
-## [aswf/ci-usd:2022.4](https://hub.docker.com/r/aswf/ci-usd/tags?page=1&name=2022.4)
-
-Contains:
-* openusd-22.11
-* numpy-1.20
-* vfxplatform-2022
-
 ## [aswf/ci-usd:2023.7](https://hub.docker.com/r/aswf/ci-usd/tags?page=1&name=2023.7)
 
 Contains:

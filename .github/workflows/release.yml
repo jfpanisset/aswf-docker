@@ -43,12 +43,16 @@ jobs:
       run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u aswfdocker --password-stdin
 
     - name: Build and Push
+      # --force-rebuild: a release always (re)builds and uploads its package,
+      # even if Conan already finds an up-to-date binary on the remote.
+      # Ignored for image releases.
       run: |
         uv run aswfdocker \
           --repo-uri $GITHUB_REPOSITORY \
           --verbose \
           build \
           --full-name $GITHUB_REF_LOCAL \
+          --force-rebuild \
           --push YES
 
     - name: Update Docker Hub Description

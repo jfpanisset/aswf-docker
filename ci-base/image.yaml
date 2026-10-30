@@ -3,7 +3,7 @@ title: "Base CI Docker Image"
 description: |
   Contains: Python, TBB, Boost and other base libraries
 packages:
-  - b2                 # base1-1 packages
+  - b2                 # base1 packages
   - bzip2
   - cppunit
   - expat
@@ -28,7 +28,7 @@ packages:
   - yaml-cpp
   - zlib
   - zstd
-  - c-blosc              # base1-2 packages
+  - c-blosc
   - cpython
   - freetype
   - gdbm
@@ -37,7 +37,7 @@ packages:
   - log4cplus
   - minizip-ng
   - nanobind
-  - boost              # base1-3 packages
+  - boost
   - pybind11
 implicit_packages:
   - numpy

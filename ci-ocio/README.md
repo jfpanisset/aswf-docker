@@ -18,42 +18,6 @@ Warning: this image does *not* contain OpenColorIO itself as it is used to *buil
 
 [Docker Image Source](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/ci-ocio/Dockerfile)
 
-## [aswf/ci-ocio:2019.9](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2019.9)
-
-Contains:
-* glew-2.1.0
-* openimageio-2.0.8
-* opencolorio-1.1.0
-* numpy-1.14
-* vfxplatform-2019
-
-## [aswf/ci-ocio:2020.8](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2020.8)
-
-Contains:
-* glew-2.1.0
-* openimageio-2.1.13.0
-* opencolorio-1.1.1
-* numpy-1.16
-* vfxplatform-2020
-
-## [aswf/ci-ocio:2021.6](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2021.6)
-
-Contains:
-* glew-2.1.0
-* openimageio-2.2.14.0
-* opencolorio-2.0.1
-* numpy-1.19
-* vfxplatform-2021
-
-## [aswf/ci-ocio:2022.4](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2022.4)
-
-Contains:
-* glew-2.1.0
-* openimageio-2.4.5.0
-* opencolorio-2.1.1
-* numpy-1.20
-* vfxplatform-2022
-
 ## [aswf/ci-ocio:2023.7](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2023.7)
 
 Contains:

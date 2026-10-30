@@ -27,11 +27,11 @@ class TestIndex(unittest.TestCase):
         self.assertTrue(versions[0].startswith("3"))
 
     def test_version_info(self):
-        vi = self.index.version_info("2019")
+        vi = self.index.version_info("2027")
         self.assertTrue(vi)
-        self.assertEqual(vi.version, "2019")
-        # Version 2022 pre-dates the generate_profile flag: must default to False
-        vi = self.index.version_info("2022")
+        self.assertEqual(vi.version, "2027")
+        # ci_common entries don't set the generate_profile flag: must default to False
+        vi = self.index.version_info("7")
         self.assertFalse(vi.generate_profile)
         # Version 2023 onwards opts in to profile generation
         vi = self.index.version_info("2023")
@@ -43,5 +43,5 @@ class TestIndex(unittest.TestCase):
     def test_group_from_image(self):
         self.assertEqual(
             self.index.get_group_from_image(constants.ImageType.PACKAGE, "clang"),
-            "common-2",
+            "common2",
         )

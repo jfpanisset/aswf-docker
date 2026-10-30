@@ -177,7 +177,7 @@ Check [aswfdocker](python/README.md) for python utility usage.
 To build packages and images locally follow the instructions to install the
 [aswfdocker](python/README.md) python utility.
 
-The `group` names for `PACKAGE` and `IMAGE` builds are distinct and are defined in `versions.yaml`. At some point Conan dependency management will be leveraged to automatically determine build order, until then all the packages in group `vfx1-2` must be built before the ones in `vfx1-1`, and components in a given group do not depend on each other.
+The `group` names for `PACKAGE` and `IMAGE` builds are distinct and are defined in `versions.yaml`. Within a `PACKAGE` group, the build order comes from Conan's dependency graph, and packages whose binary is already up to date are skipped (`--force-rebuild` rebuilds them anyway; `--target`, `--target-to` and `--target-from` narrow the selection). Groups themselves still need to be built in order: `common1`, `common2`, `base1`, `base2` (Qt), `base3` (PySide), then `vfx`. A build refuses, listing them, if packages it depends on from an earlier group need (re)building first.
 
 ### Packages
 

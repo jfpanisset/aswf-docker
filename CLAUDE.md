@@ -5,7 +5,7 @@
 **aswf-docker** builds and manages Docker CI images and Conan packages for the
 [Academy Software Foundation (ASWF)](https://www.aswf.io/) VFX Platform. It
 provides standardized build environments for VFX software across multiple
-platform years (2019-2026).
+platform years (2023-2027).
 
 ## Repository Structure
 
@@ -38,7 +38,7 @@ aswf-docker/
 ### Key Concepts
 
 - **versions.yaml**: Central version registry defining package versions per VFX
-  Platform year. Versions use inheritance (e.g., `2-clang10` inherits from `2`).
+  Platform year. Versions use inheritance (e.g., `7-clang22` inherits from `7`).
 - **image.yaml**: Per-image specs listing packages, base image, and metadata.
 - **Dockerfiles and Conan profiles are generated**: From Jinja2 templates via
   `aswfdocker dockergen`. Never edit `ci-*/Dockerfile`, `ci-*/README.md`, or
@@ -90,7 +90,10 @@ uv run aswfdocker dockergen --check
 uv run aswfdocker build --ci-image-type IMAGE --group base --version 2026-clang20 --push NO
 
 # Build Conan packages
-uv run aswfdocker build --ci-image-type PACKAGE --group common --version 2026-clang20 --push NO
+uv run aswfdocker build --ci-image-type PACKAGE --group vfx --version 2027 --push NO
+
+# Build a package and everything it requires within its group, in dependency order
+uv run aswfdocker build --ci-image-type PACKAGE --target-to openexr --version 2027 --push NO
 
 # Dry run (show commands without executing)
 uv run aswfdocker build --ci-image-type IMAGE --group base --version 2026-clang20 --dry-run

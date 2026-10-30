@@ -50,9 +50,7 @@ docker_commands: |
   WORKDIR /opt/aswf
 
   ENV LD_LIBRARY_PATH=/usr/local/lib:/opt/rh/${ASWF_DTS_PREFIX}-${ASWF_DTS_VERSION}/root/usr/lib64:/opt/rh/${ASWF_DTS_PREFIX}-${ASWF_DTS_VERSION}/root/usr/lib:${LD_LIBRARY_PATH} \
-      PATH=/usr/local/bin:/opt/rh/${ASWF_DTS_PREFIX}-${ASWF_DTS_VERSION}/root/usr/bin:/opt/app-root/src/bin:/opt/rh/${ASWF_DTS_PREFIX}-${ASWF_DTS_VERSION}/root/usr/bin/:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin \
-      PERL5LIB=/opt/rh/rh-git218/root/usr/share/perl5/vendor_perl \
-      MANPATH=/opt/rh/rh-git218/root/usr/share/man
+      PATH=/usr/local/bin:/opt/rh/${ASWF_DTS_PREFIX}-${ASWF_DTS_VERSION}/root/usr/bin:/opt/app-root/src/bin:/opt/rh/${ASWF_DTS_PREFIX}-${ASWF_DTS_VERSION}/root/usr/bin/:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin
 
   COPY scripts/common/install_sonar.sh \
       scripts/common/install_ccache.sh \

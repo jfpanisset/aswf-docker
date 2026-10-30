@@ -13,6 +13,7 @@ import click
 
 from aswfdocker import (
     builder,
+    buildorder,
     aswfinfo,
     groupinfo,
     constants,
@@ -91,7 +92,7 @@ def common_image_options(function):
         "-v",
         required=False,
         multiple=True,
-        help='The major version number to build, e.g. "2019", can be specified multiple times.'
+        help='The major version number to build, e.g. "2027", can be specified multiple times.'
         ' Can also be "all".',
     )(function)
     function = click.option(
@@ -99,7 +100,7 @@ def common_image_options(function):
         "-n",
         callback=validate_image_name,
         required=False,
-        help="The full image name, e.g. aswftesting/ci-common:1 or aswf/ci-package-openexr:2019",
+        help="The full image name, e.g. aswftesting/ci-common:7 or aswf/ci-package-openexr:2027",
     )(function)
     function = click.option(
         "--target",
@@ -199,8 +200,30 @@ def get_group_info(build_info, ci_image_type, groups, versions, full_name, targe
     f'package org (aswf or aswftesting) is used; "{constants.CONAN_REMOTE_LOCAL}": '
     "only the local Conan cache; any other value: only that named remote.",
 )
+@click.option(
+    "--target-to",
+    "-tt",
+    multiple=True,
+    help="PACKAGE builds only: build this package and everything in the group it "
+    "transitively requires. Can be specified multiple times.",
+)
+@click.option(
+    "--target-from",
+    "-tf",
+    multiple=True,
+    help="PACKAGE builds only: build this package and everything in the group that "
+    "transitively requires it. Can be specified multiple times.",
+)
+@click.option(
+    "--force-rebuild",
+    "-fr",
+    is_flag=True,
+    help="PACKAGE builds only: rebuild every selected package even if Conan considers "
+    "its binary up to date (e.g. after a system library change). Image builds always "
+    "rebuild.",
+)
 @pass_build_info
-def build(
+def build(  # pylint: disable=too-many-arguments,too-many-locals
     build_info,
     ci_image_type,
     group,
@@ -212,8 +235,15 @@ def build(
     progress,
     build_missing,
     conan_remote,
+    target_to,
+    target_from,
+    force_rebuild,
 ):
-    """Builds a Conan package or ci-image Docker image."""
+    """Builds a Conan package or ci-image Docker image.
+
+    Conan packages are built in dependency order, skipping packages whose
+    binary is already up to date unless --force-rebuild is given.
+    """
     if push == "YES":
         pushb = True
     elif push == "AUTO":
@@ -221,20 +251,65 @@ def build(
     else:
         pushb = False
 
+    is_package = ci_image_type == constants.ImageType.PACKAGE.name
+    if (target_to or target_from) and not is_package and not full_name:
+        raise click.BadOptionUsage(
+            "--target-to/--target-from",
+            "--target-to/--target-from require --ci-image-type PACKAGE",
+        )
+    if is_package and not group and (target or target_to or target_from):
+        # Infer the group(s) from every named package, not just the first.
+        idx = index.Index()
+        try:
+            group = sorted(
+                {
+                    idx.get_group_from_image(constants.ImageType.PACKAGE, t)
+                    for t in (*target, *target_to, *target_from)
+                }
+            )
+        except RuntimeError as e:
+            raise click.BadOptionUsage("--target-to/--target-from", e.args[0])
+
     group_info = get_group_info(
         build_info, ci_image_type, group, version, full_name, target
     )
+    selection = None
+    if group_info.type == constants.ImageType.PACKAGE:
+        # Package builds compute the build order over the whole group, so the
+        # targets narrow what gets built rather than which members exist.
+        selection = builder.PackageSelection(
+            targets=group_info.targets,
+            targets_to=target_to,
+            targets_from=target_from,
+            force=force_rebuild,
+        )
+        group_info = groupinfo.GroupInfo(
+            type_=group_info.type,
+            names=group_info.names,
+            versions=group_info.versions,
+            targets=[],
+        )
+    elif target_to or target_from:
+        raise click.BadOptionUsage(
+            "--target-to/--target-from",
+            "--target-to/--target-from require --ci-image-type PACKAGE",
+        )
+
     b = builder.Builder(
         build_info=build_info,
         group_info=group_info,
         push=pushb,
         conan_remote=conan_remote,
     )
-    b.build(
-        dry_run=dry_run,
-        progress=progress,
-        build_missing=build_missing,
-    )
+    try:
+        b.build(
+            dry_run=dry_run,
+            progress=progress,
+            build_missing=build_missing,
+            selection=selection,
+        )
+    except buildorder.BuildOrderError as e:
+        raise click.ClickException(str(e))
 
 
 @cli.command(deprecated="No longer relevant since all packages are built with Conan.")

@@ -116,6 +116,11 @@
     "glib": {
       "class": "system"
     },
+    "glu": {
+      "class": "cci",
+      "folder": "all",
+      "sha": "ebb3189b3a60dfa71b0c5705b67548cb4cd97a7e"
+    },
     "gnutls": {
       "class": "system"
     },
