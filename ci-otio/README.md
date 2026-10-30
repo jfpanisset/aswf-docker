@@ -18,34 +18,6 @@ Warning: this image does *not* contain OpenTimelineIO itself as it is used to *b
 
 [Docker Image Source](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/ci-otio/Dockerfile)
 
-## [aswf/ci-otio:2019.3](https://hub.docker.com/r/aswf/ci-otio/tags?page=1&name=2019.3)
-
-Contains:
-* opentimelineio-0.12.1
-* numpy-1.14
-* vfxplatform-2019
-
-## [aswf/ci-otio:2020.3](https://hub.docker.com/r/aswf/ci-otio/tags?page=1&name=2020.3)
-
-Contains:
-* opentimelineio-0.12.1
-* numpy-1.16
-* vfxplatform-2020
-
-## [aswf/ci-otio:2021.5](https://hub.docker.com/r/aswf/ci-otio/tags?page=1&name=2021.5)
-
-Contains:
-* opentimelineio-0.13
-* numpy-1.19
-* vfxplatform-2021
-
-## [aswf/ci-otio:2022.3](https://hub.docker.com/r/aswf/ci-otio/tags?page=1&name=2022.3)
-
-Contains:
-* opentimelineio-0.14.1
-* numpy-1.20
-* vfxplatform-2022
-
 ## [aswf/ci-otio:2023.7](https://hub.docker.com/r/aswf/ci-otio/tags?page=1&name=2023.7)
 
 Contains:

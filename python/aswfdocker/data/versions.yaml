@@ -27,112 +27,6 @@ versions:
       ASWF_PKGCONF_VERSION: "1.7.3"
       ASWF_WAYLAND_VERSION: "1.21.0"
       ASWF_WAYLAND_PROTOCOLS_VERSION: "1.37.1"
-  "1":
-    major_version: "1"
-    ci_common_version: "1"
-    conan_profile: "ci_common1"
-    package_versions:
-      ASWF_DTS_VERSION: "6"
-      ASWF_DTS_PREFIX: "devtoolset"
-      ASWF_CUDA_VERSION: "10.2"
-      ASWF_OPTIX_VERSION: "7.1.0"
-      ASWF_GLVND_VERSION: "1.2.0"
-      ASWF_CCACHE_VERSION: "4.0"
-      ASWF_CONAN_VERSION: "1.47.0"
-      ASWF_CONAN_PYTHON_VERSION: "3.9.11"
-      ASWF_NINJA_VERSION: "1.10.1"
-      ASWF_SONAR_VERSION: "4.6.2.2472"
-      ASWF_BASEOS_DISTRO: "centos7"
-      ASWF_BASEOS_IMAGE: "nvidia/cudagl"
-  "1-clang6":
-    parent_versions: ["1"]
-    major_version: "1"
-    ci_common_version: "1"
-    package_versions:
-      ASWF_CLANG_MAJOR_VERSION: "6"
-      ASWF_CLANG_VERSION: "6.0.1"
-  "1-clang7":
-    parent_versions: ["1"]
-    major_version: "1"
-    ci_common_version: "1"
-    use_major_version_as_tag: true
-    package_versions:
-      ASWF_CLANG_MAJOR_VERSION: "7"
-      ASWF_CLANG_VERSION: "7.1.0"
-  "1-clang8":
-    parent_versions: ["1"]
-    major_version: "1"
-    ci_common_version: "1"
-    package_versions:
-      ASWF_CLANG_MAJOR_VERSION: "8"
-      ASWF_CLANG_VERSION: "8.0.1"
-  "1-clang9":
-    parent_versions: ["1"]
-    major_version: "1"
-    ci_common_version: "1"
-    package_versions:
-      ASWF_CLANG_MAJOR_VERSION: "9"
-      ASWF_CLANG_VERSION: "9.0.1"
-  "1-clang10":
-    parent_versions: ["1"]
-    major_version: "1"
-    ci_common_version: "1"
-    package_versions:
-      ASWF_CLANG_MAJOR_VERSION: "10"
-      ASWF_CLANG_VERSION: "10.0.1"
-  "2":
-    major_version: "2"
-    ci_common_version: "2"
-    conan_profile: "ci_common2"
-    package_versions:
-      ASWF_DTS_VERSION: "9"
-      ASWF_DTS_PREFIX: "devtoolset"
-      ASWF_CONAN_VERSION: "1.47.0"
-      ASWF_CONAN_PYTHON_VERSION: "3.9.11"
-      ASWF_CUDA_VERSION: "11.4.0"
-      ASWF_OPTIX_VERSION: "7.2.0"
-      ASWF_GLVND_VERSION: "1.2.0"
-      ASWF_CCACHE_VERSION: "4.0"
-      ASWF_NINJA_VERSION: "1.11.0"
-      ASWF_SONAR_VERSION: "4.7.0.2747"
-      ASWF_BASEOS_DISTRO: "centos7"
-      ASWF_BASEOS_IMAGE: "nvidia/cudagl"
-  "2-clang10":
-    parent_versions: ["2"]
-    major_version: "2"
-    ci_common_version: "2"
-    use_major_version_as_tag: true
-    package_versions:
-      ASWF_CLANG_MAJOR_VERSION: "10"
-      ASWF_CLANG_VERSION: "10.0.1"
-  "2-clang11":
-    parent_versions: ["2"]
-    major_version: "2"
-    ci_common_version: "2"
-    package_versions:
-      ASWF_CLANG_MAJOR_VERSION: "11"
-      ASWF_CLANG_VERSION: "11.1.0"
-  "2-clang12":
-    parent_versions: ["2"]
-    major_version: "2"
-    ci_common_version: "2"
-    package_versions:
-      ASWF_CLANG_MAJOR_VERSION: "12"
-      ASWF_CLANG_VERSION: "12.0.1"
-  "2-clang13":
-    parent_versions: ["2"]
-    major_version: "2"
-    ci_common_version: "2"
-    package_versions:
-      ASWF_CLANG_MAJOR_VERSION: "13"
-      ASWF_CLANG_VERSION: "13.0.1"
-  "2-clang14":
-    parent_versions: ["2"]
-    major_version: "2"
-    ci_common_version: "2"
-    package_versions:
-      ASWF_CLANG_MAJOR_VERSION: "14"
-      ASWF_CLANG_VERSION: "14.0.0"
   "3":
     major_version: "3"
     ci_common_version: "3"
@@ -331,213 +225,6 @@ versions:
     package_versions:
       ASWF_CLANG_MAJOR_VERSION: "22"
       ASWF_CLANG_VERSION: "22.1.7"
-  "2019":
-    parent_versions: ["1", "1-clang7"]
-    major_version: "2019"
-    ci_common_version: "1"
-    conan_profile: "vfx2019"
-    package_versions:
-      ASWF_ALEMBIC_VERSION: "1.7.11"
-      ASWF_C_BLOSC_VERSION: "1.5.0"
-      ASWF_BOOST_VERSION: "1.66.0"
-      ASWF_CMAKE_VERSION: "3.12.4"
-      ASWF_CPPUNIT_VERSION: "1.14.0"
-      ASWF_CPYTHON_VERSION: "2.7.15"
-      ASWF_GLEW_VERSION: "2.1.0"
-      ASWF_GLFW_VERSION: "3.1.2"
-      ASWF_GTEST_VERSION: "1.8.1"
-      ASWF_HDF5_VERSION: "1.8.21"
-      ASWF_IMATH_VERSION: "2.3.0"
-      ASWF_LOG4CPLUS_VERSION: "1.1.2"
-      ASWF_NUMPY_VERSION: "1.14"
-      ASWF_OPENCOLORIO_CONFIGS_VERSION: "1.0_r2"
-      ASWF_OPENCOLORIO_VERSION: "1.1.0"
-      ASWF_OPENIMAGEIO_VERSION: "2.0.8"
-      ASWF_OPENEXR_VERSION: "2.3.0"
-      ASWF_OPENSUBDIV_VERSION: "3_3_3"
-      ASWF_OPENVDB_VERSION: "6.2.1"
-      ASWF_OSL_VERSION: "1.10.9"
-      ASWF_OPENTIMELINEIO_VERSION: "0.12.1"
-      ASWF_PARTIO_VERSION: "1.10.1"
-      ASWF_PTEX_VERSION: "2.1.33"
-      ASWF_PYBIND11_VERSION: "2.4.3"
-      ASWF_PYSIDE_VERSION: "5.12.6"
-      ASWF_PYSIDE_CLANG_VERSION: "7.1.0"
-      ASWF_PYTHON_MAJOR_MINOR_VERSION: "2.7"
-      ASWF_QT_VERSION: "5.12.6"
-      ASWF_ONETBB_VERSION: "2018"
-      ASWF_OPENUSD_VERSION: "19.11"
-      ASWF_VFXPLATFORM_VERSION: "2019"
-      ASWF_CXX_STANDARD: "14"
-  "2019-clang6":
-    parent_versions: ["1", "1-clang6", "2019"]
-    major_version: "2019"
-    ci_common_version: "1"
-  "2019-clang7":
-    parent_versions: ["1", "1-clang7", "2019"]
-    major_version: "2019"
-    ci_common_version: "1"
-    use_major_version_as_tag: true
-  "2019-clang8":
-    parent_versions: ["1", "1-clang8", "2019"]
-    major_version: "2019"
-    ci_common_version: "1"
-  "2019-clang9":
-    parent_versions: ["1", "1-clang9", "2019"]
-    major_version: "2019"
-    ci_common_version: "1"
-  "2019-clang10":
-    parent_versions: ["1", "1-clang10", "2019"]
-    major_version: "2019"
-    ci_common_version: "1"
-  "2020":
-    parent_versions: ["1", "1-clang7"]
-    major_version: "2020"
-    ci_common_version: "1"
-    conan_profile: "vfx2020"
-    package_versions:
-      ASWF_ALEMBIC_VERSION: "1.7.12"
-      ASWF_C_BLOSC_VERSION: "1.5.0"
-      ASWF_BOOST_VERSION: "1.70.0"
-      ASWF_CMAKE_VERSION: "3.18.4"
-      ASWF_CPPUNIT_VERSION: "1.15.1"
-      ASWF_CPYTHON_VERSION: "3.7.3"
-      ASWF_GLEW_VERSION: "2.1.0"
-      ASWF_GLFW_VERSION: "3.1.2"
-      ASWF_GTEST_VERSION: "1.10.0"
-      ASWF_HDF5_VERSION: "1.8.21"
-      ASWF_IMATH_VERSION: "2.4.0"
-      ASWF_LOG4CPLUS_VERSION: "1.1.2"
-      ASWF_NUMPY_VERSION: "1.16"
-      ASWF_OPENCOLORIO_CONFIGS_VERSION: "1.0_r2"
-      ASWF_OPENCOLORIO_VERSION: "1.1.1"
-      ASWF_OPENIMAGEIO_VERSION: "2.1.13.0"
-      ASWF_OPENEXR_VERSION: "2.4.0"
-      ASWF_OPENSUBDIV_VERSION: "3_4_3"
-      ASWF_OPENVDB_VERSION: "7.1.0"
-      ASWF_OSL_VERSION: "1.10.10"
-      ASWF_OPENTIMELINEIO_VERSION: "0.12.1"
-      ASWF_PARTIO_VERSION: "1.10.1"
-      ASWF_PTEX_VERSION: "2.3.2"
-      ASWF_PYBIND11_VERSION: "2.4.3"
-      ASWF_PYSIDE_VERSION: "5.12.6"
-      ASWF_PYSIDE_CLANG_VERSION: "7.1.0"
-      ASWF_PYTHON_MAJOR_MINOR_VERSION: "3.7"
-      ASWF_QT_VERSION: "5.12.6"
-      ASWF_ONETBB_VERSION: "2019_u6"
-      ASWF_OPENUSD_VERSION: "20.11"
-      ASWF_VFXPLATFORM_VERSION: "2020"
-      ASWF_CXX_STANDARD: "17"
-  "2020-clang7":
-    parent_versions: ["1", "1-clang7", "2020"]
-    major_version: "2020"
-    ci_common_version: "1"
-    use_major_version_as_tag: true
-  "2021":
-    parent_versions: ["2", "2-clang10"]
-    major_version: "2021"
-    ci_common_version: "2"
-    conan_profile: "vfx2021"
-    package_versions:
-      ASWF_ALEMBIC_VERSION: "1.7.16"
-      ASWF_C_BLOSC_VERSION: "1.5.0"
-      ASWF_BOOST_VERSION: "1.73.0"
-      ASWF_CMAKE_VERSION: "3.19.3"
-      ASWF_CPPUNIT_VERSION: "1.15.1"
-      ASWF_CPYTHON_VERSION: "3.7.9"
-      ASWF_GLEW_VERSION: "2.1.0"
-      ASWF_GLFW_VERSION: "3.1.2"
-      ASWF_GTEST_VERSION: "1.11.0"
-      ASWF_HDF5_VERSION: "1.8.21"
-      ASWF_IMATH_VERSION: "2.5.5"
-      ASWF_LOG4CPLUS_VERSION: "1.1.2"
-      ASWF_NUMPY_VERSION: "1.19"
-      ASWF_OPENCOLORIO_CONFIGS_VERSION: "1.0_r2"
-      ASWF_OPENCOLORIO_VERSION: "2.0.1"
-      ASWF_OPENIMAGEIO_VERSION: "2.2.14.0"
-      ASWF_OPENEXR_VERSION: "2.5.5"
-      ASWF_OPENSUBDIV_VERSION: "3_4_3"
-      ASWF_OPENVDB_VERSION: "8.0.1"
-      ASWF_OSL_VERSION: "1.11.13.0"
-      ASWF_OPENTIMELINEIO_VERSION: "0.13"
-      ASWF_PARTIO_VERSION: "1.14.0"
-      ASWF_PTEX_VERSION: "2.3.2"
-      ASWF_PYBIND11_VERSION: "2.6.2"
-      ASWF_PYSIDE_VERSION: "5.15.2"
-      ASWF_PYTHON_MAJOR_MINOR_VERSION: "3.7"
-      ASWF_QT_VERSION: "5.15.2"
-      ASWF_ONETBB_VERSION: "2020_u2"
-      ASWF_OPENUSD_VERSION: "21.05"
-      ASWF_VFXPLATFORM_VERSION: "2021"
-      ASWF_CXX_STANDARD: "17"
-  "2021-clang10":
-    parent_versions: ["2", "2-clang10", "2021"]
-    major_version: "2021"
-    ci_common_version: "2"
-    use_major_version_as_tag: true
-  "2021-clang11":
-    parent_versions: ["2", "2-clang11", "2021"]
-    major_version: "2021"
-    ci_common_version: "2"
-  "2022":
-    parent_versions: ["2", "2-clang10"]
-    major_version: "2022"
-    ci_common_version: "2"
-    conan_profile: "vfx2022"
-    package_versions:
-      ASWF_ALEMBIC_VERSION: "1.8.2"
-      ASWF_C_BLOSC_VERSION: "1.17.0"
-      ASWF_BOOST_VERSION: "1.76.0"
-      ASWF_CMAKE_VERSION: "3.22.0"
-      ASWF_CPPUNIT_VERSION: "1.15.1"
-      ASWF_CPYTHON_VERSION: "3.9.15"
-      ASWF_GLEW_VERSION: "2.1.0"
-      ASWF_GLFW_VERSION: "3.1.2"
-      ASWF_GTEST_VERSION: "1.11.0"
-      ASWF_HDF5_VERSION: "1.8.21"
-      ASWF_IMATH_VERSION: "3.1.5"
-      ASWF_LOG4CPLUS_VERSION: "1.1.2"
-      ASWF_MATERIALX_VERSION: "1.38.5"
-      ASWF_NUMPY_VERSION: "1.20"
-      ASWF_OPENCOLORIO_CONFIGS_VERSION: "1.0_r2"
-      ASWF_OPENCOLORIO_VERSION: "2.1.1"
-      ASWF_OPENIMAGEIO_VERSION: "2.4.5.0"
-      ASWF_OPENEXR_VERSION: "3.1.5"
-      ASWF_OPENSUBDIV_VERSION: "3_4_4"
-      ASWF_OPENVDB_VERSION: "9.1.0"
-      ASWF_OSL_VERSION: "1.12.7.0"
-      ASWF_OPENTIMELINEIO_VERSION: "0.14.1"
-      ASWF_PARTIO_VERSION: "1.14.0"
-      ASWF_PTEX_VERSION: "2.4.0"
-      ASWF_PYBIND11_VERSION: "2.8.1"
-      ASWF_PYSIDE_VERSION: "5.15.2"
-      ASWF_PYTHON_MAJOR_MINOR_VERSION: "3.9"
-      ASWF_QT_VERSION: "5.15.2"
-      ASWF_ONETBB_VERSION: "2020.3"
-      ASWF_OPENUSD_VERSION: "22.11"
-      ASWF_VFXPLATFORM_VERSION: "2022"
-      ASWF_CXX_STANDARD: "17"
-  "2022-clang10":
-    parent_versions: ["2", "2-clang10", "2022"]
-    major_version: "2022"
-    use_major_version_as_tag: true
-    ci_common_version: "2"
-  "2022-clang11":
-    parent_versions: ["2", "2-clang11", "2022"]
-    major_version: "2022"
-    ci_common_version: "2"
-  "2022-clang12":
-    parent_versions: ["2", "2-clang12", "2022"]
-    major_version: "2022"
-    ci_common_version: "2"
-  "2022-clang13":
-    parent_versions: ["2", "2-clang13", "2022"]
-    major_version: "2022"
-    ci_common_version: "2"
-  "2022-clang14":
-    parent_versions: ["2", "2-clang14", "2022"]
-    major_version: "2022"
-    ci_common_version: "2"
   "2023":
     parent_versions: ["3", "3-clang14"]
     major_version: "2023"
@@ -576,6 +263,7 @@ versions:
       ASWF_OPENCL_HEADERS_VERSION: "system"
       ASWF_OPENCL_ICD_LOADER_VERSION: "system"
       ASWF_OPENGL_VERSION: "system"
+      ASWF_GLU_VERSION: "system"
       ASWF_OPENJPEG_VERSION: "2.4.0"
       ASWF_OPUS_VERSION: "system"
       ASWF_PCRE2_VERSION: "system"
@@ -731,6 +419,7 @@ versions:
       ASWF_OPENCL_HEADERS_VERSION: "system"
       ASWF_OPENCL_ICD_LOADER_VERSION: "system"
       ASWF_OPENGL_VERSION: "system"
+      ASWF_GLU_VERSION: "system"
       ASWF_OPENJPEG_VERSION: "2.4.0"
       ASWF_OPUS_VERSION: "system"
       ASWF_PCRE2_VERSION: "system"
@@ -886,6 +575,7 @@ versions:
       ASWF_OPENCL_HEADERS_VERSION: "system"
       ASWF_OPENCL_ICD_LOADER_VERSION: "system"
       ASWF_OPENGL_VERSION: "system"
+      ASWF_GLU_VERSION: "system"
       ASWF_OPENJPEG_VERSION: "2.4.0"
       ASWF_OPUS_VERSION: "system"
       ASWF_PCRE2_VERSION: "system"
@@ -1042,6 +732,7 @@ versions:
       ASWF_OPENCL_HEADERS_VERSION: "system"
       ASWF_OPENCL_ICD_LOADER_VERSION: "system"
       ASWF_OPENGL_VERSION: "system"
+      ASWF_GLU_VERSION: "system"
       ASWF_OPENJPEG_VERSION: "2.4.0"
       ASWF_OPUS_VERSION: "system"
       ASWF_PCRE2_VERSION: "system"
@@ -1199,6 +890,7 @@ versions:
       ASWF_OPENCL_HEADERS_VERSION: "system"
       ASWF_OPENCL_ICD_LOADER_VERSION: "system"
       ASWF_OPENGL_VERSION: "system"
+      ASWF_GLU_VERSION: "system"
       ASWF_OPENJPEG_VERSION: "2.4.0"
       ASWF_OPUS_VERSION: "system"
       ASWF_PCRE2_VERSION: "system"
@@ -1321,16 +1013,6 @@ versions:
 ci-packages:
 
   clang:
-    - "1-clang6.2"
-    - "1-clang7.2"
-    - "1-clang8.2"
-    - "1-clang9.2"
-    - "1-clang10.2"
-    - "2-clang10.3"
-    - "2-clang11.4"
-    - "2-clang12.1"
-    - "2-clang13.1"
-    - "2-clang14.0"
     - "3-clang14.7"
     - "3-clang15.7"
     - "4-clang16.11"
@@ -1342,16 +1024,12 @@ ci-packages:
     - "7-clang21.3"
     - "7-clang22.3"
   ninja:
-    - "1.3"
-    - "2.2"
     - "3.7"
     - "4.11"
     - "5.10"
     - "6.8"
     - "7.3"
   cmake:
-    - "1.3"
-    - "2.2"
     - "3.7"
     - "4.11"
     - "5.10"
@@ -1370,20 +1048,12 @@ ci-packages:
     - "6.8"
     - "7.3"
   cpython:
-    - "2019.2"
-    - "2020.2"
-    - "2021.2"
-    - "2022.3"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   pybind11:
-    - "2019.0"
-    - "2020.0"
-    - "2021.0"
-    - "2022.3"
     - "2023.7"
     - "2024.11"
     - "2025.10"
@@ -1402,50 +1072,36 @@ ci-packages:
     - "2026.8"
     - "2027.3"
   boost:
-    - "2019.2"
-    - "2020.2"
-    - "2021.2"
-    - "2022.2"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   cppunit:
-    - "2019.2"
-    - "2020.2"
-    - "2021.1"
-    - "2022.1"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   glew:
-    - "2019.2"
-    - "2020.2"
-    - "2021.2"
-    - "2022.1"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   glfw:
-    - "2019.2"
-    - "2020.2"
-    - "2021.2"
-    - "2022.1"
+    - "2023.7"
+    - "2024.11"
+    - "2025.10"
+    - "2026.8"
+    - "2027.3"
+  glu:
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   log4cplus:
-    - "2019.2"
-    - "2020.2"
-    - "2021.1"
-    - "2022.1"
     - "2023.7"
     - "2024.11"
     - "2025.10"
@@ -1506,50 +1162,30 @@ ci-packages:
     - "2026.8"
     - "2027.3"
   gtest:
-    - "2019.0"
-    - "2020.0"
-    - "2021.0"
-    - "2022.1"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   qt:
-    - "2019.2"
-    - "2020.2"
-    - "2021.2"
-    - "2022.0"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   pyside:
-    - "2019.2"
-    - "2020.2"
-    - "2021.2"
-    - "2022.1"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   c-blosc:
-    - "2019.2"
-    - "2020.2"
-    - "2021.1"
-    - "2022.2"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   imath:
-    - "2019.0"
-    - "2020.0"
-    - "2021.0"
-    - "2022.2"
     - "2023.7"
     - "2024.11"
     - "2025.10"
@@ -1562,10 +1198,6 @@ ci-packages:
     - "2026.8"
     - "2027.3"
   openexr:
-    - "2019.2"
-    - "2020.2"
-    - "2021.3"
-    - "2022.3"
     - "2023.7"
     - "2024.11"
     - "2025.10"
@@ -1578,50 +1210,30 @@ ci-packages:
     - "2026.8"
     - "2027.3"
   alembic:
-    - "2019.2"
-    - "2020.2"
-    - "2021.2"
-    - "2022.2"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   opencolorio:
-    - "2019.2"
-    - "2020.2"
-    - "2021.4"
-    - "2022.2"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   openimageio:
-    - "2019.2"
-    - "2020.2"
-    - "2021.4"
-    - "2022.4"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   opensubdiv:
-    - "2019.2"
-    - "2020.2"
-    - "2021.2"
-    - "2022.2"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   ptex:
-    - "2019.2"
-    - "2020.2"
-    - "2021.1"
-    - "2022.2"
     - "2023.7"
     - "2024.11"
     - "2025.10"
@@ -1633,50 +1245,30 @@ ci-packages:
     - "2026.8"
     - "2027.3"
   openusd:
-    - "2019.3"
-    - "2020.2"
-    - "2021.5"
-    - "2022.4"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   openvdb:
-    - "2019.2"
-    - "2020.2"
-    - "2021.3"
-    - "2022.4"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   partio:
-    - "2019.1"
-    - "2020.1"
-    - "2021.2"
-    - "2022.2"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   osl:
-    - "2019.1"
-    - "2020.1"
-    - "2021.3"
-    - "2022.4"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   opentimelineio:
-    - "2019.1"
-    - "2020.1"
-    - "2021.3"
-    - "2022.4"
     - "2023.7"
     - "2024.11"
     - "2025.10"
@@ -1689,10 +1281,6 @@ ci-packages:
     - "2026.8"
     - "2027.3"
   materialx:
-    - "2019.0"
-    - "2020.0"
-    - "2021.0"
-    - "2022.1"
     - "2023.7"
     - "2024.11"
     - "2025.10"
@@ -2029,10 +1617,6 @@ ci-packages:
     - "2026.8"
     - "2027.3"
   onetbb:
-    - "2019.2"
-    - "2020.2"
-    - "2021.2"
-    - "2022.1"
     - "2023.7"
     - "2024.11"
     - "2025.10"
@@ -2220,16 +1804,6 @@ ci-images:
     - "6.8"
     - "7.3"
   common:
-    - "1-clang6.8"
-    - "1-clang7.8"
-    - "1-clang8.8"
-    - "1-clang9.8"
-    - "1-clang10.8"
-    - "2-clang10.5"
-    - "2-clang11.6"
-    - "2-clang12.1"
-    - "2-clang13.1"
-    - "2-clang14.0"
     - "3-clang14.7"
     - "3-clang15.7"
     - "4-clang16.11"
@@ -2241,20 +1815,12 @@ ci-images:
     - "7-clang21.3"
     - "7-clang22.3"
   base:
-    - "2019.9"
-    - "2020.9"
-    - "2021.6"
-    - "2022.4"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   baseqt:
-    - "2019.2"
-    - "2020.2"
-    - "2021.3"
-    - "2022.4"
     - "2023.7"
     - "2024.11"
     - "2025.10"
@@ -2267,10 +1833,6 @@ ci-images:
     - "2026.8"
     - "2027.3"
   openexr:
-    - "2019.8"
-    - "2020.8"
-    - "2021.5"
-    - "2022.3"
     - "2023.7"
     - "2024.11"
     - "2025.10"
@@ -2283,10 +1845,6 @@ ci-images:
     - "2026.8"
     - "2027.3"
   ocio:
-    - "2019.9"
-    - "2020.8"
-    - "2021.6"
-    - "2022.4"
     - "2023.7"
     - "2024.11"
     - "2025.10"
@@ -2317,27 +1875,18 @@ ci-images:
     - "2026.8"
     - "2027.3"
   usd:
-    - "2019.9"
-    - "2020.8"
-    - "2021.6"
-    - "2022.4"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   otio:
-    - "2019.3"
-    - "2020.3"
-    - "2021.5"
-    - "2022.3"
     - "2023.7"
     - "2024.11"
     - "2025.10"
     - "2026.8"
     - "2027.3"
   materialx:
-    - "2022.1"
     - "2023.7"
     - "2024.11"
     - "2025.10"
@@ -2349,19 +1898,6 @@ ci-images:
     - "2026.8"
     - "2027.3"
   osl:
-    - "2019-clang6.5"
-    - "2019-clang7.5"
-    - "2019-clang8.5"
-    - "2019-clang9.5"
-    - "2019-clang10.5"
-    - "2020-clang7.5"
-    - "2021-clang10.7"
-    - "2021-clang11.7"
-    - "2022-clang10.11"
-    - "2022-clang11.11"
-    - "2022-clang12.2"
-    - "2022-clang13.2"
-    - "2022-clang14.1"
     - "2023-clang14.7"
     - "2023-clang15.7"
     - "2024-clang16.11"
@@ -2373,17 +1909,6 @@ ci-images:
     - "2027-clang21.3"
     - "2027-clang22.3"
   openvdb:
-    - "2019-clang6.8"
-    - "2019-clang7.8"
-    - "2019-clang8.8"
-    - "2019-clang9.8"
-    - "2020-clang7.8"
-    - "2021-clang10.6"
-    - "2022-clang10.12"
-    - "2022-clang11.12"
-    - "2022-clang12.3"
-    - "2022-clang13.3"
-    - "2022-clang14.2"
     - "2023-clang14.7"
     - "2023-clang15.7"
     - "2024-clang16.11"
@@ -2395,17 +1920,6 @@ ci-images:
     - "2027-clang21.3"
     - "2027-clang22.3"
   vfxall:
-    - "2019-clang6.12"
-    - "2019-clang7.12"
-    - "2019-clang8.12"
-    - "2019-clang9.12"
-    - "2020-clang7.10"
-    - "2021-clang10.7"
-    - "2022-clang10.13"
-    - "2022-clang11.13"
-    - "2022-clang12.4"
-    - "2022-clang13.4"
-    - "2022-clang14.3"
     - "2023-clang14.7"
     - "2023-clang15.7"
     - "2024-clang16.11"
@@ -2424,15 +1938,14 @@ ci-images:
     - "2027.3"
 groups:
   package:
-      common-wrappers:
+      common1:
         - openssl
         - gnutls
-      common-1:
         - cmake
         - ninja
-      common-2:
+      common2:
         - clang
-      base1-wrappers:
+      base1:
         - brotli
         - gdbm
         - icu
@@ -2453,7 +1966,6 @@ groups:
         - xorg
         - xorg-proto
         - xz_utils
-      base1-1:
         - b2
         - bzip2
         - cppunit
@@ -2482,7 +1994,6 @@ groups:
         - yaml-cpp
         - zlib
         - zstd
-      base1-2:
         - c-blosc
         - ceres-solver
         - cpython
@@ -2491,12 +2002,10 @@ groups:
         - libmicrohttpd
         - log4cplus
         - minizip-ng
-      base1-3:
         - boost
         - mesa
         - nanobind
         - pybind11
-      base2-wrappers:
         - dbus
         - double-conversion
         - fontconfig
@@ -2508,22 +2017,22 @@ groups:
         - nss
         - openal-soft
         - opengl
+        - glu
         - openjpeg
         - opus
         - pulseaudio
         - xkbcommon
-      base2-1:
         - glew
         - glfw
         - harfbuzz
         - libjpeg-turbo
         - libwebp
         - md4c
-      base2-2:
+      base2:
         - qt
       base3:
         - pyside
-      vfx1-wrappers:
+      vfx:
         - giflib
         - libaom-av1
         - libmp3lame
@@ -2533,7 +2042,6 @@ groups:
         - mpg123
         - ogg
         - vorbis
-      vfx1-1:
         - aces_container
         - cimg
         - embree
@@ -2550,26 +2058,20 @@ groups:
         - partio
         - ptex
         - spdlog
-      vfx1-2:
-         - libjxl
-         - libraw
-         - opencue
-         - openexr
-         - openfx
-         - opentimelineio
-      vfx1-3:
+        - libjxl
+        - libraw
+        - opencue
+        - openexr
+        - openfx
+        - opentimelineio
         - alembic
         - opencolorio
         - openvdb
-      vfx1-4:
         - openimageio
-      vfx1-5:
         - osl
         - rawtoaces
         - materialx
-      vfx1-6:
         - openusd
-      vfx1-7:
         - moonray
       review:
         - openrv

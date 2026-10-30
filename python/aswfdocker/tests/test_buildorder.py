@@ -48,8 +48,45 @@ def _ref(name, version, org=TEST_PACKAGE_ORG, channel=TEST_CHANNEL):
     return f"{name}/{version}@{org}/{channel}"
 
 
-def _ref_entry(ref, depends=()):
-    return {"ref": ref, "depends": list(depends), "packages": []}
+def _ref_entry(ref, depends=(), binary=None):
+    packages = [[{"package_id": "x", "binary": binary}]] if binary else []
+    return {"ref": ref, "depends": list(depends), "packages": packages}
+
+
+def _five_package_order(need_build=()):
+    """pkga/pkgb (no deps) -> pkgc (depends on both) -> pkgd/pkge (both
+    depend on pkgc), with `need_build` marked "Build" and the rest "Cache".
+    Purely synthetic -- see module docstring comment above."""
+
+    def entry(name, version, depends=()):
+        return _ref_entry(
+            _ref(name, version),
+            depends=depends,
+            binary="Build" if name in need_build else "Cache",
+        )
+
+    pkgc_ref = _ref("pkgc", PKGC_TEST_VERSION)
+    return buildorder.parse_build_order_json(
+        {
+            "order": [
+                [entry("pkga", PKGA_TEST_VERSION), entry("pkgb", PKGB_TEST_VERSION)],
+                [
+                    entry(
+                        "pkgc",
+                        PKGC_TEST_VERSION,
+                        [
+                            _ref("pkga", PKGA_TEST_VERSION),
+                            _ref("pkgb", PKGB_TEST_VERSION),
+                        ],
+                    )
+                ],
+                [
+                    entry("pkgd", PKGD_TEST_VERSION, [pkgc_ref]),
+                    entry("pkge", PKGE_TEST_VERSION, [pkgc_ref]),
+                ],
+            ]
+        }
+    )
 
 
 class TestNameFromRef(unittest.TestCase):
@@ -147,6 +184,109 @@ class TestParseBuildOrderJson(unittest.TestCase):
         with self.assertRaises(buildorder.BuildOrderError):
             buildorder.parse_build_order_json(None)
 
+    def test_need_build_from_binary_status(self):
+        order = _five_package_order(need_build={"pkgb", "pkgd"})
+        self.assertEqual(order.need_build, {"pkgb", "pkgd"})
+        self.assertEqual(order.refs["pkgb"], {_ref("pkgb", PKGB_TEST_VERSION)})
+
+    def test_upstream_closure(self):
+        order = _five_package_order()
+        self.assertEqual(order.upstream_closure(["pkgd"]), {"pkgc", "pkga", "pkgb"})
+        self.assertEqual(order.upstream_closure(["pkga"]), set())
+
+    def test_unbuildable_packages_raise(self):
+        # graph build-order records these instead of failing
+        for binary in ("Invalid", "Missing"):
+            with self.assertRaises(buildorder.BuildOrderError) as ctx:
+                buildorder.parse_build_order_json(
+                    {
+                        "order": [
+                            [_ref_entry(_ref("pkga", PKGA_TEST_VERSION), binary=binary)]
+                        ]
+                    }
+                )
+            self.assertIn(
+                f"{_ref('pkga', PKGA_TEST_VERSION)} ({binary})", str(ctx.exception)
+            )
+
+
+class TestPlanBuild(unittest.TestCase):
+    """Uses _five_package_order(): pkga/pkgb -> pkgc -> pkgd/pkge."""
+
+    ALL = ["pkga", "pkgb", "pkgc", "pkgd", "pkge"]
+
+    def test_whole_group_builds_only_what_needs_building_in_order(self):
+        order = _five_package_order(need_build={"pkgd", "pkgb", "pkgc"})
+        plan = buildorder.plan_build(order, self.ALL)
+        self.assertEqual(plan.to_build, ["pkgb", "pkgc", "pkgd"])
+        self.assertEqual(plan.up_to_date, ["pkga", "pkge"])
+
+    def test_force_rebuilds_every_selected_member(self):
+        order = _five_package_order()
+        plan = buildorder.plan_build(order, self.ALL, force=True)
+        self.assertEqual(plan.to_build, self.ALL)
+        self.assertEqual(plan.up_to_date, [])
+
+    def test_targets_build_only_named_packages(self):
+        order = _five_package_order(need_build={"pkgd", "pkge"})
+        plan = buildorder.plan_build(order, self.ALL, targets=["pkge"])
+        self.assertEqual(plan.to_build, ["pkge"])
+
+    def test_target_to_includes_upstream(self):
+        order = _five_package_order(need_build={"pkga", "pkgc", "pkgd", "pkge"})
+        plan = buildorder.plan_build(order, self.ALL, targets_to=["pkgd"])
+        self.assertEqual(plan.to_build, ["pkga", "pkgc", "pkgd"])
+        self.assertEqual(plan.up_to_date, ["pkgb"])
+
+    def test_target_from_includes_downstream_through_up_to_date(self):
+        # pkgc is up to date but still links pkga to pkgd/pkge
+        order = _five_package_order()
+        plan = buildorder.plan_build(order, self.ALL, targets_from=["pkga"], force=True)
+        self.assertEqual(plan.to_build, ["pkga", "pkgc", "pkgd", "pkge"])
+
+    def test_selections_union(self):
+        order = _five_package_order()
+        plan = buildorder.plan_build(
+            order, self.ALL, targets=["pkgb"], targets_from=["pkgd"], force=True
+        )
+        self.assertEqual(plan.to_build, ["pkgb", "pkgd"])
+
+    def test_unselected_dependency_needing_build_refuses(self):
+        # same-group dependency outside the --target selection
+        order = _five_package_order(need_build={"pkga", "pkgd"})
+        with self.assertRaises(buildorder.UnbuiltDependenciesError) as ctx:
+            buildorder.plan_build(order, self.ALL, targets=["pkgd"])
+        self.assertEqual(ctx.exception.blockers, [_ref("pkga", PKGA_TEST_VERSION)])
+
+    def test_out_of_group_dependency_needing_build_refuses(self):
+        # pkga/pkgb stand in for an earlier group's packages
+        order = _five_package_order(need_build={"pkgb", "pkgc"})
+        with self.assertRaises(buildorder.UnbuiltDependenciesError) as ctx:
+            buildorder.plan_build(order, ["pkgc", "pkgd", "pkge"])
+        self.assertEqual(ctx.exception.blockers, [_ref("pkgb", PKGB_TEST_VERSION)])
+
+    def test_force_still_refuses_unbuilt_out_of_group_dependency(self):
+        order = _five_package_order(need_build={"pkga"})
+        with self.assertRaises(buildorder.UnbuiltDependenciesError):
+            buildorder.plan_build(order, ["pkgc", "pkgd", "pkge"], force=True)
+
+    def test_unrelated_unbuilt_package_does_not_block(self):
+        # pkgb needs building too, but pkga doesn't depend on it
+        order = _five_package_order(need_build={"pkga", "pkgb"})
+        plan = buildorder.plan_build(order, self.ALL, targets=["pkga"])
+        self.assertEqual(plan.to_build, ["pkga"])
+
+    def test_unknown_target_raises(self):
+        order = _five_package_order()
+        with self.assertRaises(buildorder.BuildOrderError):
+            buildorder.plan_build(order, self.ALL, targets_to=["nope"])
+
+    def test_nothing_to_build(self):
+        order = _five_package_order()
+        plan = buildorder.plan_build(order, self.ALL)
+        self.assertEqual(plan.to_build, [])
+        self.assertEqual(plan.up_to_date, self.ALL)
+
 
 class TestRecipeFolder(unittest.TestCase):
     def test_single_version_recipe_has_no_config_yml(self):
@@ -243,7 +383,7 @@ class TestBuildOrderCommand(unittest.TestCase):
         self.assertIn(" --no-remote ", cmd)
         self.assertIn(f"--requires={_ref('pkga', PKGA_TEST_VERSION)}", cmd)
         self.assertIn(f"--requires={_ref('pkgb', PKGB_TEST_VERSION)}", cmd)
-        self.assertIn("--reduce", cmd)
+        self.assertNotIn("--reduce", cmd)  # plan_build() needs the full graph
         self.assertIn("--order-by=recipe", cmd)
         self.assertIn("--format=json", cmd)
         self.assertIn(

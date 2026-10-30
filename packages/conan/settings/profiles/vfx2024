@@ -33,6 +33,7 @@ gdbm/*: gdbm/system@{{ org }}/vfx2024
 giflib/*: giflib/5.1.4@{{ org }}/vfx2024
 glew/*: glew/2.2.0@{{ org }}/vfx2024
 glfw/*: glfw/3.4@{{ org }}/vfx2024
+glu/*: glu/system@{{ org }}/vfx2024
 glib/*: glib/2.56.4@{{ org }}/vfx2024
 gtest/*: gtest/1.15.2@{{ org }}/vfx2024
 harfbuzz/*: harfbuzz/11.0.1@{{ org }}/vfx2024

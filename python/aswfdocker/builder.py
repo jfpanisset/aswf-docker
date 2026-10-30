@@ -11,9 +11,27 @@ import sys
 import tempfile
 import typing
 
-from aswfdocker import bake, constants, aswfinfo, utils, groupinfo, index
+from aswfdocker import (
+    bake,
+    buildorder,
+    constants,
+    aswfinfo,
+    utils,
+    groupinfo,
+    index,
+)
 
 logger = logging.getLogger(__name__)
+
+
+class PackageSelection(typing.NamedTuple):
+    """Which members of a package group to build; see buildorder.plan_build().
+    Empty target lists select the whole group."""
+
+    targets: typing.Sequence[str] = ()
+    targets_to: typing.Sequence[str] = ()
+    targets_from: typing.Sequence[str] = ()
+    force: bool = False
 
 
 class Builder:
@@ -185,6 +203,7 @@ class Builder:
         dry_run: bool = False,
         progress: str = "",
         build_missing=False,
+        selection: typing.Optional[PackageSelection] = None,
     ) -> None:
         images_and_versions = []
         for image, version in self.group_info.iter_images_versions(get_image=True):
@@ -203,20 +222,88 @@ class Builder:
                     dry_run=dry_run,
                 )
             else:
-                conan_base = os.path.join(
-                    utils.get_git_top_level(), "packages", "conan"
+                self._build_conan_packages(
+                    images_and_versions,
+                    path,
+                    dry_run,
+                    progress,
+                    selection or PackageSelection(),
                 )
-                # As of Conan 2.18, parallel builds are still not supported and can result in
-                # database lock failures, so we have to build sequentially.
-                for image, version in images_and_versions:
-                    recipe_path = os.path.join(conan_base, "recipes", image)
-                    if not os.path.exists(recipe_path):
-                        logger.warning("Recipe for %s not found: skipping!", image)
-                        continue
-                    self._build_conan_package(
-                        image,
-                        version,
-                        dry_run,
-                        progress,
-                        path,
+
+    def _build_conan_packages(  # pylint: disable=too-many-arguments,too-many-locals
+        self,
+        images_and_versions: typing.Sequence[typing.Tuple[str, str]],
+        bake_jsonfile: str,
+        dry_run: bool,
+        progress: str,
+        selection: PackageSelection,
+    ) -> None:
+        """Builds the selected members of the group, version by version, in
+        the order Conan's dependency graph dictates, skipping packages whose
+        binary is already up to date (unless forced). The graph is computed
+        even for a dry run: it's the only way to know what would be built."""
+        repo_root = utils.get_git_top_level()
+        by_version: typing.Dict[str, typing.Dict[str, str]] = {}
+        for image, version in images_and_versions:
+            if not os.path.exists(
+                os.path.join(repo_root, "packages", "conan", "recipes", image)
+            ):
+                logger.warning("Recipe for %s not found: skipping!", image)
+                continue
+            by_version.setdefault(utils.get_major_version(version), {})[image] = version
+
+        for major_version, versions in by_version.items():
+            version_info = self.index.version_info(major_version)
+            channel = utils.conan_channel(
+                version_info.ci_common_version,
+                major_version,
+                version_info.major_version,
+            )
+            members = []
+            for image in versions:
+                package_version = version_info.package_versions.get(
+                    utils.package_version_key(image)
+                )
+                if not package_version:
+                    raise buildorder.BuildOrderError(
+                        f"No {utils.package_version_key(image)} pinned for "
+                        f"version {major_version}"
                     )
+                members.append((image, package_version))
+
+            logger.info(
+                "Computing Conan build order for %s (%s)", major_version, channel
+            )
+            order = buildorder.compute_build_order(
+                repo_root,
+                self.build_info.docker_org,
+                self.build_info.package_org,
+                version_info.ci_common_version,
+                channel,
+                members,
+                conan_remote=self.conan_remote,
+            )
+            plan = buildorder.plan_build(
+                order,
+                list(versions),
+                selection.targets,
+                selection.targets_to,
+                selection.targets_from,
+                selection.force,
+            )
+            logger.info(
+                "%s: building %s; up to date: %s",
+                major_version,
+                ", ".join(plan.to_build) or "nothing",
+                ", ".join(plan.up_to_date) or "nothing",
+            )
+            # As of Conan 2.18, parallel builds are still not supported and can result in
+            # database lock failures, so we have to build sequentially.
+            for image in plan.to_build:
+                self._build_conan_package(
+                    image,
+                    versions[image],
+                    dry_run,
+                    progress,
+                    bake_jsonfile,
+                )

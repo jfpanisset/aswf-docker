@@ -107,22 +107,22 @@ class TestUtils(unittest.TestCase):
 
     def test_image_def_from_name(self):
         with self.assertRaises(RuntimeError):
-            utils.get_image_spec("aswf/ci-package-openvdb_2018")
+            utils.get_image_spec("aswf/ci-package-openvdb_2027")
         self.assertEqual(
-            utils.get_image_spec("aswftesting/ci-common:1"),
-            ("aswftesting", constants.ImageType.IMAGE, "common", "1"),
+            utils.get_image_spec("aswftesting/ci-common:7"),
+            ("aswftesting", constants.ImageType.IMAGE, "common", "7"),
         )
         self.assertEqual(
-            utils.get_image_spec("aswf/ci-package-openvdb:2018"),
-            ("aswf", constants.ImageType.PACKAGE, "openvdb", "2018"),
+            utils.get_image_spec("aswf/ci-package-openvdb:2027"),
+            ("aswf", constants.ImageType.PACKAGE, "openvdb", "2027"),
         )
         self.assertEqual(
-            utils.get_image_spec("refs/tags/aswf/ci-package-openvdb/2018"),
-            ("aswf", constants.ImageType.PACKAGE, "openvdb", "2018"),
+            utils.get_image_spec("refs/tags/aswf/ci-package-openvdb/2027"),
+            ("aswf", constants.ImageType.PACKAGE, "openvdb", "2027"),
         )
         self.assertEqual(
-            utils.get_image_spec("aswf/ci-package-clang:1-clang6"),
-            ("aswf", constants.ImageType.PACKAGE, "clang", "1-clang6"),
+            utils.get_image_spec("aswf/ci-package-clang:7-clang22"),
+            ("aswf", constants.ImageType.PACKAGE, "clang", "7-clang22"),
         )
 
 
@@ -173,7 +173,7 @@ class TestUtilsCli(unittest.TestCase):
         )[0]
         self.assertEqual(
             pkgs[0],
-            f"common-wrappers/ci-package-openssl:{clang_version}",
+            f"common1/ci-package-openssl:{clang_version}",
         )
 
     def test_cli_images(self):

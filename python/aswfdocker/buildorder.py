@@ -1,9 +1,10 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 """
-Computes the Conan dependency build order for a set of packages, so a "meta"
-package group (e.g. "vfx1") can be built/released in the right order without
-hand-maintaining split layers (vfx1-1, vfx1-2, ...) in versions.yaml.
+Computes the Conan dependency build order for a set of packages, so a
+package group (e.g. "vfx") can be built/released in the right order without
+hand-maintaining split layers in versions.yaml, and plans which of those
+packages a build actually needs to (re)build.
 
 The order is computed by running `conan graph build-order` via a
 `docker buildx bake` call against packages/common/Dockerfile's
@@ -13,7 +14,7 @@ cache mount (id=aswf-conan-cache) real `conan create` package builds use.
 Nothing is actually built: recipes are exported (metadata only, no
 download/build) so Conan can see their requires() -- all in one Conan
 process via the `conan aswf-export` custom command -- then a single
-`conan graph build-order --reduce` call resolves the graph.
+`conan graph build-order` call resolves the graph.
 
 Reusing that same cache mount (rather than a plain `docker run`, which
 cannot see a BuildKit cache mount at all) matters for correctness, not just
@@ -39,11 +40,11 @@ never a problem -- `--build=missing` just marks them "Build". With every
 recipe available, the result answers "what needs building for these
 members" from any cache state, including an empty or fully invalidated one.
 
-`--reduce` then drops every package that already has an up-to-date binary
-and rewires edges past it. What's left is the members that need building
-plus any of their dependencies (inside or outside the group) that also do;
-callers can tell the two apart via `BuildOrder.flat_order()` vs the member
-names they passed in.
+The graph is deliberately not `--reduce`d: it keeps packages that already
+have an up-to-date binary, along with each package's build status, so the
+selection logic in plan_build() can follow edges through up-to-date packages
+(--target-to/--target-from) and place packages Conan considers current
+(--force-rebuild).
 """
 
 import json
@@ -64,9 +65,28 @@ BAKE_TARGET_NAME = "ci-conan-graph"
 BUILD_ORDER_FILENAME = "aswf-build-order.json"
 
 
+# `binary` statuses from conan/internal/graph/graph.py (BINARY_*)
+_NEEDS_BUILD = {"Build", "EditableBuild"}
+_UNBUILDABLE = {"Invalid", "Missing"}
+
+
 class BuildOrderError(Exception):
     """Raised when the Conan build-order graph could not be computed or
-    parsed."""
+    parsed, or a build can't be planned from it."""
+
+
+class UnbuiltDependenciesError(BuildOrderError):
+    """Packages a planned build depends on need (re)building but weren't
+    selected -- they belong to an earlier group, or the same group but
+    outside the --target selection."""
+
+    def __init__(self, blockers: typing.Sequence[str]):
+        self.blockers = list(blockers)
+        super().__init__(
+            "These dependencies need to be (re)built first, but aren't part of "
+            "this build's selection -- build their group first, or widen the "
+            "selection (e.g. --target-to):\n  " + "\n  ".join(self.blockers)
+        )
 
 
 def _name_from_ref(ref: str) -> str:
@@ -76,8 +96,9 @@ def _name_from_ref(ref: str) -> str:
 
 
 class BuildOrder:
-    """An ordered, leveled set of packages that need building, plus their
-    dependency edges, derived from one `conan graph build-order` result.
+    """The leveled dependency graph from one `conan graph build-order`
+    result: every package in it (whether or not it needs building), their
+    dependency edges, and which ones need (re)building.
 
     `levels[i]` only ever depends on names in `levels[0:i]` (or on nothing),
     so each level can in principle be built in parallel once Conan 2's
@@ -86,6 +107,9 @@ class BuildOrder:
 
     def __init__(self, levels: typing.List[typing.List[str]]):
         self.levels: typing.List[typing.List[str]] = levels
+        self.need_build: typing.Set[str] = set()
+        # name -> full refs, e.g. two clang versions selected via conf refs
+        self.refs: typing.Dict[str, typing.Set[str]] = {}
         self._depends: typing.Dict[str, typing.Set[str]] = {}
         self._dependents: typing.Dict[str, typing.Set[str]] = {}
 
@@ -94,37 +118,56 @@ class BuildOrder:
         self._dependents.setdefault(depends_on, set()).add(name)
 
     def flat_order(self) -> typing.List[str]:
-        """The levels flattened into a single sequential build order."""
-        return [name for level in self.levels for name in level]
+        """The levels flattened into a single sequential build order, each
+        name once."""
+        return list(dict.fromkeys(name for level in self.levels for name in level))
 
-    def downstream_closure(self, seed_names: typing.Iterable[str]) -> typing.Set[str]:
-        """Every package that transitively depends on any of `seed_names`,
-        not including the seeds themselves.
-
-        Used both to skip packages blocked by a failed build (seed = the
-        package(s) that just failed) and to drive --resume-from-package
-        (seed = the package(s) being retried; the caller is responsible for
-        including the seeds themselves in what actually gets (re)built).
-        """
+    @staticmethod
+    def _closure(
+        seed_names: typing.Iterable[str],
+        edges: typing.Dict[str, typing.Set[str]],
+    ) -> typing.Set[str]:
         closure: typing.Set[str] = set()
         pending = list(seed_names)
         while pending:
             name = pending.pop()
-            for dependent in self._dependents.get(name, ()):
-                if dependent not in closure:
-                    closure.add(dependent)
-                    pending.append(dependent)
+            for other in edges.get(name, ()):
+                if other not in closure:
+                    closure.add(other)
+                    pending.append(other)
         return closure
+
+    def downstream_closure(self, seed_names: typing.Iterable[str]) -> typing.Set[str]:
+        """Every package that transitively depends on any of `seed_names`,
+        not including the seeds themselves (unless one depends on another).
+
+        Drives --target-from, and later skipping packages blocked by a
+        failed build / --resume-from-package.
+        """
+        return self._closure(seed_names, self._dependents)
+
+    def upstream_closure(self, seed_names: typing.Iterable[str]) -> typing.Set[str]:
+        """Every package any of `seed_names` transitively depends on, not
+        including the seeds themselves (unless one depends on another).
+
+        Drives --target-to, and finding unbuilt dependencies of a build.
+        """
+        return self._closure(seed_names, self._depends)
 
 
 def parse_build_order_json(data: dict) -> BuildOrder:
     """Parses the output of
-    `conan graph build-order --order-by=recipe --reduce --format=json`.
+    `conan graph build-order --order-by=recipe --format=json` (unreduced).
 
     Each entry in data["order"] is a level (list of recipe-reference
-    dicts); each dict has "ref" (e.g. "osl/1.14.4.0@aswf/vfx2027") and
-    "depends" (a list of other recipe-ref strings, already restricted by
-    --reduce to other entries that also need building).
+    dicts); each dict has "ref" (e.g. "osl/1.14.4.0@aswf/vfx2027"),
+    "depends" (a list of other recipe-ref strings) and "packages" (levels
+    of binary-package dicts, each with a "binary" status such as "Build"
+    or "Cache").
+
+    `conan graph build-order` doesn't fail on a package it can't build --
+    it just records an "Invalid" (e.g. rejected by the recipe's validate())
+    or "Missing" status -- so those are turned into an error here.
     """
     try:
         raw_levels = data["order"]
@@ -135,15 +178,86 @@ def parse_build_order_json(data: dict) -> BuildOrder:
 
     levels: typing.List[typing.List[str]] = []
     order = BuildOrder(levels)
+    unbuildable = []
     for raw_level in raw_levels:
         level_names = []
         for entry in raw_level:
             name = _name_from_ref(entry["ref"])
             level_names.append(name)
+            order.refs.setdefault(name, set()).add(entry["ref"])
             for dep_ref in entry.get("depends", []):
                 order.add_edge(name, _name_from_ref(dep_ref))
+            binaries = {
+                package.get("binary")
+                for package_level in entry.get("packages", [])
+                for package in package_level
+            }
+            if binaries & _NEEDS_BUILD:
+                order.need_build.add(name)
+            for binary in sorted(b for b in binaries & _UNBUILDABLE if b):
+                unbuildable.append(f"{entry['ref']} ({binary})")
         levels.append(level_names)
+    if unbuildable:
+        raise BuildOrderError(
+            "Conan can't build these packages with this profile:\n  "
+            + "\n  ".join(unbuildable)
+        )
     return order
+
+
+class BuildPlan(typing.NamedTuple):
+    to_build: typing.List[str]
+    """Selected packages to build, in dependency order."""
+    up_to_date: typing.List[str]
+    """Selected packages skipped because their binary is already current."""
+
+
+def plan_build(  # pylint: disable=too-many-arguments
+    order: BuildOrder,
+    members: typing.Iterable[str],
+    targets: typing.Iterable[str] = (),
+    targets_to: typing.Iterable[str] = (),
+    targets_from: typing.Iterable[str] = (),
+    force: bool = False,
+) -> BuildPlan:
+    """Decides which group members to build, and in what order.
+
+    The selection is every member of the group, unless narrowed by:
+    `targets` (just those packages), `targets_to` (each package plus
+    everything it transitively requires) and/or `targets_from` (each
+    package plus everything that transitively requires it) -- their union,
+    limited to the group's members. Selected packages are built if they
+    need (re)building, or unconditionally with `force`.
+
+    Raises UnbuiltDependenciesError if anything those builds depend on
+    needs building but isn't selected, rather than building against a
+    dependency that isn't there.
+    """
+    member_set = set(members)
+    named = set(targets) | set(targets_to) | set(targets_from)
+    unknown = sorted(named - member_set)
+    if unknown:
+        raise BuildOrderError(
+            f"Not members of the requested group(s): {', '.join(unknown)}"
+        )
+    if named:
+        selected = (
+            named
+            | order.upstream_closure(targets_to)
+            | order.downstream_closure(targets_from)
+        ) & member_set
+    else:
+        selected = member_set
+
+    flat = order.flat_order()
+    to_build = [n for n in flat if n in selected and (force or n in order.need_build)]
+    up_to_date = [n for n in flat if n in selected and n not in to_build]
+    blocking = (order.upstream_closure(to_build) & order.need_build) - selected
+    if blocking:
+        raise UnbuiltDependenciesError(
+            sorted(ref for name in blocking for ref in order.refs.get(name, {name}))
+        )
+    return BuildPlan(to_build, up_to_date)
 
 
 def _recipe_folder(repo_root: str, name: str, version: str) -> str:
@@ -210,7 +324,7 @@ def _build_order_command(
     return (
         f"conan graph build-order {requires} "
         f"--profile:all {profile_arg} {_shell_args(remote_args)} --build=missing "
-        "--order-by=recipe --reduce --format=json"
+        "--order-by=recipe --format=json"
     )
 
 
@@ -373,7 +487,7 @@ def compute_build_order(
     channel: str,
     members: typing.Sequence[typing.Tuple[str, str]],
     conan_remote: str = constants.CONAN_REMOTE_AUTO,
-    progress: str = "quiet",
+    progress: str = "plain",
 ) -> BuildOrder:
     """Computes the build order for `members` (a sequence of (name, version)
     pairs, e.g. the flattened image list of a "vfx1" meta-group), via

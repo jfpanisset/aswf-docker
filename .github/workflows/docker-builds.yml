@@ -94,38 +94,26 @@ jobs:
           --version ${{ matrix.common_version_noclang }} \
           --push NO
 
-    - name: Build common wrappers
+    - name: Build common1 packages (OpenSSL/GnuTLS wrappers, Ninja, CMake)
       run: |
         set -ex
         uv run aswfdocker \
           --verbose \
           build \
           --ci-image-type PACKAGE \
-          --group common-wrappers \
+          --group common1 \
           --version ${{ matrix.common_version_noclang }} \
           --build-missing \
           --push NO
 
-    - name: Build Ninja and CMake
+    - name: Build common2 packages (Clang)
       run: |
         set -ex
         uv run aswfdocker \
           --verbose \
           build \
           --ci-image-type PACKAGE \
-          --group common-1 \
-          --version ${{ matrix.common_version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build Clang
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group common-2 \
+          --group common2 \
           --version ${{ matrix.common_version }} \
           --build-missing \
           --push NO
@@ -140,86 +128,26 @@ jobs:
           --version ${{ matrix.common_version }}\
           --push NO
 
-    - name: Build base1 system wrapper packages
+    - name: Build base1 packages
       run: |
         set -ex
         uv run aswfdocker \
           --verbose \
           build \
           --ci-image-type PACKAGE \
-          --group base1-wrappers \
+          --group base1 \
           --version ${{ matrix.version_noclang }} \
           --build-missing \
           --push NO
 
-    - name: Build base1 level 1 packages
+    - name: Build base2 packages (Qt) for ci-baseqt image
       run: |
         set -ex
         uv run aswfdocker \
           --verbose \
           build \
           --ci-image-type PACKAGE \
-          --group base1-1 \
-          --version ${{ matrix.version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build base1 level 2 packages
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group base1-2 \
-          --version ${{ matrix.version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build base1 level 3 packages
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group base1-3 \
-          --version ${{ matrix.version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build base2 system wrapper packages for ci-baseqt image
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group base2-wrappers \
-          --version ${{ matrix.version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build base2 system packages for ci-baseqt image
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group base2-1 \
-          --version ${{ matrix.version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build base2 level 2 packages (Qt) for ci-baseqt image
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group base2-2 \
+          --group base2 \
           --version ${{ matrix.version_noclang }} \
           --build-missing \
           --push NO
@@ -247,98 +175,14 @@ jobs:
           --version ${{ matrix.version }} \
           --push NO
 
-    - name: Build vfx1 system wrapper packages
+    - name: Build vfx packages
       run: |
         set -ex
         uv run aswfdocker \
           --verbose \
           build \
           --ci-image-type PACKAGE \
-          --group vfx1-wrappers \ 
-          --version ${{ matrix.version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build vfx1 level 1 packages
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group vfx1-1 \
-          --version ${{ matrix.version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build vfx1 level 2 packages
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group vfx1-2 \
-          --version ${{ matrix.version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build vfx1 level 3 packages
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group vfx1-3 \
-          --version ${{ matrix.version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build vfx1 level 4 packages
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group vfx1-4 \
-          --version ${{ matrix.version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build vfx1 level 5 packages
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group vfx1-5 \
-          --version ${{ matrix.version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build vfx1 level 6 packages
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group vfx1-6 \
-          --version ${{ matrix.version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build vfx1 level 7 packages
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group vfx1-7 \
+          --group vfx \
           --version ${{ matrix.version_noclang }} \
           --build-missing \
           --push NO

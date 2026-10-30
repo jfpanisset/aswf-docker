@@ -12,11 +12,6 @@
 
 set -ex
 
-# Don't need to do this on centos7, cudagl container still available
-if [[ ${ASWF_BASEOS_DISTRO} == "centos7" ]]; then
-    exit 0
-fi
-
 mkdir /tmp/libglvnd
 cd /tmp/libglvnd
 git clone --branch="v${ASWF_GLVND_VERSION}" https://github.com/NVIDIA/libglvnd.git .

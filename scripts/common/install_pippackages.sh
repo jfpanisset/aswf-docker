@@ -4,12 +4,8 @@
 
 set -ex
 
-BASEOS_MAJORVERSION=$(sed -n  's/^.* release \([0-9]*\)\..*$/\1/p' /etc/redhat-release)
+python3 -m ensurepip --upgrade
 
-if [[ "$BASEOS_MAJORVERSION" -gt "7" ]]; then
-    python3 -m ensurepip --upgrade
-
-    # There is a package called python3-html5lib through yum/dnf but it installs
-    # for the system Python - which is not the same one that it used by downstream projects.
-    python3 -m pip install html5lib
-fi
+# There is a package called python3-html5lib through yum/dnf but it installs
+# for the system Python - which is not the same one that it used by downstream projects.
+python3 -m pip install html5lib

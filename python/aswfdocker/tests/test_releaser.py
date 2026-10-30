@@ -16,15 +16,15 @@ class TestReleaser(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
         self.build_info = aswfinfo.ASWFInfo(
-            repo_uri="notauri", source_branch="testing", aswf_version="2019.123"
+            repo_uri="notauri", source_branch="testing", aswf_version="2027.123"
         )
 
-    def test_package_baseqt_2019_dict(self):
+    def test_package_boost_2027_dict(self):
         r = releaser.Releaser(
             self.build_info,
             groupinfo.GroupInfo(
-                names=["base1-3"],
-                versions=["2019"],
+                names=["base1"],
+                versions=["2027"],
                 type_=constants.ImageType.PACKAGE,
                 targets=["boost"],
             ),
@@ -40,9 +40,11 @@ class TestReleaser(unittest.TestCase):
 
         r.gather()
         r.release(dry_run=False)
-        boost_version = list(
-            index.Index().iter_versions(constants.ImageType.PACKAGE, "boost")
-        )[0]
+        boost_version = next(
+            v
+            for v in index.Index().iter_versions(constants.ImageType.PACKAGE, "boost")
+            if v.startswith("2027.")
+        )
         r.gh.repo.create_git_tag_and_release.assert_called_once_with(
             tag=f"aswflocaltesting/ci-package-boost/{boost_version}",
             draft=False,
