@@ -10,6 +10,7 @@ import os
 import sys
 import tempfile
 import typing
+import uuid
 
 from aswfdocker import (
     bake,
@@ -51,6 +52,10 @@ class Builder:
         self.conan_remote = utils.resolve_conan_remote(
             conan_remote, build_info.package_org
         )
+        # See ASWF_CONAN_NONCE in packages/common/Dockerfile: the build plan
+        # has already decided every package bake runs must build, so BuildKit
+        # must never replay one from its layer cache.
+        self.conan_nonce = uuid.uuid4().hex
 
     def make_bake_dict(
         self,
@@ -114,6 +119,7 @@ class Builder:
                             "--build=missing" if build_missing else ""
                         ),
                         "ASWF_CONAN_PUSH": "TRUE" if self.push else "",
+                        "ASWF_CONAN_NONCE": self.conan_nonce,
                     }
                 )
             args.update(version_info.all_package_versions)
