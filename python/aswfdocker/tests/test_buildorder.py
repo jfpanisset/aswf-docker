@@ -571,7 +571,7 @@ class TestComputeBuildOrder(unittest.TestCase):
             target = captured["bake_dict"]["target"][buildorder.BAKE_TARGET_NAME]
             self.assertNotIn("no-cache", target)
             self.assertNotIn("no-cache-filter", target)
-            nonces.append(target["args"]["ASWF_CONAN_GRAPH_NONCE"])
+            nonces.append(target["args"]["ASWF_CONAN_NONCE"])
             self.assertFalse(
                 any("no-cache" in arg for arg in captured["cmd"]), captured["cmd"]
             )

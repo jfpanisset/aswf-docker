@@ -109,6 +109,40 @@ class TestBuilder(unittest.TestCase):
             self.assertEqual(args["ASWF_CONAN_REMOTE_ARGS"], expected)
             self.assertNotIn("ASWF_CONAN_NO_REMOTE", args)
 
+    def test_package_builds_get_a_fresh_nonce_per_run(self):
+        # Without it BuildKit replays a `conan create` the plan decided must
+        # run (e.g. --force-rebuild with unchanged recipes/settings).
+        group_info = groupinfo.GroupInfo(
+            names=["vfx"],
+            versions=["2027"],
+            type_=constants.ImageType.PACKAGE,
+            targets=["opentimelineio"],
+        )
+        nonces = [
+            builder.Builder(self.build_info, group_info).make_bake_dict(False)[
+                "target"
+            ]["ci-package-opentimelineio-2027"]["args"]["ASWF_CONAN_NONCE"]
+            for _ in range(2)
+        ]
+        self.assertTrue(all(nonces))
+        self.assertNotEqual(nonces[0], nonces[1])
+
+    def test_image_builds_get_no_nonce(self):
+        # Replaying cached image layers is fine, and keeps image builds fast.
+        b = builder.Builder(
+            self.build_info,
+            groupinfo.GroupInfo(
+                names=["base"],
+                versions=["2027"],
+                type_=constants.ImageType.IMAGE,
+                targets=[],
+            ),
+        )
+        self.assertNotIn(
+            "ASWF_CONAN_NONCE",
+            b.make_bake_dict(False)["target"]["ci-base-2027"]["args"],
+        )
+
     def test_image_base_2027_dict(self):
         b = builder.Builder(
             self.build_info,

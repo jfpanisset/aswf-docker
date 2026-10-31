@@ -417,10 +417,10 @@ def _bake_dict(
         docker_org, package_org, ci_common_version, channel
     )
     args["ASWF_CONAN_GRAPH_SCRIPT"] = script
-    # See ASWF_CONAN_GRAPH_NONCE in packages/common/Dockerfile: forces the
-    # graph RUN to execute every time, without the no-cache/no-cache-filter
-    # side effect of replacing the shared Conan cache mount with an empty one.
-    args["ASWF_CONAN_GRAPH_NONCE"] = nonce
+    # See ASWF_CONAN_NONCE in packages/common/Dockerfile: forces the graph RUN
+    # to execute every time, without the no-cache/no-cache-filter side effect
+    # of replacing the shared Conan cache mount with an empty one.
+    args["ASWF_CONAN_NONCE"] = nonce
     return {
         "target": {
             BAKE_TARGET_NAME: {

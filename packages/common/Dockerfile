@@ -41,14 +41,17 @@ ARG ASWF_CONAN_PUSH
 # build-order` call); the Dockerfile only ever runs it verbatim, never
 # constructs it.
 ARG ASWF_CONAN_GRAPH_SCRIPT
-# Unique per graph run (buildorder.py), so BuildKit never replays a cached
-# result of the RUN below: its layer cache ignores --mount=type=cache
-# contents, so a replay would report a stale build order after the Conan
-# cache changed. A changed ARG value forces the RUN to execute; don't use
-# --no-cache/no-cache-filter for this instead, since that also gives the RUN
-# fresh, empty cache mounts that replace the shared aswf-conan-cache and
-# aswf-ccache, discarding every locally built package.
-ARG ASWF_CONAN_GRAPH_NONCE
+# Unique per run (set by both buildorder.py and builder.py), so BuildKit never
+# replays a cached result of the RUNs below. Its layer cache keys a RUN on its
+# command, ARGs and bind-mounted sources -- never on --mount=type=cache
+# contents -- so with unchanged recipes/settings it would otherwise replay:
+# a stale build order after the Conan cache changed, or a `conan create` the
+# build plan decided must run (--force-rebuild after a system library change,
+# packages missing from an evicted cache). A changed ARG value forces the RUNs
+# to execute; don't use --no-cache/no-cache-filter for this instead, since
+# that also gives the RUN fresh, empty cache mounts that replace the shared
+# aswf-conan-cache and aswf-ccache, discarding every locally built package.
+ARG ASWF_CONAN_NONCE
 ARG ASWF_CUDA_VERSION
 ENV ASWF_CUDA_VERSION=${ASWF_CUDA_VERSION}
 ARG ASWF_OPTIX_VERSION
