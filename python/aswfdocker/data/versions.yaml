@@ -1239,11 +1239,6 @@ ci-packages:
     - "2025.10"
     - "2026.8"
     - "2027.3"
-  openrv:
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
   openusd:
     - "2023.7"
     - "2024.11"
@@ -2073,8 +2068,6 @@ groups:
         - materialx
         - openusd
         - moonray
-      review:
-        - openrv
   image:
       baseos-gl-conan:
         - baseos-gl-conan

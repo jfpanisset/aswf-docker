@@ -143,6 +143,43 @@ class TestBuilder(unittest.TestCase):
             b.make_bake_dict(False)["target"]["ci-base-2027"]["args"],
         )
 
+    @patch.object(builder.utils, "git_provenance")
+    def test_package_builds_get_git_provenance(self, mock_provenance):
+        provenance = {
+            "ASWF_GIT_SHA": "abc123",
+            "ASWF_GIT_DIRTY": "true",
+            "ASWF_GIT_DIFF_HASH": "f00d",
+        }
+        mock_provenance.return_value = provenance
+        group_info = groupinfo.GroupInfo(
+            names=["vfx"],
+            versions=["2027"],
+            type_=constants.ImageType.PACKAGE,
+            targets=["opentimelineio", "openexr"],
+        )
+        targets = builder.Builder(self.build_info, group_info).make_bake_dict(False)[
+            "target"
+        ]
+        for target in ("ci-package-opentimelineio-2027", "ci-package-openexr-2027"):
+            self.assertLessEqual(provenance.items(), targets[target]["args"].items())
+        # Computed once per run, not per target.
+        mock_provenance.assert_called_once()
+
+    @patch.object(builder.utils, "git_provenance")
+    def test_image_builds_get_no_git_provenance(self, mock_provenance):
+        b = builder.Builder(
+            self.build_info,
+            groupinfo.GroupInfo(
+                names=["base"],
+                versions=["2027"],
+                type_=constants.ImageType.IMAGE,
+                targets=[],
+            ),
+        )
+        args = b.make_bake_dict(False)["target"]["ci-base-2027"]["args"]
+        self.assertNotIn("ASWF_GIT_SHA", args)
+        mock_provenance.assert_not_called()
+
     def test_image_base_2027_dict(self):
         b = builder.Builder(
             self.build_info,
