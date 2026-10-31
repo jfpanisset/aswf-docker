@@ -91,11 +91,7 @@ COPY scripts/vfx/build_openrv.sh /usr/local/aswf
 ARG ASWF_PYTHON_MAJOR_MINOR_VERSION
 ENV ASWF_PYTHON_MAJOR_MINOR_VERSION=${ASWF_PYTHON_MAJOR_MINOR_VERSION}
 
-# conan-only packages
 COPY <<EOF /usr/local/conanfile.txt
-[generators]
-[imports]
-., * -> .
 [requires]
 cpython/${ASWF_CPYTHON_VERSION}@${ASWF_PKG_ORG}/${ASWF_CONAN_CHANNEL}
 expat/${ASWF_EXPAT_VERSION}@${ASWF_PKG_ORG}/${ASWF_CONAN_CHANNEL}
@@ -112,6 +108,7 @@ RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=/opt/conan_home
         --deployer aswf_deploy \
         --deployer-folder /usr/local \
         --conf user.aswf:exclude_package="openrv" \
+        --conf user.aswf:sbom_name="ci-openrv/${ASWF_VERSION}" \
     && rm -rf /tmp/downloads/*
 
 # Workaround: Reinstall Qt to a temporary location to prevent conflicts with PySide during OpenRV builds.

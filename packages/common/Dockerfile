@@ -52,6 +52,14 @@ ARG ASWF_CONAN_GRAPH_SCRIPT
 # that also gives the RUN fresh, empty cache mounts that replace the shared
 # aswf-conan-cache and aswf-ccache, discarding every locally built package.
 ARG ASWF_CONAN_NONCE
+# The git state this build comes from (utils.git_provenance()), which the
+# hook_aswf_provenance Conan hook records in each built package's metadata
+# (not its package_id), for the SBOMs aswf_deploy writes into images. Read by
+# the hook from the RUN environment, so ARGs are enough: nothing needs them
+# as ENV.
+ARG ASWF_GIT_SHA
+ARG ASWF_GIT_DIRTY
+ARG ASWF_GIT_DIFF_HASH
 ARG ASWF_CUDA_VERSION
 ENV ASWF_CUDA_VERSION=${ASWF_CUDA_VERSION}
 ARG ASWF_OPTIX_VERSION

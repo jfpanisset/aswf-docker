@@ -17,8 +17,10 @@ import hashlib
 import importlib.util
 import io
 import os
+import json
 import tempfile
 import unittest
+from unittest import mock
 
 _REPO_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 _MODULE_PATH = os.path.join(
@@ -56,10 +58,24 @@ class _FakeRef:
         self.version = version
 
 
+class _FakePref:
+    def __init__(self, package_id):
+        self.package_id = package_id
+
+
 class _FakeDep:
-    def __init__(self, name, package_folder, version="1.0", context="host"):
+    def __init__(
+        self,
+        name,
+        package_folder,
+        version="1.0",
+        context="host",
+        package_metadata_folder=None,
+    ):
         self.ref = _FakeRef(name, version)
+        self.pref = _FakePref(f"{name}-pid")
         self.package_folder = package_folder
+        self.package_metadata_folder = package_metadata_folder
         self.context = context  # not read by the deployer; documents intent
 
 
@@ -114,6 +130,28 @@ class _FakeGraphRoot:
 class _FakeGraph:
     def __init__(self, conanfile):
         self.root = _FakeGraphRoot(conanfile)
+
+
+def _fake_cyclonedx_1_6(conanfile, name=None, **_kwargs):
+    """Stands in for conan.tools.sbom.cyclonedx_1_6(), which needs a real
+    Conan graph (conanfile.subgraph): one component per dependency of the
+    fake conanfile, all depended on by the root, in Conan's output shape."""
+    components = []
+    for _req, dep in conanfile.dependencies.items():
+        ref = f"pkg:conan/{dep.ref.name}@{dep.ref.version}"
+        components.append(
+            {"bom-ref": ref, "name": dep.ref.name, "version": str(dep.ref.version)}
+        )
+    return {
+        "bomFormat": "CycloneDX",
+        "specVersion": "1.6",
+        "metadata": {"component": {"bom-ref": "root", "name": name}},
+        "components": components,
+        "dependencies": [
+            {"ref": "root", "dependsOn": [c["bom-ref"] for c in components]}
+        ]
+        + [{"ref": c["bom-ref"]} for c in components],
+    }
 
 
 def _copy_tree(dep, output, symlinks=True):
@@ -918,7 +956,309 @@ class TestDeployReport(unittest.TestCase):
         report.raise_if_errors()  # must not raise
 
 
+class TestComponentProperties(unittest.TestCase):
+    def test_package_id_only_without_metadata(self):
+        dep = _FakeDep("zlib", None)
+        self.assertEqual(
+            aswf_deploy._component_properties(dep), {"aswf:package_id": "zlib-pid"}
+        )
+
+    def test_metadata_folder_without_provenance_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dep = _FakeDep("zlib", None, package_metadata_folder=tmp)
+            self.assertEqual(
+                aswf_deploy._component_properties(dep),
+                {"aswf:package_id": "zlib-pid"},
+            )
+
+    def test_system_wrapper_is_tagged(self):
+        dep = _FakeDep("opengl", None, version="system")
+        self.assertEqual(
+            aswf_deploy._component_properties(dep, system=True),
+            {"aswf:package_id": "opengl-pid", "aswf:provided_by": "system"},
+        )
+
+    def test_reads_clean_provenance(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _write(
+                os.path.join(tmp, "aswf_provenance.json"),
+                json.dumps({"git_sha": "abc123", "git_dirty": False}),
+            )
+            dep = _FakeDep("zlib", None, package_metadata_folder=tmp)
+            self.assertEqual(
+                aswf_deploy._component_properties(dep),
+                {
+                    "aswf:package_id": "zlib-pid",
+                    "aswf:git_sha": "abc123",
+                    "aswf:git_dirty": "false",
+                },
+            )
+
+    def test_reads_dirty_provenance_with_diff_hash(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _write(
+                os.path.join(tmp, "aswf_provenance.json"),
+                json.dumps(
+                    {"git_sha": "abc123", "git_dirty": True, "git_diff_hash": "f00d"}
+                ),
+            )
+            dep = _FakeDep("zlib", None, package_metadata_folder=tmp)
+            props = aswf_deploy._component_properties(dep)
+            self.assertEqual(props["aswf:git_dirty"], "true")
+            self.assertEqual(props["aswf:git_diff_hash"], "f00d")
+
+
+class TestIsSystemWrapper(unittest.TestCase):
+    def test_empty_package_with_system_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            dep = _FakeDep("opengl", tmp, version="system")
+            self.assertTrue(aswf_deploy._is_system_wrapper(dep))
+
+    def test_version_string_alone_does_not_decide(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            os.makedirs(os.path.join(tmp, "include"))
+            dep = _FakeDep("opengl", tmp, version="system")
+            self.assertFalse(aswf_deploy._is_system_wrapper(dep))
+
+    def test_empty_package_with_real_version(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _write(os.path.join(tmp, "conaninfo.txt"), "stuff")
+            dep = _FakeDep("openssl", tmp, version="3.5.8")
+            self.assertTrue(aswf_deploy._is_system_wrapper(dep))
+
+    def test_normal_package(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            os.makedirs(os.path.join(tmp, "lib"))
+            self.assertFalse(aswf_deploy._is_system_wrapper(_FakeDep("zlib", tmp)))
+
+    def test_skipped_binary_is_not_a_wrapper(self):
+        # package_folder is None when Conan skips a binary nothing needs,
+        # e.g. a static library already linked into its consumers.
+        self.assertFalse(aswf_deploy._is_system_wrapper(_FakeDep("zlib", None)))
+
+
+class TestSpdxLicenses(unittest.TestCase):
+    def test_expression_name_becomes_expression(self):
+        self.assertEqual(
+            aswf_deploy._spdx_licenses(
+                [{"license": {"name": "Apache-2.0 WITH LLVM-exception"}}]
+            ),
+            [{"expression": "Apache-2.0 WITH LLVM-exception"}],
+        )
+
+    def test_ids_and_free_text_are_unchanged(self):
+        for licenses in (
+            [{"license": {"id": "BSD-3-Clause"}}],
+            # Prose, not an SPDX expression (operators must be uppercase here).
+            [{"license": {"name": "Python-2.0 and numpy (BSD-3-Clause license)"}}],
+            # An expression can't sit alongside other license entries.
+            [{"license": {"id": "MIT"}}, {"license": {"name": "A OR B"}}],
+        ):
+            self.assertEqual(aswf_deploy._spdx_licenses(licenses), licenses)
+
+    def test_applied_to_kept_components(self):
+        sbom = _sbom(["clang"], {"root": ["clang"]})
+        sbom["components"][0]["licenses"] = [
+            {"license": {"name": "Apache-2.0 WITH LLVM-exception"}}
+        ]
+        result = aswf_deploy._filter_and_annotate_sbom(sbom, {("clang", "1.0"): {}})
+        self.assertEqual(
+            result["components"][0]["licenses"],
+            [{"expression": "Apache-2.0 WITH LLVM-exception"}],
+        )
+
+
+def _sbom(components, depends_on):
+    """A minimal Conan-shaped CycloneDX SBOM: `components` is a list of
+    names (version 1.0, bom-ref == name), `depends_on` maps a ref (or
+    "root") to the refs it depends on."""
+    return {
+        "bomFormat": "CycloneDX",
+        "metadata": {"component": {"bom-ref": "root", "name": "ci-test"}},
+        "components": [{"bom-ref": n, "name": n, "version": "1.0"} for n in components],
+        "dependencies": [
+            {"ref": ref, **({"dependsOn": deps} if deps else {})}
+            for ref, deps in depends_on.items()
+        ],
+    }
+
+
+class TestFilterAndAnnotateSbom(unittest.TestCase):
+    def test_keeps_listed_components_and_adds_sorted_properties(self):
+        sbom = _sbom(["zlib", "cmake"], {"root": ["zlib", "cmake"]})
+        result = aswf_deploy._filter_and_annotate_sbom(
+            sbom, {("zlib", "1.0"): {"b": "2", "a": "1"}}
+        )
+        self.assertEqual(
+            result["components"],
+            [
+                {
+                    "bom-ref": "zlib",
+                    "name": "zlib",
+                    "version": "1.0",
+                    "properties": [
+                        {"name": "a", "value": "1"},
+                        {"name": "b", "value": "2"},
+                    ],
+                }
+            ],
+        )
+        self.assertEqual(
+            result["dependencies"], [{"ref": "root", "dependsOn": ["zlib"]}]
+        )
+        self.assertEqual(result["metadata"], sbom["metadata"])
+        self.assertEqual(result["bomFormat"], "CycloneDX")
+
+    def test_version_must_match(self):
+        sbom = _sbom(["zlib"], {"root": ["zlib"]})
+        result = aswf_deploy._filter_and_annotate_sbom(
+            sbom, {("zlib", "2.0"): {"a": "1"}}
+        )
+        self.assertNotIn("components", result)
+        self.assertEqual(result["dependencies"], [{"ref": "root"}])
+
+    def test_rewires_dependencies_past_dropped_components(self):
+        # openexr -> imath (dropped) -> zlib; openexr must end up on zlib.
+        sbom = _sbom(
+            ["openexr", "imath", "zlib"],
+            {
+                "root": ["openexr"],
+                "openexr": ["imath"],
+                "imath": ["zlib"],
+                "zlib": [],
+            },
+        )
+        props = {("openexr", "1.0"): {"x": "1"}, ("zlib", "1.0"): {"x": "1"}}
+        result = aswf_deploy._filter_and_annotate_sbom(sbom, props)
+        self.assertEqual(
+            result["dependencies"],
+            [
+                {"ref": "root", "dependsOn": ["openexr"]},
+                {"ref": "openexr", "dependsOn": ["zlib"]},
+                {"ref": "zlib"},
+            ],
+        )
+
+    def test_duplicate_bom_refs_are_collapsed(self):
+        # Conan emits one component and one dependencies entry per graph
+        # node, and two nodes of the same recipe revision share a bom-ref.
+        sbom = _sbom(
+            ["cmake", "openssl", "cmake"],
+            {"root": ["cmake"], "cmake": ["openssl"], "openssl": []},
+        )
+        sbom["dependencies"].append({"ref": "cmake", "dependsOn": ["zlib"]})
+        sbom["components"].append({"bom-ref": "zlib", "name": "zlib", "version": "1.0"})
+        props = {(n, "1.0"): {"x": "1"} for n in ("cmake", "openssl", "zlib")}
+        result = aswf_deploy._filter_and_annotate_sbom(sbom, props)
+        self.assertEqual(
+            [c["bom-ref"] for c in result["components"]], ["cmake", "openssl", "zlib"]
+        )
+        self.assertEqual(
+            [e for e in result["dependencies"] if e["ref"] == "cmake"],
+            [{"ref": "cmake", "dependsOn": ["openssl", "zlib"]}],
+        )
+
+    def test_rewiring_handles_diamonds_without_duplicates(self):
+        sbom = _sbom(
+            ["app", "a", "b", "zlib"],
+            {"root": ["app"], "app": ["a", "b"], "a": ["zlib"], "b": ["zlib"]},
+        )
+        props = {("app", "1.0"): {"x": "1"}, ("zlib", "1.0"): {"x": "1"}}
+        result = aswf_deploy._filter_and_annotate_sbom(sbom, props)
+        app = next(e for e in result["dependencies"] if e["ref"] == "app")
+        self.assertEqual(app["dependsOn"], ["zlib"])
+
+
+class TestSetSbomRoot(unittest.TestCase):
+    def test_replaces_random_root_with_stable_image_ref(self):
+        sbom = _sbom(["zlib"], {"root": ["zlib"], "zlib": []})
+        result = aswf_deploy._set_sbom_root(sbom, "ci-base", "2027.10")
+        self.assertEqual(
+            result["metadata"]["component"],
+            {
+                "bom-ref": "ci-base@2027.10",
+                "name": "ci-base",
+                "version": "2027.10",
+                "type": "container",
+            },
+        )
+        self.assertEqual(
+            result["dependencies"],
+            [{"ref": "ci-base@2027.10", "dependsOn": ["zlib"]}, {"ref": "zlib"}],
+        )
+
+    def test_without_version(self):
+        sbom = _sbom([], {"root": []})
+        result = aswf_deploy._set_sbom_root(sbom, "ci-base", None)
+        self.assertEqual(result["metadata"]["component"]["bom-ref"], "ci-base")
+        self.assertNotIn("version", result["metadata"]["component"])
+
+
+def _layer(name, timestamp, components, depends_on):
+    sbom = _sbom(components, {"root": [], **depends_on})
+    sbom["metadata"]["timestamp"] = timestamp
+    return aswf_deploy._set_sbom_root(sbom, name, "1.0")
+
+
+class TestMergeSboms(unittest.TestCase):
+    def setUp(self):
+        self.common = _layer(
+            "ci-common",
+            "2026-01-01T00:00:00Z",
+            ["cmake", "openssl"],
+            {"root": ["cmake"], "cmake": ["openssl"], "openssl": []},
+        )
+        self.base = _layer(
+            "ci-base",
+            "2026-01-02T00:00:00Z",
+            ["openssl", "zlib"],
+            {"root": ["zlib", "openssl"], "zlib": [], "openssl": []},
+        )
+
+    def test_merges_layers_under_image_root(self):
+        merged = aswf_deploy._merge_sboms(
+            [self.common, self.base], self.base, "ci-base", "1.0"
+        )
+        self.assertEqual(
+            [c["bom-ref"] for c in merged["components"]], ["cmake", "openssl", "zlib"]
+        )
+        self.assertEqual(
+            merged["dependencies"],
+            [
+                {"ref": "ci-base@1.0", "dependsOn": ["cmake", "zlib", "openssl"]},
+                {"ref": "cmake", "dependsOn": ["openssl"]},
+                {"ref": "openssl"},
+                {"ref": "zlib"},
+            ],
+        )
+        root = merged["metadata"]["component"]
+        self.assertEqual(root["bom-ref"], "ci-base@1.0")
+        self.assertEqual(
+            root["properties"], [{"name": "aswf:layers", "value": "ci-common,ci-base"}]
+        )
+        self.assertTrue(merged["serialNumber"].startswith("urn:uuid:"))
+        self.assertEqual(merged["metadata"]["timestamp"], "2026-01-02T00:00:00Z")
+
+    def test_different_builds_of_a_package_are_kept_and_reported(self):
+        self.base["components"][0]["bom-ref"] = "openssl-rev2"
+        with mock.patch("builtins.print") as mock_print:
+            merged = aswf_deploy._merge_sboms(
+                [self.common, self.base], self.base, "ci-base", "1.0"
+            )
+        refs = [c["bom-ref"] for c in merged["components"]]
+        self.assertIn("openssl", refs)
+        self.assertIn("openssl-rev2", refs)
+        self.assertIn("different builds of openssl", mock_print.call_args[0][0])
+
+
 class TestDeployEndToEnd(unittest.TestCase):
+    def setUp(self):
+        patcher = mock.patch.object(
+            aswf_deploy, "cyclonedx_1_6", side_effect=_fake_cyclonedx_1_6
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_full_deploy_excludes_named_package_and_deploys_others(self):
         with tempfile.TemporaryDirectory() as tmp:
             conan_home = os.path.join(tmp, "conan_home")
@@ -1059,6 +1399,143 @@ class TestDeployEndToEnd(unittest.TestCase):
                 )
                 graph = _FakeGraph(conanfile)
                 aswf_deploy.deploy(graph, output)  # must not raise
+            finally:
+                del os.environ["CONAN_HOME"]
+
+    def test_deploy_writes_filtered_annotated_sbom(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            conan_home = os.path.join(tmp, "conan_home")
+            os.makedirs(conan_home)
+            os.environ["CONAN_HOME"] = conan_home
+            try:
+                output = os.path.join(tmp, "output")
+                pkg_zlib = os.path.join(tmp, "pkg_zlib")
+                pkg_openexr = os.path.join(tmp, "pkg_openexr")
+                pkg_cmake = os.path.join(tmp, "pkg_cmake")
+                pkg_opengl = os.path.join(tmp, "pkg_opengl")
+                meta_zlib = os.path.join(tmp, "meta_zlib")
+                _write(os.path.join(pkg_zlib, "include", "zlib.h"), "zlib")
+                _write(os.path.join(pkg_openexr, "include", "openexr.h"), "exr")
+                _write(os.path.join(pkg_cmake, "bin", "cmake"), "binary")
+                os.makedirs(pkg_opengl)
+                pkg_openssl = os.path.join(tmp, "pkg_openssl")
+                _write(os.path.join(pkg_openssl, "conaninfo.txt"), "wrapper")
+                _write(
+                    os.path.join(meta_zlib, "aswf_provenance.json"),
+                    json.dumps({"git_sha": "abc123", "git_dirty": False}),
+                )
+
+                conanfile = _FakeConanFile(
+                    conf_values={
+                        "user.aswf:exclude_package": "openexr",
+                        "user.aswf:sbom_name": "ci-test",
+                    },
+                    deps=[
+                        _direct_host_dep(
+                            _FakeDep(
+                                "zlib", pkg_zlib, package_metadata_folder=meta_zlib
+                            )
+                        ),
+                        _direct_host_dep(_FakeDep("openexr", pkg_openexr)),
+                        _direct_host_dep(
+                            _FakeDep("opengl", pkg_opengl, version="system")
+                        ),
+                        _direct_host_dep(
+                            _FakeDep("openssl", pkg_openssl, version="3.5.8")
+                        ),
+                        (
+                            _FakeRequirement("cmake", build=True, direct=False),
+                            _FakeDep("cmake", pkg_cmake),
+                        ),
+                    ],
+                )
+                aswf_deploy.deploy(_FakeGraph(conanfile), output)
+
+                with open(
+                    os.path.join(output, "aswf", "ci-test.cdx.json"), encoding="utf-8"
+                ) as f:
+                    sbom = json.load(f)
+                components = {c["name"]: c for c in sbom["components"]}
+                # Excluded and out-of-scope packages are left out, system
+                # wrappers (not copied, but provided by the image) are kept.
+                self.assertEqual(sorted(components), ["opengl", "openssl", "zlib"])
+                self.assertEqual(sbom["metadata"]["component"]["name"], "ci-test")
+                self.assertIn(
+                    {"name": "aswf:git_sha", "value": "abc123"},
+                    components["zlib"]["properties"],
+                )
+                self.assertEqual(
+                    components["opengl"]["properties"],
+                    [
+                        {"name": "aswf:package_id", "value": "opengl-pid"},
+                        {"name": "aswf:provided_by", "value": "system"},
+                    ],
+                )
+                self.assertIn(
+                    {"name": "aswf:provided_by", "value": "system"},
+                    components["openssl"]["properties"],
+                )
+                self.assertNotIn(
+                    "aswf:provided_by",
+                    [p["name"] for p in components["zlib"]["properties"]],
+                )
+            finally:
+                del os.environ["CONAN_HOME"]
+
+    def test_layered_deploys_merge_into_image_sbom(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            conan_home = os.path.join(tmp, "conan_home")
+            os.makedirs(conan_home)
+            os.environ["CONAN_HOME"] = conan_home
+            try:
+                output = os.path.join(tmp, "output")
+                pkg_cmake = os.path.join(tmp, "pkg_cmake")
+                pkg_zlib = os.path.join(tmp, "pkg_zlib")
+                _write(os.path.join(pkg_cmake, "bin", "cmake"), "binary")
+                _write(os.path.join(pkg_zlib, "include", "zlib.h"), "zlib")
+                for image, dep in (
+                    ("ci-common", _FakeDep("cmake", pkg_cmake)),
+                    ("ci-base", _FakeDep("zlib", pkg_zlib)),
+                ):
+                    conanfile = _FakeConanFile(
+                        conf_values={"user.aswf:sbom_name": f"{image}/2027.10"},
+                        deps=[_direct_host_dep(dep)],
+                    )
+                    aswf_deploy.deploy(_FakeGraph(conanfile), output)
+
+                sbom_dir = os.path.join(output, "aswf")
+                self.assertEqual(
+                    sorted(os.listdir(sbom_dir)),
+                    ["ci-base.cdx.json", "ci-common.cdx.json", "sbom.cdx.json"],
+                )
+                with open(
+                    os.path.join(sbom_dir, "sbom.cdx.json"), encoding="utf-8"
+                ) as f:
+                    merged = json.load(f)
+                self.assertEqual(
+                    sorted(c["name"] for c in merged["components"]), ["cmake", "zlib"]
+                )
+                self.assertEqual(
+                    merged["metadata"]["component"]["bom-ref"], "ci-base@2027.10"
+                )
+                self.assertEqual(
+                    sorted(merged["dependencies"][0]["dependsOn"]),
+                    ["pkg:conan/cmake@1.0", "pkg:conan/zlib@1.0"],
+                )
+            finally:
+                del os.environ["CONAN_HOME"]
+
+    def test_deploy_uses_default_sbom_name(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            conan_home = os.path.join(tmp, "conan_home")
+            os.makedirs(conan_home)
+            os.environ["CONAN_HOME"] = conan_home
+            try:
+                output = os.path.join(tmp, "output")
+                aswf_deploy.deploy(_FakeGraph(_FakeConanFile()), output)
+                self.assertTrue(
+                    os.path.isfile(os.path.join(output, "aswf", "conan-sbom.cdx.json"))
+                )
             finally:
                 del os.environ["CONAN_HOME"]
 

@@ -4,6 +4,7 @@
 Utility functions
 """
 
+import hashlib
 import os
 import re
 import subprocess
@@ -31,6 +32,37 @@ def get_git_top_level() -> str:
     return subprocess.check_output(
         ["git", "rev-parse", "--show-toplevel"], encoding="UTF-8"
     )[:-1]
+
+
+def git_provenance(repo_root: str) -> typing.Dict[str, str]:
+    """The git state a package build comes from, as the build ARGs
+    packages/common/Dockerfile passes to the hook_aswf_provenance Conan hook:
+    the HEAD commit, whether the working tree differs from it (including
+    untracked, non-ignored files), and if so a hash of those differences.
+
+    Release builds run from a clean checkout, so the SHA alone identifies
+    them. Local builds are often dirty; the hash then at least tells two
+    local builds from identical trees apart from ones that differ.
+    """
+
+    def git(*args: str) -> bytes:
+        return subprocess.check_output(["git", *args], cwd=repo_root)
+
+    status = git("status", "--porcelain", "--untracked-files=all")
+    provenance = {
+        "ASWF_GIT_SHA": git("rev-parse", "HEAD").decode().strip(),
+        "ASWF_GIT_DIRTY": "true" if status.strip() else "false",
+        "ASWF_GIT_DIFF_HASH": "",
+    }
+    if status.strip():
+        digest = hashlib.sha256(git("diff", "HEAD", "--binary"))
+        untracked = git("ls-files", "--others", "--exclude-standard", "-z")
+        for path in sorted(p for p in untracked.split(b"\0") if p):
+            digest.update(b"\0untracked\0" + path + b"\0")
+            with open(os.path.join(repo_root, os.fsdecode(path)), "rb") as f:
+                digest.update(f.read())
+        provenance["ASWF_GIT_DIFF_HASH"] = digest.hexdigest()
+    return provenance
 
 
 def get_current_date() -> str:

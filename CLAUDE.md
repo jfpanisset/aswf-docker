@@ -74,7 +74,7 @@ uv run mypy python/aswfdocker
 uv run pylint python/aswfdocker
 
 # Formatting (Black, targets Python 3.10)
-uv run black python/ packages/conan/settings/extensions/deployers/ packages/conan/settings/extensions/commands/
+uv run black python/ packages/conan/settings/extensions/deployers/ packages/conan/settings/extensions/commands/ packages/conan/settings/extensions/hooks/
 
 # Run all pre-commit hooks
 uv run pre-commit run --all-files

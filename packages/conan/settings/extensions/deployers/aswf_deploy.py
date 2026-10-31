@@ -9,19 +9,43 @@ guarantees it is installed inside the CI image being built, only on the host
 driving `docker buildx bake`.
 
 Invoked as: conan install <path> --deployer=aswf_deploy --deployer-folder=<dest>
-with the package to exclude (if any) passed as -c user.aswf:exclude_package=<name>.
+with the package to exclude (if any) passed as -c user.aswf:exclude_package=<name>,
+and the SBOM's subject as -c user.aswf:sbom_name=<name>/<version> (the image
+name and its ASWF_VERSION; the version is optional).
+
+Also writes a CycloneDX SBOM of the packages it deployed to
+<dest>/aswf/<sbom_name>.cdx.json. Images are built in layers (ci-common,
+ci-base, ...) that each run their own deploy, so naming the SBOM per image
+keeps every layer's SBOM instead of each overwriting the last. All the
+layers' SBOMs found there are then merged into <dest>/aswf/sbom.cdx.json,
+which describes the whole image without needing to know its layering (and
+is what gets attached to the image's GitHub release); each layer rewrites it.
 """
 
 import fnmatch
 import functools
+import glob
 import hashlib
+import json
 import os
 import re
 import shutil
+import uuid
+
+from conan.tools.sbom import cyclonedx_1_6
 
 _CONAN_METADATA_FILES = {"conaninfo.txt", "conanmanifest.txt"}
 _LICENSES_DIR_NAME = "licenses"
 _MD5_CHUNK_SIZE = 1024 * 1024  # 1 MiB -- files like libclang-cpp.so are 100+MB
+_SBOM_DIR_NAME = "aswf"
+_DEFAULT_SBOM_NAME = "conan-sbom"
+_MERGED_SBOM_FILE = "sbom.cdx.json"
+# Written by the hook_aswf_provenance Conan hook (extensions/hooks/), which
+# can't share this module's code.
+_PROVENANCE_FILE = "aswf_provenance.json"
+
+# SPDX expression operators (https://spdx.github.io/spdx-spec/v2.3/SPDX-license-expressions/)
+_SPDX_OPERATORS = re.compile(r" (WITH|AND|OR) ")
 
 _PACKAGE_HOOKS = {}
 
@@ -36,14 +60,252 @@ def deploy(graph, output_folder):
 
     os.makedirs(output_folder, exist_ok=True)
     report = _DeployReport()
+    in_image = []
     for require, dep in conanfile.dependencies.items():
         if _should_skip_scope(require):
             continue
+        if exclude_name and dep.ref.name == exclude_name:
+            continue
+        # In the SBOM even when not copied, e.g. "system" wrappers, which the
+        # image gets from the OS instead.
+        in_image.append(dep)
         if _should_skip(dep, exclude_name):
             continue
         _deploy_package(dep, output_folder, cache_root, symlinks, report)
     report.print_report()
     report.raise_if_errors()
+    _write_sbom(conanfile, in_image, output_folder)
+
+
+def _write_sbom(conanfile, deps, output_folder) -> None:
+    """Writes Conan's CycloneDX 1.6 SBOM for the graph, limited to `deps`
+    (what this deploy considers part of the image) and annotated with each
+    package's ASWF build provenance."""
+    # One "name/version" value: Conan eval()s conf values, which would turn a
+    # bare version such as 2027.10 into the number 2027.1.
+    sbom_name = conanfile.conf.get("user.aswf:sbom_name", check_type=str)
+    name, _, version = (sbom_name or _DEFAULT_SBOM_NAME).partition("/")
+    version = version or None
+    # Host context only, like the deploy itself: what's in the image and what
+    # it links/runs against. A package's own tool_requires (e.g. clang's
+    # cmake/ninja) would otherwise show up as untyped dependsOn edges -- and,
+    # since bom-refs don't include the context, as duplicate components.
+    sbom = cyclonedx_1_6(conanfile, name=name, add_build=False)
+    properties = {
+        (dep.ref.name, str(dep.ref.version)): _component_properties(
+            dep, _is_system_wrapper(dep)
+        )
+        for dep in deps
+    }
+    sbom = _set_sbom_root(_filter_and_annotate_sbom(sbom, properties), name, version)
+    sbom_dir = os.path.join(output_folder, _SBOM_DIR_NAME)
+    path = os.path.join(sbom_dir, f"{name}.cdx.json")
+    _write_json(path, sbom)
+    print(
+        f"aswf_deploy: wrote SBOM {path} ({len(sbom.get('components', []))} components)"
+    )
+    layer_sboms = _read_layer_sboms(sbom_dir)
+    merged = _merge_sboms(layer_sboms, sbom, name, version)
+    merged_path = os.path.join(sbom_dir, _MERGED_SBOM_FILE)
+    _write_json(merged_path, merged)
+    print(
+        f"aswf_deploy: wrote image SBOM {merged_path} from "
+        f"{len(layer_sboms)} layer(s) ({len(merged.get('components', []))} components)"
+    )
+
+
+def _read_layer_sboms(sbom_dir) -> list:
+    """Every layer's SBOM in `sbom_dir`, base image first (lower layers
+    were built first)."""
+    layer_sboms = []
+    for path in glob.glob(os.path.join(sbom_dir, "*.cdx.json")):
+        if os.path.basename(path) == _MERGED_SBOM_FILE:
+            continue
+        with open(path, "r", encoding="utf-8") as f:
+            layer_sboms.append(json.load(f))
+    layer_sboms.sort(
+        key=lambda s: (
+            s["metadata"].get("timestamp", ""),
+            s["metadata"]["component"]["name"],
+        )
+    )
+    return layer_sboms
+
+
+def _union_dependencies(entries, rename=None) -> dict:
+    """CycloneDX dependencies entries as {ref: [dependsOn...]}, merging the
+    entries of a ref that appears more than once (Conan writes one per graph
+    node, and several nodes can share a bom-ref; merged layers share refs
+    too). `rename` maps refs to replace, e.g. layer roots to the image's."""
+    rename = rename or {}
+    depends_on: dict = {}
+    for entry in entries:
+        merged = depends_on.setdefault(rename.get(entry["ref"], entry["ref"]), [])
+        merged.extend(d for d in entry.get("dependsOn", []) if d not in merged)
+    return depends_on
+
+
+def _warn_about_different_builds(components) -> None:
+    refs_by_name: dict = {}
+    for component in components:
+        refs_by_name.setdefault(component["name"], []).append(component["bom-ref"])
+    for package, refs in sorted(refs_by_name.items()):
+        if len(refs) > 1:
+            print(
+                f"aswf_deploy: WARNING: image layers ship different builds of "
+                f"{package}: {', '.join(refs)}"
+            )
+
+
+def _write_json(path, data) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, sort_keys=True)
+        f.write("\n")
+
+
+def _root_ref(name, version) -> str:
+    return f"{name}@{version}" if version else name
+
+
+def _set_sbom_root(sbom: dict, name, version) -> dict:
+    """Replaces the SBOM's root component, which Conan gives a random
+    bom-ref for any consumer conanfile (it has no recipe revision), with
+    the image itself under a stable bom-ref."""
+    old_ref = sbom["metadata"]["component"]["bom-ref"]
+    new_ref = _root_ref(name, version)
+    root = {"bom-ref": new_ref, "name": name, "type": "container"}
+    if version:
+        root["version"] = version
+    dependencies = [
+        {**e, "ref": new_ref} if e["ref"] == old_ref else e
+        for e in sbom.get("dependencies", [])
+    ]
+    result = {**sbom, "metadata": {**sbom["metadata"], "component": root}}
+    if dependencies:
+        result["dependencies"] = dependencies
+    return result
+
+
+def _merge_sboms(layer_sboms, current: dict, name, version) -> dict:
+    """Merges the image's per-layer SBOMs (each as written by _write_sbom)
+    into one rooted at the image: components are deduplicated by bom-ref,
+    which for Conan packages includes the recipe revision, and the image
+    root depends on everything any layer's root depended on. Its metadata
+    (tools, timestamp) comes from `current`, this deploy's own SBOM."""
+    root_ref = _root_ref(name, version)
+    components: dict = {}
+    for sbom in layer_sboms:
+        for component in sbom.get("components", []):
+            components.setdefault(component["bom-ref"], component)
+    _warn_about_different_builds(components.values())
+    depends_on = _union_dependencies(
+        [{"ref": root_ref}]
+        + [e for s in layer_sboms for e in s.get("dependencies", [])],
+        rename={s["metadata"]["component"]["bom-ref"]: root_ref for s in layer_sboms},
+    )
+    root = {**current["metadata"]["component"]}
+    root["properties"] = [
+        {
+            "name": "aswf:layers",
+            "value": ",".join(s["metadata"]["component"]["name"] for s in layer_sboms),
+        }
+    ]
+    result = {
+        k: v for k, v in current.items() if k not in ("components", "dependencies")
+    }
+    result["serialNumber"] = f"urn:uuid:{uuid.uuid4()}"
+    result["metadata"] = {**current["metadata"], "component": root}
+    if components:
+        result["components"] = list(components.values())
+    result["dependencies"] = [
+        {"ref": ref, **({"dependsOn": deps} if deps else {})}
+        for ref, deps in depends_on.items()
+    ]
+    return result
+
+
+def _component_properties(dep, system=False) -> dict:
+    """CycloneDX component properties for one package: its Conan package_id,
+    the git state it was built from (if recorded at build time), and whether
+    it's a wrapper whose files the image gets from OS packages instead."""
+    properties = {"aswf:package_id": dep.pref.package_id}
+    if system:
+        properties["aswf:provided_by"] = "system"
+    metadata_folder = dep.package_metadata_folder
+    provenance_path = (
+        os.path.join(metadata_folder, _PROVENANCE_FILE) if metadata_folder else None
+    )
+    if provenance_path and os.path.isfile(provenance_path):
+        with open(provenance_path, "r", encoding="utf-8") as f:
+            provenance = json.load(f)
+        properties["aswf:git_sha"] = provenance["git_sha"]
+        properties["aswf:git_dirty"] = str(bool(provenance.get("git_dirty"))).lower()
+        if provenance.get("git_diff_hash"):
+            properties["aswf:git_diff_hash"] = provenance["git_diff_hash"]
+    return properties
+
+
+def _filter_and_annotate_sbom(sbom: dict, properties: dict) -> dict:
+    """Keeps only the components whose (name, version) is in `properties`,
+    adds those properties to them (CycloneDX's name/value extension point),
+    and rewires the dependency graph past any dropped component, so a kept
+    package still shows what it (transitively) depends on in the image."""
+    kept = []
+    kept_refs = set()
+    for component in sbom.get("components", []):
+        key = (component["name"], component["version"])
+        if key not in properties or component["bom-ref"] in kept_refs:
+            continue
+        kept_refs.add(component["bom-ref"])
+        props = [{"name": n, "value": v} for n, v in sorted(properties[key].items())]
+        component = {**component, **({"properties": props} if props else {})}
+        if "licenses" in component:
+            component["licenses"] = _spdx_licenses(component["licenses"])
+        kept.append(component)
+    root_ref = sbom["metadata"]["component"]["bom-ref"]
+    depends_on = _union_dependencies(sbom.get("dependencies", []))
+
+    def kept_dependencies(ref):
+        result, pending, seen = [], list(depends_on.get(ref, [])), set()
+        while pending:
+            dep = pending.pop(0)
+            if dep in seen:
+                continue
+            seen.add(dep)
+            if dep in kept_refs:
+                result.append(dep)
+            else:
+                pending.extend(depends_on.get(dep, []))
+        return result
+
+    dependencies = []
+    for ref in depends_on:
+        if ref != root_ref and ref not in kept_refs:
+            continue
+        entry = {"ref": ref}
+        deps = kept_dependencies(ref)
+        if deps:
+            entry["dependsOn"] = deps
+        dependencies.append(entry)
+    result = {k: v for k, v in sbom.items() if k not in ("components", "dependencies")}
+    if kept:
+        result["components"] = kept
+    if dependencies:
+        result["dependencies"] = dependencies
+    return result
+
+
+def _spdx_licenses(licenses: list) -> list:
+    """Conan only recognizes single SPDX license ids, and writes anything else
+    (e.g. clang's "Apache-2.0 WITH LLVM-exception") as a free-text license
+    name. CycloneDX has a dedicated form for an SPDX expression, which is what
+    license scanners check; it must be the licenses array's only entry."""
+    if len(licenses) == 1:
+        name = licenses[0].get("license", {}).get("name", "")
+        if _SPDX_OPERATORS.search(name):
+            return [{"expression": name}]
+    return licenses
 
 
 def _should_skip_scope(require) -> bool:
@@ -64,6 +326,17 @@ def _should_skip_scope(require) -> bool:
     return False
 
 
+def _is_system_wrapper(dep) -> bool:
+    """A recipe that only points at OS-provided files: its package has
+    nothing in it. Decided from the package itself, not its version: wrappers
+    (the "system" class in conan-center-index-upstream.json, plus CCI's own
+    opengl/glu system recipes) are pinned at either "system" or the distro
+    package's version (e.g. openssl/3.5.8), and full recipes can check it."""
+    return dep.package_folder is not None and not any(
+        entry.is_dir() for entry in os.scandir(dep.package_folder)
+    )
+
+
 def _should_skip(dep, exclude_name) -> bool:
     if dep.package_folder is None:
         return True
@@ -71,9 +344,7 @@ def _should_skip(dep, exclude_name) -> bool:
         return True
     if str(dep.ref.version) == "system":
         return True
-    if not any(entry.is_dir() for entry in os.scandir(dep.package_folder)):
-        return True
-    return False
+    return _is_system_wrapper(dep)
 
 
 class _DeployReport:

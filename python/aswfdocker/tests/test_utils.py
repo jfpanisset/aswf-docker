@@ -5,6 +5,8 @@ Tests for the utility commands
 """
 
 import os
+import subprocess
+import tempfile
 import unittest
 import logging
 from unittest.mock import patch
@@ -48,6 +50,73 @@ class TestConanRemotePolicy(unittest.TestCase):
         self.assertEqual(utils.conan_remote_args("aswf"), ["--remote", "aswf"])
         with self.assertRaises(ValueError):
             utils.conan_remote_args(constants.CONAN_REMOTE_AUTO)
+
+
+class TestGitProvenance(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+        self.addCleanup(tmp.cleanup)
+        self.repo = tmp.name
+        self._git("init", "-q")
+        self._write(".gitignore", "ignored.txt\n")
+        self._write("tracked.txt", "one\n")
+        self._git("add", ".")
+        self._git(
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.com",
+            "commit",
+            "-q",
+            "-m",
+            "initial",
+        )
+        self.head = self._git("rev-parse", "HEAD").strip()
+
+    def _git(self, *args):
+        return subprocess.check_output(["git", *args], cwd=self.repo, encoding="UTF-8")
+
+    def _write(self, name, content):
+        with open(os.path.join(self.repo, name), "w", encoding="utf-8") as f:
+            f.write(content)
+
+    def test_clean_tree(self):
+        self.assertEqual(
+            utils.git_provenance(self.repo),
+            {
+                "ASWF_GIT_SHA": self.head,
+                "ASWF_GIT_DIRTY": "false",
+                "ASWF_GIT_DIFF_HASH": "",
+            },
+        )
+
+    def test_ignored_files_keep_tree_clean(self):
+        self._write("ignored.txt", "noise\n")
+        self.assertEqual(utils.git_provenance(self.repo)["ASWF_GIT_DIRTY"], "false")
+
+    def test_modified_tracked_file(self):
+        self._write("tracked.txt", "two\n")
+        first = utils.git_provenance(self.repo)
+        self.assertEqual(first["ASWF_GIT_SHA"], self.head)
+        self.assertEqual(first["ASWF_GIT_DIRTY"], "true")
+        self.assertEqual(len(first["ASWF_GIT_DIFF_HASH"]), 64)
+        # Same tree, same hash; a different change, a different hash.
+        self.assertEqual(utils.git_provenance(self.repo), first)
+        self._write("tracked.txt", "three\n")
+        self.assertNotEqual(
+            utils.git_provenance(self.repo)["ASWF_GIT_DIFF_HASH"],
+            first["ASWF_GIT_DIFF_HASH"],
+        )
+
+    def test_untracked_file_contents_are_hashed(self):
+        self._write("new.txt", "a\n")
+        first = utils.git_provenance(self.repo)
+        self.assertEqual(first["ASWF_GIT_DIRTY"], "true")
+        self._write("new.txt", "b\n")
+        self.assertNotEqual(
+            utils.git_provenance(self.repo)["ASWF_GIT_DIFF_HASH"],
+            first["ASWF_GIT_DIFF_HASH"],
+        )
 
 
 class TestUtils(unittest.TestCase):

@@ -56,6 +56,12 @@ class Builder:
         # has already decided every package bake runs must build, so BuildKit
         # must never replay one from its layer cache.
         self.conan_nonce = uuid.uuid4().hex
+        self._git_provenance_cache: typing.Optional[typing.Dict[str, str]] = None
+
+    def _git_provenance(self) -> typing.Dict[str, str]:
+        if self._git_provenance_cache is None:
+            self._git_provenance_cache = utils.git_provenance(utils.get_git_top_level())
+        return self._git_provenance_cache
 
     def make_bake_dict(
         self,
@@ -120,6 +126,9 @@ class Builder:
                         ),
                         "ASWF_CONAN_PUSH": "TRUE" if self.push else "",
                         "ASWF_CONAN_NONCE": self.conan_nonce,
+                        # Recorded in each built package's Conan metadata by
+                        # the hook_aswf_provenance hook, for image SBOMs.
+                        **self._git_provenance(),
                     }
                 )
             args.update(version_info.all_package_versions)
