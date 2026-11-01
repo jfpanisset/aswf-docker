@@ -18,7 +18,10 @@ class Log4cplusConan(ConanFile):
     description = "simple to use C++ logging API, modelled after the Java log4j API"
     url = "https://github.com/conan-io/conan-center-index"
     homepage = "https://github.com/log4cplus/log4cplus"
-    license = ("BSD-2-Clause, Apache-2.0")
+    # ASWF: upstream's "BSD-2-Clause, Apache-2.0" isn't a valid SPDX expression (needed
+    # for image SBOMs). Each source file is under one of BSD-2-Clause or Apache-2.0, and
+    # the bundled threadpool code is under Zlib (see upstream's LICENSE): all three apply.
+    license = "BSD-2-Clause AND Apache-2.0 AND Zlib"
     topics = ("logging", "log", "logging-library")
     package_type = "library"
     settings = "os", "arch", "compiler", "build_type"
@@ -95,8 +98,11 @@ class Log4cplusConan(ConanFile):
         tc.variables["WITH_ICONV"] = self.options.with_iconv
         tc.variables["LOG4CPLUS_WORKING_LOCALE"] = self.options.working_locale
         tc.variables["LOG4CPLUS_WORKING_C_LOCALE"] = self.options.working_c_locale
-        # Prevent libnsl from being detected and linked (matches CCI approach)
+
+        # Prevent linking against unused found library
+        # https://github.com/log4cplus/log4cplus/blob/de729f76b256b8f55ced3a246434f7280be2a20d/ConfigureChecks.cmake#L51
         tc.cache_variables["LIBNSL"] = "LIBNSL-NOTFOUND"
+
         tc.generate()
 
         dpes = CMakeDeps(self)
@@ -109,10 +115,10 @@ class Log4cplusConan(ConanFile):
         cmake.build()
 
     def package(self):
-        copy(self, pattern="LICENSE", dst=os.path.join(self.package_folder, "licenses", self.name), src=self.source_folder)
+        copy(self, pattern="LICENSE", dst=os.path.join(self.package_folder, "licenses", self.name))
         cmake = CMake(self)
         cmake.install()
-        #rmdir(self, os.path.join(self.package_folder, "lib", "cmake"))
+        # rmdir(self, os.path.join(self.package_folder, "lib", "cmake")) # ASWF: keep cmake files
         if Version(self.version) >= "2.1.0":
             rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
             rmdir(self, os.path.join(self.package_folder, "share"))
