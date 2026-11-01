@@ -25,7 +25,7 @@ required_conan_version = ">=1.58.0"
 class CPythonConan(ConanFile):
     name = "cpython"
     description = "Python is a programming language that lets you work quickly and integrate systems more effectively."
-    license = "Python-2.0 and numpy (BSD-3-Clause license)" # ASWF: bundle numpy
+    license = "Python-2.0 AND BSD-3-Clause" # ASWF: bundles numpy (BSD-3-Clause), as an SPDX expression
     url = "https://github.com/conan-io/conan-center-index"
     homepage = "https://www.python.org"
     topics = ("python", "cpython", "language", "script")

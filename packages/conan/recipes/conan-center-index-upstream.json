@@ -259,7 +259,9 @@
       "class": "system"
     },
     "log4cplus": {
-      "class": "unique"
+      "class": "cci",
+      "folder": "all",
+      "sha": "546f81771602f7a1d2d61b8ef50715afbd6b552d"
     },
     "lua": {
       "class": "unique"
