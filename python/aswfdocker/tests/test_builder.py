@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 from click.testing import CliRunner
 
-from aswfdocker import builder, buildorder, aswfinfo, index, constants, groupinfo, utils
+from aswfdocker import builder, buildorder, aswfinfo, index, constants, groupinfo
 from aswfdocker.cli import aswfdocker
 
 
@@ -79,12 +79,12 @@ class TestBuilder(unittest.TestCase):
         # tags may not make much sense for Conan packages
         self.assertEqual(
             target["tags"],
-            [
-                f"{constants.DOCKER_REGISTRY}/aswflocaltesting/ci-baseos-gl-conan:{opentimelineio_version}",
-                f"{constants.DOCKER_REGISTRY}/aswflocaltesting/ci-baseos-gl-conan:2027",
-            ],
+            [f"{constants.DOCKER_REGISTRY}/aswflocaltesting/ci-baseos-gl-conan:2027"],
         )
-        self.assertEqual(target["args"]["ASWF_VERSION"], opentimelineio_version)
+        self.assertEqual(opentimelineio_version, "2027")
+        self.assertEqual(target["args"]["ASWF_VERSION"], "2027")
+        self.assertEqual(target["args"]["ASWF_VFXPLATFORM_VERSION"], "2027")
+        self.assertEqual(target["args"]["ASWF_CONAN_CHANNEL"], "vfx2027")
         self.assertEqual(target["dockerfile"], "packages/common/Dockerfile")
 
     def test_package_remote_args_follow_environment(self):
@@ -267,6 +267,91 @@ class TestBuilder(unittest.TestCase):
             },
         )
 
+    def test_image_common_year_selects_every_clang_version(self):
+        b = builder.Builder(
+            self.build_info,
+            groupinfo.GroupInfo(
+                names=["common"],
+                versions=["2027"],
+                type_=constants.ImageType.IMAGE,
+                targets=[],
+            ),
+        )
+        targets = b.make_bake_dict(False)["target"]
+        majors = list(index.Index().version_info("2027").clang_versions)
+        self.assertEqual(
+            sorted(targets), sorted(f"ci-common-2027-clang{m}" for m in majors)
+        )
+        for major in majors:
+            args = targets[f"ci-common-2027-clang{major}"]["args"]
+            self.assertEqual(args["ASWF_CLANG_MAJOR_VERSION"], major)
+            self.assertEqual(args["ASWF_VFXPLATFORM_VERSION"], "2027")
+            self.assertEqual(args["ASWF_CONAN_CHANNEL"], "vfx2027")
+
+    def test_image_common_legacy_tags(self):
+        # ci-common keeps its pre-2028 ci_common version tags alongside the
+        # VFX Platform year ones, only the newest clang getting the bare one.
+        b = builder.Builder(
+            self.build_info,
+            groupinfo.GroupInfo(
+                names=["common"],
+                versions=["2027"],
+                type_=constants.ImageType.IMAGE,
+                targets=[],
+            ),
+        )
+        targets = b.make_bake_dict(False)["target"]
+        majors = list(index.Index().version_info("2027").clang_versions)
+        oldest, newest = majors[0], majors[-1]
+        for major, tags in (
+            (oldest, [f"2027-clang{oldest}"]),
+            (newest, ["2027", f"2027-clang{newest}"]),
+        ):
+            version = _version_for(
+                constants.ImageType.IMAGE, "common", f"2027-clang{major}"
+            )
+            legacy = [f"7{tag[4:]}" for tag in [*tags, version]]
+            self.assertEqual(
+                targets[f"ci-common-2027-clang{major}"]["tags"],
+                _tags("ci-common", [*tags, version, *legacy], f"2027-clang{major}"),
+            )
+
+    def test_image_base_has_no_legacy_tags(self):
+        b = builder.Builder(
+            self.build_info,
+            groupinfo.GroupInfo(
+                names=["base"],
+                versions=["2027"],
+                type_=constants.ImageType.IMAGE,
+                targets=["base"],
+            ),
+        )
+        for tag in b.make_bake_dict(False)["target"]["ci-base-2027"]["tags"]:
+            self.assertNotIn(":7", tag)
+
+    def test_package_clang_built_per_clang_version(self):
+        b = builder.Builder(
+            self.build_info,
+            groupinfo.GroupInfo(
+                names=["common"],
+                versions=["2027"],
+                type_=constants.ImageType.PACKAGE,
+                targets=[],
+            ),
+        )
+        targets = b.make_bake_dict(False)["target"]
+        year = index.Index().version_info("2027")
+        self.assertEqual(
+            sorted(t for t in targets if t.startswith("ci-package-clang-")),
+            sorted(f"ci-package-clang-2027-clang{m}" for m in year.clang_versions),
+        )
+        # The rest of the group is built once for the year
+        self.assertIn("ci-package-cmake-2027", targets)
+        for major, full in year.clang_versions.items():
+            args = targets[f"ci-package-clang-2027-clang{major}"]["args"]
+            self.assertEqual(args["ASWF_PKG_VERSION"], full)
+            self.assertEqual(args["ASWF_CONAN_CHANNEL"], "vfx2027")
+
 
 def _version_for(image_type, name, major_version):
     """The full version of `name` built for `major_version`, from versions.yaml."""
@@ -295,10 +380,8 @@ def _expected_image_target(image, major_version, image_version, tags):
     args = {
         "ASWF_ORG": "aswflocaltesting",
         "ASWF_PKG_ORG": "aswftesting",
-        "CI_COMMON_VERSION": version_info.ci_common_version,
-        "ASWF_CONAN_CHANNEL": utils.conan_channel(
-            version_info.ci_common_version, major_version, version_info.major_version
-        ),
+        "ASWF_VFXPLATFORM_VERSION": version_info.major_version,
+        "ASWF_CONAN_CHANNEL": version_info.conan_profile,
         "ASWF_CONAN_HOME": constants.ASWF_CONAN_HOME,
         "ASWF_VERSION": image_version,
         "ASWF_CONAN_REMOTE_ARGS": "--no-remote",
@@ -389,11 +472,11 @@ class TestBuilderCli(unittest.TestCase):
         runner = CliRunner()
         result = runner.invoke(
             aswfdocker.cli,
-            ["build", "--full-name", "aswftesting/ci-common:7-clang22", "--dry-run"],
+            ["build", "--full-name", "aswftesting/ci-common:2027-clang22", "--dry-run"],
         )
         self.assertFalse(result.exception)
         bake_path = os.path.join(
-            tempfile.gettempdir(), "docker-bake-IMAGE-common-7-clang22.json"
+            tempfile.gettempdir(), "docker-bake-IMAGE-common-2027-clang22.json"
         )
         cmd = f"docker buildx bake -f {bake_path} --progress auto"
         self.assertEqual(
@@ -406,6 +489,8 @@ class TestBuilderCli(unittest.TestCase):
         self.assertTrue(cmds[self._i].endswith(expected), "got: " + cmds[self._i])
         self._i += 1
 
+    # Uploading packages is only allowed on GitHub Actions.
+    @patch.dict(os.environ, {"GITHUB_ACTIONS": "true"})
     def test_builderlist_cli(self, mock_compute):
         runner = CliRunner()
         result = runner.invoke(
@@ -461,9 +546,9 @@ class TestBuilderCli(unittest.TestCase):
         self.assertFalse(result.exception)
         bake_path = os.path.join(
             tempfile.gettempdir(),
-            "docker-bake-IMAGE-common-3-clang14-3-clang15-4-clang16-4-clang17"
-            "-5-clang18-5-clang19-6-clang19-6-clang20"
-            "-7-clang21-7-clang22.json",
+            "docker-bake-IMAGE-common-2023-clang14-2023-clang15-2024-clang16"
+            "-2024-clang17-2025-clang18-2025-clang19-2026-clang19-2026-clang20"
+            "-2027-clang21-2027-clang22.json",
         )
         cmd = f"docker buildx bake -f {bake_path} --progress auto"
         self.assertEqual(
@@ -501,6 +586,133 @@ class TestBuilderCli(unittest.TestCase):
                 + "--set=*.output=type=cacheonly --set=*.target=ci-conan-package-builder "
                 + "--progress auto ci-package-openexr-2027'"
             ],
+        )
+
+    def test_package_push_refused_outside_github_actions(self, mock_compute):
+        with patch.dict(os.environ):
+            os.environ.pop("GITHUB_ACTIONS", None)
+            result = self._package_build("--target", "openexr", "--push", "YES")
+        self.assertNotEqual(result.exit_code, 0)
+        self.assertIn("can only be uploaded", result.output)
+        mock_compute.assert_not_called()
+
+    def test_image_push_refused_outside_github_actions(self, _mock_compute):
+        with patch.dict(os.environ):
+            os.environ.pop("GITHUB_ACTIONS", None)
+            result = CliRunner().invoke(
+                aswfdocker.cli,
+                ["build", "-g", "base", "-v", "2027", "--push", "YES", "--dry-run"],
+            )
+        self.assertNotEqual(result.exit_code, 0)
+        self.assertIn("can only be uploaded", result.output)
+
+    def test_image_auto_push_refused_outside_github_actions(self, _mock_compute):
+        with patch.dict(os.environ):
+            os.environ.pop("GITHUB_ACTIONS", None)
+            result = CliRunner().invoke(
+                aswfdocker.cli,
+                [
+                    "--repo-uri",
+                    constants.MAIN_GITHUB_ASWF_DOCKER_URL,
+                    "--source-branch",
+                    "refs/heads/main",
+                    "build",
+                    "-g",
+                    "base",
+                    "-v",
+                    "2027",
+                    "--push",
+                    "AUTO",
+                    "--dry-run",
+                ],
+            )
+        self.assertNotEqual(result.exit_code, 0)
+        self.assertIn("can only be uploaded", result.output)
+
+    @patch.dict(os.environ, {"GITHUB_ACTIONS": "true"})
+    def test_image_push_allowed_on_github_actions(self, _mock_compute):
+        result = CliRunner().invoke(
+            aswfdocker.cli,
+            ["build", "-g", "base", "-v", "2027", "--push", "YES", "--dry-run"],
+        )
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+
+    @staticmethod
+    def _clang_needs_cmake(*args, **_kwargs):
+        """A graph where clang tool-requires cmake, everything needing a build."""
+        names = [name for name, _ in args[5]]
+        order = buildorder.BuildOrder([names])
+        if "clang" in names and "cmake" in names:
+            order.add_edge("clang", "cmake")
+        order.need_build = set(names)
+        return order
+
+    def _bake_targets(self, output):
+        return [cmd.rsplit(" ", 1)[-1].rstrip("'") for cmd in self._would_run(output)]
+
+    def test_common_builds_every_clang_version_once_each(self, mock_compute):
+        mock_compute.side_effect = self._clang_needs_cmake
+        result = CliRunner().invoke(
+            aswfdocker.cli,
+            ["build", "-t", "PACKAGE", "-g", "common", "-v", "2027", "--dry-run"],
+        )
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        majors = list(index.Index().version_info("2027").clang_versions)
+        # One build order per clang version, each covering the whole group
+        self.assertEqual(mock_compute.call_count, len(majors))
+        clang_versions = index.Index().version_info("2027").clang_versions
+        for call, major in zip(mock_compute.call_args_list, majors):
+            self.assertIn(("clang", clang_versions[major]), call.args[5])
+            self.assertIn("cmake", [name for name, _ in call.args[5]])
+        # ...but the other packages are only built by the first one
+        self.assertEqual(
+            self._bake_targets(result.output),
+            [
+                "ci-package-openssl-2027",
+                "ci-package-gnutls-2027",
+                "ci-package-cmake-2027",
+                "ci-package-ninja-2027",
+                *(f"ci-package-clang-2027-clang{m}" for m in majors),
+            ],
+        )
+
+    def test_target_to_clang_builds_its_dependencies_once(self, mock_compute):
+        mock_compute.side_effect = self._clang_needs_cmake
+        result = self._package_build("--target-to", "clang")
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        majors = list(index.Index().version_info("2027").clang_versions)
+        self.assertEqual(
+            self._bake_targets(result.output),
+            [
+                "ci-package-cmake-2027",
+                *(f"ci-package-clang-2027-clang{m}" for m in majors),
+            ],
+        )
+
+    def test_target_clang_refuses_unbuilt_cmake(self, mock_compute):
+        mock_compute.side_effect = self._clang_needs_cmake
+        result = self._package_build("--target", "clang")
+        self.assertEqual(result.exit_code, 1, msg=result.output)
+        self.assertEqual(self._would_run(result.output), [])
+
+    def test_single_clang_version(self, mock_compute):
+        result = CliRunner().invoke(
+            aswfdocker.cli,
+            [
+                "build",
+                "-t",
+                "PACKAGE",
+                "-g",
+                "common",
+                "-v",
+                "2027-clang22",
+                "--dry-run",
+            ],
+        )
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        mock_compute.assert_called_once()
+        self.assertEqual(
+            self._bake_targets(result.output), ["ci-package-clang-2027-clang22"]
         )
 
     def test_target_to_rejected_for_images(self, _mock_compute):
@@ -545,16 +757,3 @@ class TestBuilderCli(unittest.TestCase):
         self.assertEqual(result.exit_code, 1, msg=result.output)
         self.assertIn("imath/x@aswftesting/vfx2027", result.output)
         self.assertEqual(self._would_run(result.output), [])
-
-    def test_unpinned_member_raises(self, _mock_compute):
-        # A ci-packages entry for a version that pins no version for it is a
-        # versions.yaml error, not something to skip.
-        real_key = builder.utils.package_version_key
-        with patch.object(
-            builder.utils,
-            "package_version_key",
-            side_effect=lambda n: "ASWF_NOT_PINNED" if n == "openexr" else real_key(n),
-        ):
-            result = self._package_build("--target", "openexr")
-        self.assertEqual(result.exit_code, 1, msg=result.output)
-        self.assertIn("No ASWF_NOT_PINNED pinned for version 2027", result.output)

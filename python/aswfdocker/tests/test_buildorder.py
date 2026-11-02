@@ -33,7 +33,7 @@ from aswfdocker import buildorder
 # they don't and needn't.
 TEST_PACKAGE_ORG = "aswf"
 TEST_CHANNEL = "vfx2027"
-COMMON_TEST_CHANNEL = "ci_common7"
+OTHER_TEST_CHANNEL = "other_test_channel"
 ZLIB_TEST_VERSION = "1.3.1"
 OSL_TEST_VERSION = "1.14.4.0"
 QT_TEST_VERSION = "6.8.1"
@@ -99,7 +99,7 @@ class TestNameFromRef(unittest.TestCase):
         # Conan's own ref grammar is name/version[@user/channel] -- the
         # @user/channel suffix is optional in general, even though every ref
         # this project's own pipeline actually resolves will have one, since
-        # the ci_common/vfx profiles' replace_requires/replace_tool_requires
+        # the vfx profiles' replace_requires/replace_tool_requires
         # always redirect to a fully-qualified aswf/<channel> ref. This case
         # exercises that general grammar, not a shape our own pipeline will
         # ever actually produce.
@@ -243,6 +243,16 @@ class TestPlanBuild(unittest.TestCase):
         order = _five_package_order()
         plan = buildorder.plan_build(order, self.ALL, targets_from=["pkga"], force=True)
         self.assertEqual(plan.to_build, ["pkga", "pkgc", "pkgd", "pkge"])
+
+    def test_done_packages_are_skipped_and_never_block(self):
+        # An earlier plan of the same run builds pkga/pkgb: even forced,
+        # they're not rebuilt, and pkgc doesn't wait for them.
+        order = _five_package_order(need_build=set(self.ALL))
+        plan = buildorder.plan_build(
+            order, self.ALL, targets=["pkgc"], force=True, done={"pkga", "pkgb"}
+        )
+        self.assertEqual(plan.to_build, ["pkgc"])
+        self.assertEqual(plan.up_to_date, [])
 
     def test_selections_union(self):
         order = _five_package_order()
@@ -398,10 +408,11 @@ class TestBuildOrderCommand(unittest.TestCase):
 
 
 def _write_profiles(repo_root):
-    """A synthetic pair of generated profiles, shaped like the real ones:
-    TEST_CHANNEL includes COMMON_TEST_CHANNEL, redirects pkga/pkgb to
+    """A synthetic pair of generated profiles: TEST_CHANNEL includes
+    OTHER_TEST_CHANNEL (profile_refs() follows include()s, although the
+    generated profiles don't currently use them), redirects pkga/pkgb to
     itself, pkgc (via the include) and pkgd (via a *_ref conf value) to
-    COMMON_TEST_CHANNEL, and also lists refs that must be ignored: a
+    OTHER_TEST_CHANNEL, and also lists refs that must be ignored: a
     platform-style ref with no {{ org }}/channel, and one of our refs with
     no recipe directory."""
     profiles_dir = os.path.join(repo_root, "packages", "conan", "settings", "profiles")
@@ -411,18 +422,18 @@ def _write_profiles(repo_root):
         os.makedirs(os.path.join(recipes_root, name))
     org = '{% set org = os.getenv("ASWF_PKG_ORG", "aswf") %}'
     with open(
-        os.path.join(profiles_dir, COMMON_TEST_CHANNEL), "w", encoding="utf-8"
+        os.path.join(profiles_dir, OTHER_TEST_CHANNEL), "w", encoding="utf-8"
     ) as f:
         f.write(
             f"{org}\n"
             "[replace_tool_requires]\n"
-            f"pkgc/*: pkgc/{PKGC_TEST_VERSION}@{{{{ org }}}}/{COMMON_TEST_CHANNEL}\n"
+            f"pkgc/*: pkgc/{PKGC_TEST_VERSION}@{{{{ org }}}}/{OTHER_TEST_CHANNEL}\n"
         )
     with open(os.path.join(profiles_dir, TEST_CHANNEL), "w", encoding="utf-8") as f:
         f.write(
             "# generated\n"
             f"{org}\n"
-            f"include({COMMON_TEST_CHANNEL})\n"
+            f"include({OTHER_TEST_CHANNEL})\n"
             "[options]\n"
             "*:shared=True\n"
             "[replace_requires]\n"
@@ -431,7 +442,7 @@ def _write_profiles(repo_root):
             "pkgconf/*: pkgconf/1.7.3@system\n"
             f"norecipe/*: norecipe/9.9.9@{{{{ org }}}}/{TEST_CHANNEL}\n"
             "[conf]\n"
-            f"user.aswf:pkgd_ref=pkgd/{PKGD_TEST_VERSION}@{{{{ org }}}}/{COMMON_TEST_CHANNEL}\n"
+            f"user.aswf:pkgd_ref=pkgd/{PKGD_TEST_VERSION}@{{{{ org }}}}/{OTHER_TEST_CHANNEL}\n"
             "user.aswf:unrelated_setting=True\n"
         )
 
@@ -443,10 +454,10 @@ class TestProfileRefs(unittest.TestCase):
             self.assertEqual(
                 buildorder.profile_refs(repo_root, TEST_CHANNEL),
                 [
-                    ("pkgc", PKGC_TEST_VERSION, COMMON_TEST_CHANNEL),
+                    ("pkgc", PKGC_TEST_VERSION, OTHER_TEST_CHANNEL),
                     ("pkga", PKGA_TEST_VERSION, TEST_CHANNEL),
                     ("pkgb", PKGB_TEST_VERSION, TEST_CHANNEL),
-                    ("pkgd", PKGD_TEST_VERSION, COMMON_TEST_CHANNEL),
+                    ("pkgd", PKGD_TEST_VERSION, OTHER_TEST_CHANNEL),
                 ],
             )
 
@@ -454,7 +465,7 @@ class TestProfileRefs(unittest.TestCase):
 class TestComputeBuildOrder(unittest.TestCase):
     """Fixture shape: pkga (no deps) -> pkgb (depends on pkga), requested as
     members; pkgc/pkgd are only reachable through the profile (standing in
-    for out-of-group dependencies like cpython, or cmake on ci_common<N>).
+    for out-of-group dependencies like cpython, or cmake from common).
     Purely synthetic -- see module docstring comment above."""
 
     def setUp(self):
@@ -485,7 +496,7 @@ class TestComputeBuildOrder(unittest.TestCase):
             self.repo_root,
             TEST_PACKAGE_ORG,
             TEST_PACKAGE_ORG,
-            "7",
+            "2027",
             TEST_CHANNEL,
             self.members if members is None else members,
             conan_remote=conan_remote,
@@ -549,7 +560,7 @@ class TestComputeBuildOrder(unittest.TestCase):
         args = captured["bake_dict"]["target"][buildorder.BAKE_TARGET_NAME]["args"]
         self.assertEqual(args["ASWF_ORG"], TEST_PACKAGE_ORG)
         self.assertEqual(args["ASWF_PKG_ORG"], TEST_PACKAGE_ORG)
-        self.assertEqual(args["CI_COMMON_VERSION"], "7")
+        self.assertEqual(args["ASWF_VFXPLATFORM_VERSION"], "2027")
         self.assertEqual(args["ASWF_CONAN_CHANNEL"], TEST_CHANNEL)
         self.assertIn("ASWF_CONAN_GRAPH_SCRIPT", args)
         self.assertIn("conan graph build-order", args["ASWF_CONAN_GRAPH_SCRIPT"])
@@ -594,10 +605,10 @@ class TestComputeBuildOrder(unittest.TestCase):
         self.assertEqual(
             exported,
             [
-                ("pkgc", PKGC_TEST_VERSION, TEST_PACKAGE_ORG, COMMON_TEST_CHANNEL),
+                ("pkgc", PKGC_TEST_VERSION, TEST_PACKAGE_ORG, OTHER_TEST_CHANNEL),
                 ("pkga", PKGA_TEST_VERSION, TEST_PACKAGE_ORG, TEST_CHANNEL),
                 ("pkgb", PKGB_TEST_VERSION, TEST_PACKAGE_ORG, TEST_CHANNEL),
-                ("pkgd", PKGD_TEST_VERSION, TEST_PACKAGE_ORG, COMMON_TEST_CHANNEL),
+                ("pkgd", PKGD_TEST_VERSION, TEST_PACKAGE_ORG, OTHER_TEST_CHANNEL),
             ],
         )
         self.assertIn(f"--requires={_ref('pkga', PKGA_TEST_VERSION)}", graph_part)

@@ -4,7 +4,6 @@
 
 # "Global" ARGs
 ARG ASWF_ORG
-ARG CI_COMMON_VERSION
 ARG ASWF_CLANG_MAJOR_VERSION
 ARG ASWF_VFXPLATFORM_VERSION
 
@@ -39,7 +38,7 @@ FROM ${ASWF_ORG}/ci-package-oiio:${ASWF_VFXPLATFORM_VERSION}-${ASWF_OIIO_VERSION
 FROM ${ASWF_ORG}/ci-package-ocio:${ASWF_VFXPLATFORM_VERSION}-${ASWF_OCIO_VERSION} AS ci-package-ocio-external
 
 #################### ci-base-builder ####################
-FROM ${ASWF_ORG}/ci-common:${CI_COMMON_VERSION}-clang${ASWF_CLANG_MAJOR_VERSION} AS ci-base-builder
+FROM ${ASWF_ORG}/ci-common:${ASWF_VFXPLATFORM_VERSION}-clang${ASWF_CLANG_MAJOR_VERSION} AS ci-base-builder
 
 ARG ASWF_CMAKE_VERSION
 ARG ASWF_CPYTHON_VERSION
@@ -94,8 +93,6 @@ ARG ASWF_OPENRV_VERSION
 ENV ASWF_OPENRV_VERSION=${ASWF_OPENRV_VERSION}
 ARG ASWF_PKG_ORG
 ARG ASWF_CONAN_CHANNEL
-ARG CI_COMMON_VERSION
-ENV CI_COMMON_VERSION=${CI_COMMON_VERSION}
 ARG ASWF_VFXPLATFORM_VERSION
 ENV ASWF_VFXPLATFORM_VERSION=${ASWF_VFXPLATFORM_VERSION}
 ARG ASWF_CXX_STANDARD
@@ -164,7 +161,6 @@ RUN --mount=type=cache,target=/tmp/ccache \
 FROM scratch AS ci-package-openrv
 
 ARG ASWF_ORG
-ARG CI_COMMON_VERSION
 ARG ASWF_DTS_VERSION
 ARG ASWF_DTS_PREFIX
 ARG ASWF_OPENRV_VERSION
@@ -179,7 +175,6 @@ LABEL org.opencontainers.image.url="https://github.com/AcademySoftwareFoundation
 LABEL org.opencontainers.image.source="https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/packages/Dockerfile"
 LABEL org.opencontainers.image.version="${ASWF_OPENRV_VERSION}"
 LABEL org.opencontainers.image.licenses="Apache-2.0"
-LABEL io.aswf.docker.versions.ci-common="${CI_COMMON_VERSION}"
 LABEL io.aswf.docker.versions.vfx-platform="${ASWF_VFXPLATFORM_VERSION}"
 LABEL io.aswf.docker.versions.dts="${ASWF_DTS_VERSION}"
 LABEL io.aswf.docker.versions.osl="${ASWF_OSL_VERSION}"

@@ -100,7 +100,7 @@ def common_image_options(function):
         "-n",
         callback=validate_image_name,
         required=False,
-        help="The full image name, e.g. aswftesting/ci-common:7 or aswf/ci-package-openexr:2027",
+        help="The full image name, e.g. aswftesting/ci-common:2027-clang22 or aswf/ci-package-openexr:2027",
     )(function)
     function = click.option(
         "--target",
@@ -146,7 +146,8 @@ def get_group_info(build_info, ci_image_type, groups, versions, full_name, targe
     "-p",
     type=click.Choice(["YES", "NO", "AUTO"], case_sensitive=False),
     default="NO",
-    help="Push built images to Docker repository.",
+    help="Push built images to Docker Hub and Conan packages to Artifactory "
+    "(GitHub Actions only).",
 )
 @click.option("--dry-run", "-d", is_flag=True, help="Just logs what would happen.")
 @click.option(
@@ -273,6 +274,12 @@ def build(  # pylint: disable=too-many-arguments,too-many-locals
     group_info = get_group_info(
         build_info, ci_image_type, group, version, full_name, target
     )
+    if pushb and not utils.on_github_actions():
+        raise click.BadOptionUsage(
+            "--push",
+            "Conan packages and Docker images can only be uploaded to Artifactory "
+            "and Docker Hub from GitHub Actions.",
+        )
     selection = None
     if group_info.type == constants.ImageType.PACKAGE:
         # Package builds compute the build order over the whole group, so the
@@ -377,7 +384,9 @@ def download(*_args, **_kwargs):
 
 @cli.command()
 def packages():
-    """Lists all known CI packages in this format: PACKAGEGROUP/ci-package-PACKAGE:VERSION"""
+    """Lists all known CI packages in this format: PACKAGEGROUP/ci-package-PACKAGE:VERSION,
+    one line for each VFX Platform year (or year and clang version) a package is built for.
+    """
     for group, pkgs in index.Index().groups[constants.ImageType.PACKAGE].items():
         for package in pkgs:
             image_name = utils.get_image_name(constants.ImageType.PACKAGE, package)
@@ -485,7 +494,6 @@ def release(
     group_info = get_group_info(
         build_info, ci_image_type, group, version, full_name, target
     )
-
     r = releaser.Releaser(
         github_org=github_org,
         build_info=build_info,
@@ -590,6 +598,10 @@ def pushoverview(
     if group_info.type == constants.ImageType.PACKAGE:
         click.echo("Package readme do not exist yet.")
         return
+    if not utils.on_github_actions():
+        raise click.UsageError(
+            "Docker Hub descriptions can only be updated from GitHub Actions."
+        )
     token = utils.get_dockerhub_token(username, password)
     for image, _ in group_info.iter_images_versions():
         dg = aswf_dockergen.DockerGen(image.replace("ci-", ""))
