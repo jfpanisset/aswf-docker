@@ -50,6 +50,16 @@ class GroupInfo:
             self.targets,
         )
 
+    def _selects(self, version: str) -> bool:
+        """Whether the requested versions select `version`: by its major
+        version (e.g. "2027-clang22" selects 2027-clang22.3), or by its
+        year, so that "2027" selects every 2027 clang variant too."""
+        major_version = utils.get_major_version(version)
+        return (
+            major_version in self.versions
+            or major_version.split("-")[0] in self.versions
+        )
+
     def iter_images_versions(self, get_image=False):
         for image in self.images:
             if self.targets and image not in self.targets:
@@ -57,16 +67,14 @@ class GroupInfo:
                 continue
             ci_image = utils.get_image_name(self.type, image)
             all_versions = list(self.index.iter_versions(self.type, image))
-            major_versions = [utils.get_major_version(v) for v in all_versions]
             logger.debug(
                 "iter image=%s ci_image=%s all_versions=%s",
                 image,
                 ci_image,
                 all_versions,
             )
-            for version in [v for v in self.versions if v in major_versions]:
+            for version in filter(self._selects, all_versions):
                 logger.debug("iter version=%s", version)
-                version = all_versions[major_versions.index(version)]
                 if get_image:
                     yield image, version
                 else:

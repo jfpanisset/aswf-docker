@@ -37,6 +37,11 @@ IMAGE_NAME_REGEX = r"(refs/tags/)?(?P<org>[a-z]+)/ci-(?P<package>package\-)?(?P<
 
 ALL = "all"
 
+# Images also tagged with their year's legacy_common_version (see
+# versions.yaml), e.g. ci-common:7-clang22 as well as ci-common:2027-clang22,
+# from when they were versioned separately from the VFX Platform year.
+LEGACY_COMMON_TAGGED_IMAGES = ("ci-baseos-gl-conan", "ci-common")
+
 ASWF_CONAN_HOME = "/opt/conan_home"
 
 # Conan remote policy values (see utils.resolve_conan_remote()): any other

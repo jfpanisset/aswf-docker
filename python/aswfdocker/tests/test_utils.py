@@ -242,7 +242,7 @@ class TestUtilsCli(unittest.TestCase):
         )[0]
         self.assertEqual(
             pkgs[0],
-            f"common1/ci-package-openssl:{clang_version}",
+            f"common/ci-package-openssl:{clang_version}",
         )
 
     def test_cli_images(self):

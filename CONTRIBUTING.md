@@ -302,6 +302,8 @@ The [Conan](https://conan.io) [Reference Documentation](https://docs.conan.io/en
 
 The AcademySoftwareFoundation has an [Artifactory](https://linuxfoundation.jfrog.io/ui/packages) server which hosts all `aswf` Conan packages.
 Credentials of the artifactory server are maintained by the Linux Foundation and are not known by the ASWF crew, new packages get uploaded via GitHub organisation secrets.
+Conan packages can therefore only be uploaded by GitHub Actions builds: `aswfdocker build -t PACKAGE --push YES` refuses to run anywhere else, and
+local builds only ever use the local Conan cache.
 
 ### Getting started
 
@@ -543,17 +545,25 @@ and the list of new Docker image versions that will be built by the CI infrastru
 GitHub releases will trigger a `Release` GitHub action that will build the corresponding
 image and push it to Docker Hub.
 
+The Docker Hub access token is only available to GitHub Actions as a repository secret (and in future, images will
+also be signed there), so images can only be pushed to Docker Hub by GitHub Actions builds:
+`aswfdocker build -t IMAGE --push YES` (or `--push AUTO` resolving to a push) and `aswfdocker pushoverview` refuse to
+run anywhere else. Local builds only ever load images into the local Docker image store.
+
 ### Build
 
 `aswfdocker build` builds CI packages and CI images.
 Example use: just build a single package for testing:
 
 ```bash
-# Build and push USD package to aswftesting
-aswfdocker --verbose build -t PACKAGE --group vfx --version 2026 --target usd --push YES
-# Build and push ci-vfxall image to aswftesting
-aswfdocker --verbose build -t IMAGE --group vfx --version 2026 --target vfxall --push YES
+# Build the USD package (and anything it needs) in the local Conan cache
+aswfdocker --verbose build -t PACKAGE --group vfx --version 2026 --target usd
+# Build the ci-vfxall image in the local Docker image store
+aswfdocker --verbose build -t IMAGE --group vfx --version 2026 --target vfxall
 ```
+
+Images are only pushed to Docker Hub, and Conan packages only uploaded to Artifactory, by GitHub Actions builds, see
+[Releasing new Docker Images](#releasing-new-docker-images) and [Releasing Conan packages](#releasing-conan-packages).
 
 If you are building on system with multiple cores, you may want to set the environment variable:
 
@@ -579,24 +589,40 @@ aswfdocker --verbose migrate --from aswftesting --to aswf --package usd
 If a version number of a package or an image needs to be updated, the `versions.yaml` file is the main data source.
 In order to update the templated images with updated version numbers, run `aswfdocker dockergen`.
 
-### Manually push new packages
+`versions.yaml` has one section per VFX Platform year (e.g. `"2027"`) holding every version pin for that year, from the
+toolchain (GCC, CUDA, CMake...) to the VFX packages. Each year:
 
-When rebuilding all packages from the CI is overkill, and if you have access to the right Docker Hub organizations, it is possible
-to manually build and push packages and images by overriding the automatic discovery of current repo and branch.
-E.g. to build and push a new `ninja` package these commands can be run to push to `aswf` and `aswftesting` organizations:
+* builds its Conan packages in the `vfx<year>` channel, with the `vfx<year>` Conan profile generated from its pins;
+* builds a Conan package for every package it pins a version for;
+* lists its clang versions in `clang_versions`. A `<year>-clang<major>` version (e.g. `2027-clang22`) is derived for
+  each one, for the images listed with such versions in `ci-images` (`ci-common`, `ci-osl`, `ci-openvdb`,
+  `ci-vfxall`) and for the Conan packages listed in `per_clang_packages` (`clang` itself). Everything else uses the
+  year's `ASWF_CLANG_MAJOR_VERSION`, and only the newest clang version's images also get the bare year tag
+  (e.g. `ci-common:2027`).
+
+`--version 2027` selects all of 2027's clang versions as well, while `--version 2027-clang22` only selects that one.
+
+Until 2027, `ci-common` and `ci-baseos-gl-conan` were versioned separately from the VFX Platform year (`3` for 2023 up
+to `7` for 2027). For existing users, their 2023 to 2027 images are still also tagged with those versions
+(e.g. `ci-common:7-clang22` as well as `ci-common:2027-clang22`), as set by each year's `legacy_common_version`.
+
+### Releasing Conan packages
+
+Conan packages are built and uploaded to Artifactory by the `Release` GitHub Actions workflow, triggered by a GitHub release
+of the package, for each VFX Platform year (or year and clang version, for `clang`) it is built for:
 
 ```bash
-# push to aswftesting
-aswfdocker --verbose --repo-uri https://github.com/AcademySoftwareFoundation/aswf-docker --source-branch refs/heads/testing build -t PACKAGE --group common --version 1 --target ninja --push YES
-# push to aswf
-aswfdocker --verbose --repo-uri https://github.com/AcademySoftwareFoundation/aswf-docker --source-branch refs/heads/main build -t PACKAGE --group common --version 1 --target ninja --push YES
+aswfdocker release -t PACKAGE -g common -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
 ```
+
+Package release tags have no release number (e.g. `aswf/ci-package-cmake/2027`): releasing a package again replaces its
+previous GitHub release and tag.
 
 ### Manual GitHub release creation
 
 * Create a new release in [GitHub New Release](https://github.com/AcademySoftwareFoundation/aswf-docker/releases/new)
-    * Use the following tag format: `ci-NAME:X.Y` (e.g. `ci-common:1.4`)
-    * Use the following release name format: `aswf/ci-NAME:X.Y` (e.g. `aswf/ci-common:1.4`)
+    * Use the following tag format: `ci-NAME:X.Y` (e.g. `ci-common:2027-clang22.3`)
+    * Use the following release name format: `aswf/ci-NAME:X.Y` (e.g. `aswf/ci-common:2027-clang22.3`)
     * Enter the release notes for that particular image
     * Click Create
 * Run a manual build in GitHub Actions on the specific tagged commit created before
@@ -615,8 +641,11 @@ aswfdocker --verbose --repo-uri https://github.com/AcademySoftwareFoundation/asw
   ```
   or for a whole group of images:
   ```bash
-  aswfdocker release -t PACKAGE -g base1 -v 2026 --docker-org aswftesting -m "Testing release"
+  aswfdocker release -t IMAGE -g vfx1 -v 2026 --docker-org aswftesting -m "Testing release"
   ```
+
+  Releasing Conan packages (`-t PACKAGE`) has GitHub Actions build and upload them, see
+  [Releasing Conan packages](#releasing-conan-packages).
 
 An email address must be publicly visible in your GitHub profile in order for the [PyGithub module](https://github.com/PyGithub/PyGithub) used
 by `aswfdocker` to work. For pre-releases you can use the `--sha` option to build from a specific commit.
@@ -644,12 +673,9 @@ It is usually a good idea to add this `xyz` package to the `vfxall` library so t
   # Now run the vfxall image locally to test if xyz is working properly
   docker run --gpus=all -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v `pwd`:/project --rm -it aswftesting/ci-vfxall:2026 bash
   ```
-* Do a pre-release of the new `ci-package-xyz` image so it can be used by the GitHub Action builds and tests:
+* Have GitHub Actions build and upload the new `xyz` Conan package so it can be used by the GitHub Action builds and tests:
   ```bash
-  # Create a GitHub release to build the `ci-package-xyz:202_` image via a GitHub action
-  aswfdocker release -n aswftesting/ci-package-xyz:2024 --sha `git rev-parse HEAD` --github-org MY_GITHUB_ORG
-  aswfdocker release -n aswftesting/ci-package-xyz:2025 --sha `git rev-parse HEAD` --github-org MY_GITHUB_ORG
-  aswfdocker release -n aswftesting/ci-package-xyz:2026 --sha `git rev-parse HEAD` --github-org MY_GITHUB_ORG
+  aswfdocker release -t PACKAGE --target xyz -v 2024 -v 2025 -v 2026 --sha `git rev-parse HEAD` --github-org MY_GITHUB_ORG
   ```
 * Create the Pull Request with these changes
 
@@ -657,55 +683,22 @@ Check [#66](https://github.com/AcademySoftwareFoundation/aswf-docker/pull/66) fo
 
 ### Example of a large re-release of all supported images
 
+Conan packages need to be uploaded to Artifactory before the images using them are released, by releasing them
+group by group in dependency order (`common`, `base1`, `base2`, `base3`, `vfx`) and waiting for each
+group's GitHub Actions builds to finish (see [Releasing Conan packages](#releasing-conan-packages)). A bare year
+version also selects all of that year's clang versions, e.g. both `ci-common:2027-clang21` and
+`ci-common:2027-clang22`.
+
 ```bash
 # Image for building Conan packages
-aswfdocker release -t IMAGE -g baseos-gl-conan -v 3 -v 4 -v 5 -v 6 -v 7 --target baseos-gl-conan --docker-org aswf -m "RELEASE_NOTES!"
+aswfdocker release -t IMAGE -g baseos-gl-conan -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
 
-# Common packages
-aswfdocker release -t PACKAGE -g common-wrappers -v 3 -v 4 -v 5 -v 6 -v 7 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g common-1 -v 3 -v 4 -v 5 -v 6 -v 7 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g common-2 -v 3-clang14-v 3-clang15 -v 4-clang16 -v 4-clang17 -v 5-clang18 -v 5-clang19 -v 6-clang19 -v 6-clang20  -v 7-clang21 -v 7-clang22 --docker-org aswf -m "RELEASE_NOTES!"
-# Wait for clang builds to finish (from 2 to 3 hours!)
+# ci-common needs the clang packages, and needs to be built before the base images
+aswfdocker release -t IMAGE -g common -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
 
-# ci-common needs to be built before base packages can be built
-aswfdocker release -t IMAGE -g common -v 4-clang16 -v 4-clang17 -v 5-clang18 -v 5-clang19 -v 6-clang19 -v 6-clang20  -v 7-clang21 -v 7-clang22 --docker-org aswf -m "RELEASE_NOTES!"
-
-# Base packages
-aswfdocker release -t PACKAGE -g base1-wrappers -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g base1-1 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g base1-2 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g base1-3 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-
-aswfdocker release -t PACKAGE -g base2-wrappers -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g base2-1 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g base2-2 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-# Wait for Qt builds to finish (2-6 hours!)
-
-# Usually some Qt build will fail as too big and too slow for free GitHub actions... So here's how to build qt locally:
-# This is no longer valid, as Qt is now only build as a Conan package
-aswfdocker --repo-uri https://github.com/AcademySoftwareFoundation/aswf-docker --source-branch refs/heads/main --verbose build -n aswf/ci-package-qt:2025
-docker push aswf/ci-package-qt:2025
-docker push aswf/ci-package-qt:2025-6.5.4
-docker push aswf/ci-package-qt:preview
-docker push aswf/ci-package-qt:2025.0
-
-# Once all Qt are out, release PySide packages
-aswfdocker release -t PACKAGE -g base3 -v 2023 -v 2024 -v 2025 -v 2026  -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-
-# Wait for all Qt and Pyside builds to finish, then build downstream packages:
-# VFX packages
-aswfdocker release -t PACKAGE -g vfx1-wrappers -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g vfx1-1 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g vfx1-2 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g vfx1-3 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g vfx1-4 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g vfx1-5 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g vfx1-6 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t PACKAGE -g vfx1-7 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-
-# Finally build the CI images
+# Then the CI images
 aswfdocker release -t IMAGE -g base -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
 aswfdocker release -t IMAGE -g vfx1 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
 aswfdocker release -t IMAGE -g vfx2 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t IMAGE -g vfx3 -v 2023-clang14 -v 2023-clang15 -v 2024-clang16 -v 2024-clang17 -v 2025-clang18 -v 2025-clang19 -v 2026-clang19 -v 2026-clang20  -v 2027-clang21 -v 2027-clang22--docker-org aswf -m "RELEASE_NOTES!"
+aswfdocker release -t IMAGE -g vfx3 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
 ```

@@ -5,10 +5,11 @@ Index of Docker images and versions.
 """
 
 import logging
+import typing
 import yaml
 import importlib_resources
 
-from aswfdocker import constants, versioninfo
+from aswfdocker import constants, utils, versioninfo
 
 logger = logging.getLogger(__name__)
 
@@ -30,36 +31,36 @@ class Index:
             constants.ImageType.IMAGE: self._versions["groups"]["image"],
             constants.ImageType.PACKAGE: self._versions["groups"]["package"],
         }
-        self._version_infos = {}
+        self.per_clang_packages = set(self._versions.get("per_clang_packages", []))
+        self._version_infos: typing.Dict[str, versioninfo.VersionInfo] = {}
         for version, v in self._versions["versions"].items():
             vi = versioninfo.VersionInfo(
                 version=version,
                 major_version=v.get("major_version"),
                 tags=v.get("tags", []),
-                ci_common_version=v.get("ci_common_version"),
-                package_versions=v.get("package_versions", {}),
-                parent_versions=v.get("parent_versions", []),
-                use_major_version_as_tag=v.get("use_major_version_as_tag", False),
+                legacy_common_version=v.get("legacy_common_version"),
+                package_versions=dict(v.get("package_versions", {})),
+                parent_versions=[],
+                use_major_version_as_tag=False,
             )
             vi.conan_profile = v.get("conan_profile")
             vi.generate_profile = v.get("generate_profile", False)
+            vi.clang_versions = v.get("clang_versions", {})
             self._version_infos[version] = vi
+            self._add_clang_versions(vi)
 
         for vi in self._version_infos.values():
-            vi.all_package_versions = vi.package_versions.copy()
             for parent in vi.parent_versions:
                 vi.all_package_versions.update(
                     self._version_infos[parent].package_versions
                 )
-                if not vi.conan_profile:
-                    vi.conan_profile = self._version_infos[parent].conan_profile
+            vi.all_package_versions.update(vi.package_versions)
             # OS-distro package_versions (bison/flex/..., and system
             # clang/OSMesa versions) live in a side entry keyed by
-            # ASWF_BASEOS_DISTRO (e.g. "rockylinux8") rather than in the normal
-            # parent_versions chain, since they're inherited by distro rather
-            # than by package lineage. Fill in any that aren't already set
-            # (directly or via parent_versions), without overriding anything
-            # more specific.
+            # ASWF_BASEOS_DISTRO (e.g. "rockylinux8") rather than in a
+            # year's own package_versions, since they're inherited by distro.
+            # Fill in any that aren't already set, without overriding
+            # anything more specific.
             baseos_distro = vi.all_package_versions.get("ASWF_BASEOS_DISTRO")
             if baseos_distro and baseos_distro in self._version_infos:
                 for key, value in self._version_infos[
@@ -67,22 +68,73 @@ class Index:
                 ].package_versions.items():
                     vi.all_package_versions.setdefault(key, value)
 
-    def _get_key(self, image_type: constants.ImageType):
-        if image_type == constants.ImageType.PACKAGE:
-            return "ci-packages"
-        return "ci-images"
+    def _add_clang_versions(self, year: versioninfo.VersionInfo) -> None:
+        """Derives a "<year>-clang<major>" version from each of a year's
+        clang_versions, and pins the year's own default clang version."""
+        if not year.clang_versions:
+            return
+        default = year.package_versions.get("ASWF_CLANG_MAJOR_VERSION")
+        if default not in year.clang_versions:
+            raise RuntimeError(
+                f"Version {year.version}: ASWF_CLANG_MAJOR_VERSION {default} "
+                f"is not one of its clang_versions {list(year.clang_versions)}"
+            )
+        year.package_versions["ASWF_CLANG_VERSION"] = year.clang_versions[default]
+        majors = list(year.clang_versions)
+        for major in majors:
+            # Only the newest clang version gets the bare year (and the
+            # year's extra tags like "latest"), so that tag is unambiguous.
+            newest = major == majors[-1]
+            vi = versioninfo.VersionInfo(
+                version=f"{year.version}-clang{major}",
+                major_version=year.major_version,
+                tags=year.tags if newest else [],
+                legacy_common_version=year.legacy_common_version,
+                package_versions={
+                    "ASWF_CLANG_MAJOR_VERSION": major,
+                    "ASWF_CLANG_VERSION": year.clang_versions[major],
+                },
+                parent_versions=[year.version],
+                use_major_version_as_tag=newest,
+            )
+            vi.conan_profile = year.conan_profile
+            vi.clang_major_version = major
+            self._version_infos[vi.version] = vi
 
     def iter_images(self, image_type: constants.ImageType):
         """
-        Iterates over all images by image type.
+        Iterates over all images (or Conan packages) by image type.
         """
-        yield from self._versions[self._get_key(image_type)]
+        if image_type == constants.ImageType.PACKAGE:
+            for packages in self.groups[image_type].values():
+                yield from packages
+        else:
+            yield from self._versions["ci-images"]
 
     def iter_versions(self, image_type: constants.ImageType, name: str):
         """
-        Iterates over all versions by image type and image name.
+        Iterates over all versions by image type and image name. A Conan
+        package is built for every year that pins its version, or for each
+        of those years' clang versions if it's one of per_clang_packages.
         """
-        yield from self._versions[self._get_key(image_type)][name]
+        if image_type == constants.ImageType.IMAGE:
+            yield from self._versions["ci-images"][name]
+            return
+        key = utils.package_version_key(name)
+        for year in self.iter_years():
+            if key not in year.all_package_versions:
+                continue
+            if name in self.per_clang_packages:
+                for major in year.clang_versions:
+                    yield f"{year.version}-clang{major}"
+            else:
+                yield year.version
+
+    def iter_years(self):
+        """VFX Platform year versions, e.g. "2027" but not "2027-clang22"."""
+        for vi in self._version_infos.values():
+            if vi.major_version and vi.clang_major_version is None:
+                yield vi
 
     def iter_version_info(self):
         return self._version_infos.values()

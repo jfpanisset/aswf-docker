@@ -67,45 +67,27 @@ class Builder:
         self,
         build_missing: bool,
     ) -> typing.Dict[str, dict]:
-        # pylint: disable=too-many-locals
         root: typing.Dict[str, dict] = {}
         root["target"] = {}
         for image, version in self.group_info.iter_images_versions():
-            versions_to_bake = set()
             major_version = utils.get_major_version(version)
             version_info = self.index.version_info(major_version)
             if self.group_info.type == constants.ImageType.PACKAGE:
-                if version in versions_to_bake:
-                    # Only one version per image needed
-                    continue
-                # if version_info.ci_common_version != major_version:
-                # Only bake conan images in ci_common container!
-                # version = version_info.ci_common_version
-                # major_version = utils.get_major_version(version)
-                versions_to_bake.add(version)
                 # tags may not make much sense for Conan packages
-                tags = list(
-                    map(
-                        lambda tag: f"{constants.DOCKER_REGISTRY}/{self.build_info.docker_org}"
-                        + f"/ci-baseos-gl-conan:{tag}",
-                        [version, major_version],
-                    )
-                )
+                tags = [
+                    f"{constants.DOCKER_REGISTRY}/{self.build_info.docker_org}"
+                    + f"/ci-baseos-gl-conan:{major_version}"
+                ]
                 docker_file = constants.CONAN_PACKAGE_DOCKERFILE
             else:
                 tags = version_info.get_tags(version, self.build_info.docker_org, image)
                 docker_file = f"{image}/Dockerfile"
 
-            channel = utils.conan_channel(
-                version_info.ci_common_version,
-                major_version,
-                version_info.major_version,
-            )
             args = utils.common_conan_bake_args(
                 self.build_info.docker_org,
                 self.build_info.package_org,
-                version_info.ci_common_version,
-                channel,
+                version_info.major_version,
+                version_info.conan_profile,
             )
             args["ASWF_VERSION"] = version
             # Both package builds (conan create) and image builds (conan
@@ -118,7 +100,7 @@ class Builder:
                 args.update(
                     {
                         "ASWF_PKG_NAME": image.replace("ci-package-", ""),
-                        "ASWF_PKG_VERSION": version_info.package_versions.get(
+                        "ASWF_PKG_VERSION": version_info.all_package_versions.get(
                             utils.package_version_key(image.replace("ci-package-", ""))
                         ),
                         "ASWF_CONAN_BUILD_MISSING": (
@@ -245,6 +227,33 @@ class Builder:
                     selection or PackageSelection(),
                 )
 
+    def _conan_build_passes(
+        self, images_and_versions: typing.Sequence[typing.Tuple[str, str]]
+    ) -> typing.Iterator[typing.Tuple[str, typing.List[typing.Tuple[str, str]]]]:
+        """Splits the (package, version) pairs to build into build passes:
+        one per year, or, when per-clang packages (see per_clang_packages in
+        versions.yaml) are included, one per clang version of that year.
+        Each pass holds the year's other packages too, so that its build
+        order covers dependencies between them (e.g. clang tool-requiring
+        cmake). Yields (pass version, its (package, version) pairs)."""
+        by_year: typing.Dict[str, typing.List[typing.Tuple[str, str]]] = {}
+        for image, version in images_and_versions:
+            year = utils.get_major_version(version).split("-")[0]
+            by_year.setdefault(year, []).append((image, version))
+        for year, pairs in by_year.items():
+            per_clang: typing.Dict[str, typing.List[typing.Tuple[str, str]]] = {}
+            others = []
+            for image, version in pairs:
+                major_version = utils.get_major_version(version)
+                if image in self.index.per_clang_packages:
+                    per_clang.setdefault(major_version, []).append((image, version))
+                else:
+                    others.append((image, version))
+            if not per_clang:
+                yield year, others
+            for clang_version, clang_pairs in per_clang.items():
+                yield clang_version, others + clang_pairs
+
     def _build_conan_packages(  # pylint: disable=too-many-arguments,too-many-locals
         self,
         images_and_versions: typing.Sequence[typing.Tuple[str, str]],
@@ -253,47 +262,46 @@ class Builder:
         progress: str,
         selection: PackageSelection,
     ) -> None:
-        """Builds the selected members of the group, version by version, in
-        the order Conan's dependency graph dictates, skipping packages whose
-        binary is already up to date (unless forced). The graph is computed
-        even for a dry run: it's the only way to know what would be built."""
+        """Builds the selected members of the group, pass by pass (see
+        _conan_build_passes()), in the order Conan's dependency graph
+        dictates, skipping packages whose binary is already up to date
+        (unless forced) or that an earlier pass of the same year builds.
+        The graph is computed even for a dry run: it's the only way to know
+        what would be built."""
         repo_root = utils.get_git_top_level()
-        by_version: typing.Dict[str, typing.Dict[str, str]] = {}
+        with_recipes = []
         for image, version in images_and_versions:
             if not os.path.exists(
                 os.path.join(repo_root, "packages", "conan", "recipes", image)
             ):
                 logger.warning("Recipe for %s not found: skipping!", image)
                 continue
-            by_version.setdefault(utils.get_major_version(version), {})[image] = version
+            with_recipes.append((image, version))
 
-        for major_version, versions in by_version.items():
-            version_info = self.index.version_info(major_version)
-            channel = utils.conan_channel(
-                version_info.ci_common_version,
-                major_version,
-                version_info.major_version,
-            )
-            members = []
-            for image in versions:
-                package_version = version_info.package_versions.get(
-                    utils.package_version_key(image)
+        # Per year: packages an earlier pass builds (per-clang ones excluded,
+        # as each pass builds a different version of them).
+        done: typing.Dict[str, typing.Set[str]] = {}
+        for pass_version, pairs in self._conan_build_passes(with_recipes):
+            versions = dict(pairs)
+            version_info = self.index.version_info(pass_version)
+            year_done = done.setdefault(version_info.major_version, set())
+            channel = version_info.conan_profile
+            members = [
+                (
+                    image,
+                    version_info.all_package_versions[utils.package_version_key(image)],
                 )
-                if not package_version:
-                    raise buildorder.BuildOrderError(
-                        f"No {utils.package_version_key(image)} pinned for "
-                        f"version {major_version}"
-                    )
-                members.append((image, package_version))
+                for image in versions
+            ]
 
             logger.info(
-                "Computing Conan build order for %s (%s)", major_version, channel
+                "Computing Conan build order for %s (%s)", pass_version, channel
             )
             order = buildorder.compute_build_order(
                 repo_root,
                 self.build_info.docker_org,
                 self.build_info.package_org,
-                version_info.ci_common_version,
+                version_info.major_version,
                 channel,
                 members,
                 conan_remote=self.conan_remote,
@@ -305,12 +313,18 @@ class Builder:
                 selection.targets_to,
                 selection.targets_from,
                 selection.force,
+                done=year_done,
             )
             logger.info(
                 "%s: building %s; up to date: %s",
-                major_version,
+                pass_version,
                 ", ".join(plan.to_build) or "nothing",
                 ", ".join(plan.up_to_date) or "nothing",
+            )
+            year_done.update(
+                image
+                for image in plan.to_build
+                if image not in self.index.per_clang_packages
             )
             # As of Conan 2.18, parallel builds are still not supported and can result in
             # database lock failures, so we have to build sequentially.

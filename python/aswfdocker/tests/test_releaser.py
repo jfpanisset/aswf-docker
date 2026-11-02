@@ -19,14 +19,14 @@ class TestReleaser(unittest.TestCase):
             repo_uri="notauri", source_branch="testing", aswf_version="2027.123"
         )
 
-    def test_package_boost_2027_dict(self):
+    def test_image_base_2027_dict(self):
         r = releaser.Releaser(
             self.build_info,
             groupinfo.GroupInfo(
-                names=["base1"],
+                names=["base"],
                 versions=["2027"],
-                type_=constants.ImageType.PACKAGE,
-                targets=["boost"],
+                type_=constants.ImageType.IMAGE,
+                targets=["base"],
             ),
             sha=utils.get_current_sha(),
         )
@@ -40,20 +40,20 @@ class TestReleaser(unittest.TestCase):
 
         r.gather()
         r.release(dry_run=False)
-        boost_version = next(
+        base_version = next(
             v
-            for v in index.Index().iter_versions(constants.ImageType.PACKAGE, "boost")
+            for v in index.Index().iter_versions(constants.ImageType.IMAGE, "base")
             if v.startswith("2027.")
         )
         r.gh.repo.create_git_tag_and_release.assert_called_once_with(
-            tag=f"aswflocaltesting/ci-package-boost/{boost_version}",
+            tag=f"aswflocaltesting/ci-base/{base_version}",
             draft=False,
             object=utils.get_current_sha(),
             prerelease=False,
             release_message="Inspect released Docker image here: "
-            f"https://hub.docker.com/r/aswflocaltesting/ci-package-boost/tags?name={boost_version}",
-            release_name=f"aswflocaltesting/ci-package-boost:{boost_version}",
-            tag_message=f"aswflocaltesting/ci-package-boost:{boost_version}",
+            f"https://hub.docker.com/r/aswflocaltesting/ci-base/tags?name={base_version}",
+            release_name=f"aswflocaltesting/ci-base:{base_version}",
+            tag_message=f"aswflocaltesting/ci-base:{base_version}",
             type="commit",
             tagger=mock.ANY,
         )
@@ -70,7 +70,7 @@ class TestReleaserCli(unittest.TestCase):
 
     def test_release_cli(self):
         current_version = list(
-            index.Index().iter_versions(constants.ImageType.PACKAGE, "boost")
+            index.Index().iter_versions(constants.ImageType.IMAGE, "base")
         )[1]
         runner = CliRunner()
         result = runner.invoke(
@@ -78,7 +78,7 @@ class TestReleaserCli(unittest.TestCase):
             [
                 "release",
                 "-n",
-                f"aswf/ci-package-boost:{current_version}",
+                f"aswf/ci-base:{current_version}",
                 "--sha",
                 utils.get_current_sha(),
                 "--dry-run",
@@ -91,9 +91,31 @@ class TestReleaserCli(unittest.TestCase):
             result.output,
             # pylint: disable=line-too-long
             f"""Are you sure you want to create the following 1 release on sha={utils.get_current_sha()}?
-aswf/ci-package-boost:{current_version}
+aswf/ci-base:{current_version}
  [y/N]: y
-INFO:aswfdocker.releaser:Would create this GitHub release on current commit: aswf/ci-package-boost:{current_version}
+INFO:aswfdocker.releaser:Would create this GitHub release on current commit: aswf/ci-base:{current_version}
 Release done.
 """,
+        )
+
+    def test_release_cli_package(self):
+        # A package release triggers the Release workflow, which builds and
+        # uploads it from GitHub Actions.
+        result = CliRunner().invoke(
+            aswfdocker.cli,
+            [
+                "release",
+                "-n",
+                "aswf/ci-package-boost:2027",
+                "--sha",
+                utils.get_current_sha(),
+                "--dry-run",
+            ],
+            input="y\n",
+        )
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        self.assertIn(
+            "Would create this GitHub release on current commit: "
+            "aswf/ci-package-boost:2027",
+            result.output,
         )

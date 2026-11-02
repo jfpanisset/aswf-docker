@@ -88,14 +88,14 @@ class TestExportAll(unittest.TestCase):
             api,
             [
                 ["recipes/zlib", "zlib", "1.3.1", "aswf", "vfx2027"],
-                ["recipes/cmake", "cmake", "4.3.3", "aswf", "ci_common7"],
+                ["recipes/cmake", "cmake", "4.3.3", "aswf", "vfx2026"],
             ],
             "/work",
             ["remote"],
         )
         self.assertEqual(
             [r.repr_notime() for r in refs],
-            ["zlib/1.3.1@aswf/vfx2027", "cmake/4.3.3@aswf/ci_common7"],
+            ["zlib/1.3.1@aswf/vfx2027", "cmake/4.3.3@aswf/vfx2026"],
         )
         self.assertEqual(
             api.export.calls,
@@ -114,7 +114,7 @@ class TestExportAll(unittest.TestCase):
                     "name": "cmake",
                     "version": "4.3.3",
                     "user": "aswf",
-                    "channel": "ci_common7",
+                    "channel": "vfx2026",
                     "lockfile": _IMPLICIT_LOCKFILE,
                     "remotes": ["remote"],
                 },

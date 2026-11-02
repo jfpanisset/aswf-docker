@@ -24,12 +24,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # A bare VFX Platform year version also selects every clang
+          # variant of that year (e.g. ci-common:2027-clang21 and
+          # ci-common:2027-clang22), as base images need the year's default
+          # clang and the per-clang images need all of them.
           - group: vfx-2027
             name: vfx-2027
-            common_version: 7-clang22
-            common_version_noclang: 7
-            version: 2027-clang22
-            version_noclang: 2027
+            version: 2027
             test: ""
 
     steps:
@@ -91,30 +92,18 @@ jobs:
           build \
           --ci-image-type IMAGE \
           --group baseos-gl-conan \
-          --version ${{ matrix.common_version_noclang }} \
+          --version ${{ matrix.version }} \
           --push NO
 
-    - name: Build common1 packages (OpenSSL/GnuTLS wrappers, Ninja, CMake)
+    - name: Build common packages (OpenSSL/GnuTLS wrappers, Ninja, CMake, every Clang version)
       run: |
         set -ex
         uv run aswfdocker \
           --verbose \
           build \
           --ci-image-type PACKAGE \
-          --group common1 \
-          --version ${{ matrix.common_version_noclang }} \
-          --build-missing \
-          --push NO
-
-    - name: Build common2 packages (Clang)
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type PACKAGE \
-          --group common2 \
-          --version ${{ matrix.common_version }} \
+          --group common \
+          --version ${{ matrix.version }} \
           --build-missing \
           --push NO
 
@@ -125,7 +114,7 @@ jobs:
           build \
           --ci-image-type IMAGE \
           --group common \
-          --version ${{ matrix.common_version }}\
+          --version ${{ matrix.version }} \
           --push NO
 
     - name: Build base1 packages
@@ -136,7 +125,7 @@ jobs:
           build \
           --ci-image-type PACKAGE \
           --group base1 \
-          --version ${{ matrix.version_noclang }} \
+          --version ${{ matrix.version }} \
           --build-missing \
           --push NO
 
@@ -148,7 +137,7 @@ jobs:
           build \
           --ci-image-type PACKAGE \
           --group base2 \
-          --version ${{ matrix.version_noclang }} \
+          --version ${{ matrix.version }} \
           --build-missing \
           --push NO
 
@@ -160,7 +149,7 @@ jobs:
           build \
           --ci-image-type PACKAGE \
           --group base3 \
-          --version ${{ matrix.version_noclang }} \
+          --version ${{ matrix.version }} \
           --build-missing \
           --push NO
 
@@ -183,7 +172,7 @@ jobs:
           build \
           --ci-image-type PACKAGE \
           --group vfx \
-          --version ${{ matrix.version_noclang }} \
+          --version ${{ matrix.version }} \
           --build-missing \
           --push NO
 
@@ -196,7 +185,7 @@ jobs:
           --ci-image-type IMAGE \
           --group vfx1 \
           --group vfx2 \
-          --version ${{ matrix.version_noclang }} \
+          --version ${{ matrix.version }} \
           --push NO
 
     - name: Build vfx3 images

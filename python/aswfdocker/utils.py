@@ -124,6 +124,13 @@ def get_image_spec(name: str):
     return org, image_type, image, version
 
 
+def on_github_actions() -> bool:
+    """Whether this runs on GitHub Actions (GITHUB_ACTIONS=true is set on
+    every runner): the only place holding the Artifactory credentials, so
+    the only place Conan packages may be uploaded from."""
+    return os.environ.get("GITHUB_ACTIONS") == "true"
+
+
 def resolve_conan_remote(conan_remote: str, package_org: str) -> str:
     """Which Conan remote(s) package resolution may use: "local" (the local
     Conan cache only) or the name of the one remote to consult.
@@ -136,7 +143,7 @@ def resolve_conan_remote(conan_remote: str, package_org: str) -> str:
     """
     if conan_remote != constants.CONAN_REMOTE_AUTO:
         return conan_remote
-    if os.environ.get("GITHUB_ACTIONS") == "true":
+    if on_github_actions():
         return package_org
     return constants.CONAN_REMOTE_LOCAL
 
@@ -157,33 +164,19 @@ def package_version_key(package_name: str) -> str:
     return f"ASWF_{package_name.upper().replace('-', '_')}_VERSION"
 
 
-def conan_channel(
-    ci_common_version: str, major_version: str, vfx_major_version: str
-) -> str:
-    """The Conan channel a given (major_version, VersionInfo) pair builds
-    under: the ci_common<N> channel for a plain common-tier version, or
-    vfx<year> once a clang variant or VFX-year version diverges from its
-    ci_common_version. Shared by builder.py (real package/image builds) and
-    buildorder.py (the Conan dependency-graph grapher), so both always
-    agree on which profile a given version resolves to.
-    """
-    major_version_no_clang = major_version.split("-")[0]
-    if ci_common_version == major_version_no_clang:
-        return f"ci_common{major_version_no_clang}"
-    return f"vfx{vfx_major_version}"
-
-
 def common_conan_bake_args(
-    docker_org: str, package_org: str, ci_common_version: str, channel: str
+    docker_org: str, package_org: str, major_version: str, channel: str
 ) -> typing.Dict[str, str]:
     """The subset of packages/common/Dockerfile build ARGs needed by every
     bake target built from it, whether a real `conan create` package build
     (builder.py) or the read-only dependency-graph grapher (buildorder.py).
+    `major_version` is the VFX Platform year, whose ci-baseos-gl-conan image
+    packages are built in.
     """
     return {
         "ASWF_ORG": docker_org,
         "ASWF_PKG_ORG": package_org,
-        "CI_COMMON_VERSION": ci_common_version,
+        "ASWF_VFXPLATFORM_VERSION": major_version,
         "ASWF_CONAN_CHANNEL": channel,
         "ASWF_CONAN_HOME": constants.ASWF_CONAN_HOME,
     }

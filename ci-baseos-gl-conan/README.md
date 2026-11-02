@@ -17,7 +17,7 @@ Contains: GCC and all base OS libraries
 
 [Docker Image Source](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/ci-baseos-gl-conan/Dockerfile)
 
-## [aswf/ci-baseos-gl-conan:3.7](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=3.7)
+## [aswf/ci-baseos-gl-conan:2023.7](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=2023.7)
 
 Contains:
 * cuda-12.6.3
@@ -30,7 +30,7 @@ Contains:
 * conan-2.29.0
 * yq-4.45.2
 
-## [aswf/ci-baseos-gl-conan:4.11](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=4.11)
+## [aswf/ci-baseos-gl-conan:2024.11](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=2024.11)
 
 Contains:
 * cuda-12.6.3
@@ -43,7 +43,7 @@ Contains:
 * conan-2.29.0
 * yq-4.45.2
 
-## [aswf/ci-baseos-gl-conan:5.10](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=5.10)
+## [aswf/ci-baseos-gl-conan:2025.10](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=2025.10)
 
 Contains:
 * cuda-12.6.3
@@ -56,7 +56,7 @@ Contains:
 * conan-2.29.0
 * yq-4.45.2
 
-## [aswf/ci-baseos-gl-conan:6.8](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=6.8)
+## [aswf/ci-baseos-gl-conan:2026.8](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=2026.8)
 
 Contains:
 * cuda-12.9.2
@@ -69,7 +69,7 @@ Contains:
 * conan-2.29.0
 * yq-4.45.4
 
-## [aswf/ci-baseos-gl-conan:7.3](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=7.3)
+## [aswf/ci-baseos-gl-conan:2027.3](https://hub.docker.com/r/aswf/ci-baseos-gl-conan/tags?page=1&name=2027.3)
 
 Contains:
 * cuda-13.1.2

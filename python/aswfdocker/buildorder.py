@@ -34,7 +34,7 @@ Every one of our packages the profile can redirect a dependency to is
 exported, each under its own channel (see profile_refs()), not just the
 requested members: Conan has to read a dependency's recipe to follow its
 requires(), so a dependency outside the group whose recipe was never
-exported (e.g. a freshly bumped cpython, or cmake on ci_common<N>) would
+exported (e.g. a freshly bumped cpython, or cmake from the common group) would
 otherwise make graph resolution fail outright instead of being reported. Missing *binaries* are
 never a problem -- `--build=missing` just marks them "Build". With every
 recipe available, the result answers "what needs building for these
@@ -219,6 +219,7 @@ def plan_build(  # pylint: disable=too-many-arguments
     targets_to: typing.Iterable[str] = (),
     targets_from: typing.Iterable[str] = (),
     force: bool = False,
+    done: typing.AbstractSet[str] = frozenset(),
 ) -> BuildPlan:
     """Decides which group members to build, and in what order.
 
@@ -232,6 +233,9 @@ def plan_build(  # pylint: disable=too-many-arguments
     Raises UnbuiltDependenciesError if anything those builds depend on
     needs building but isn't selected, rather than building against a
     dependency that isn't there.
+
+    `done` names packages an earlier plan of the same run already builds:
+    they're left out of this plan, and never block it.
     """
     member_set = set(members)
     named = set(targets) | set(targets_to) | set(targets_from)
@@ -249,10 +253,11 @@ def plan_build(  # pylint: disable=too-many-arguments
     else:
         selected = member_set
 
+    selected -= done
     flat = order.flat_order()
     to_build = [n for n in flat if n in selected and (force or n in order.need_build)]
     up_to_date = [n for n in flat if n in selected and n not in to_build]
-    blocking = (order.upstream_closure(to_build) & order.need_build) - selected
+    blocking = (order.upstream_closure(to_build) & order.need_build) - selected - done
     if blocking:
         raise UnbuiltDependenciesError(
             sorted(ref for name in blocking for ref in order.refs.get(name, {name}))
@@ -340,12 +345,11 @@ def profile_refs(
     """(name, version, channel) for every one of our own packages the given
     generated Conan profile (following its include()s) can redirect a
     dependency to: the targets of [replace_requires]/[replace_tool_requires]
-    and user.aswf:*_ref conf values, e.g. "cmake/4.3.3@{{ org }}/ci_common7".
+    and user.aswf:*_ref conf values, e.g. "cmake/4.3.3@{{ org }}/vfx2027".
 
     These are exactly the references Conan will look up while resolving a
-    graph with that profile -- including common-tier packages on the
-    ci_common<N> channel from a vfx<year> profile, and every clang version
-    a recipe can select via conf. Only refs with a recipe directory are
+    graph with that profile -- including packages outside the group being
+    built, and every clang version a recipe can select via conf. Only refs with a recipe directory are
     returned; others (e.g. platform/system packages) aren't ours to export.
     """
     profiles_dir = os.path.join(repo_root, "packages", "conan", "settings", "profiles")
@@ -408,14 +412,12 @@ def _graph_script(
 def _bake_dict(
     docker_org: str,
     package_org: str,
-    ci_common_version: str,
+    major_version: str,
     channel: str,
     script: str,
     nonce: str,
 ) -> dict:
-    args = utils.common_conan_bake_args(
-        docker_org, package_org, ci_common_version, channel
-    )
+    args = utils.common_conan_bake_args(docker_org, package_org, major_version, channel)
     args["ASWF_CONAN_GRAPH_SCRIPT"] = script
     # See ASWF_CONAN_NONCE in packages/common/Dockerfile: forces the graph RUN
     # to execute every time, without the no-cache/no-cache-filter side effect
@@ -483,7 +485,7 @@ def compute_build_order(
     repo_root: str,
     docker_org: str,
     package_org: str,
-    ci_common_version: str,
+    major_version: str,
     channel: str,
     members: typing.Sequence[typing.Tuple[str, str]],
     conan_remote: str = constants.CONAN_REMOTE_AUTO,
@@ -510,7 +512,7 @@ def compute_build_order(
         repo_root, package_org, channel, members, exports, remote_args
     )
     bake_dict = _bake_dict(
-        docker_org, package_org, ci_common_version, channel, script, uuid.uuid4().hex
+        docker_org, package_org, major_version, channel, script, uuid.uuid4().hex
     )
     data = _run_bake_and_read_output(repo_root, bake_dict, progress)
     return parse_build_order_json(data)

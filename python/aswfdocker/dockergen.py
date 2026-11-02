@@ -20,19 +20,11 @@ def conan_profile_version_keys(idx: index.Index) -> typing.List[str]:
     """Return version keys for which Conan profiles should be generated.
 
     Scans versions.yaml for entries marked ``generate_profile: true`` (the
-    VFX Platform year entries) and collects their ``ci_common_version`` values
-    so the matching ci_common profiles are generated automatically.  Adding a
-    new VFX Platform year to versions.yaml with ``generate_profile: true``
-    is all that is needed — no code change required.
+    VFX Platform year entries).  Adding a new VFX Platform year to
+    versions.yaml with ``generate_profile: true`` is all that is needed — no
+    code change required.
     """
-    ci_common_keys: typing.Set[str] = set()
-    vfx_keys: typing.List[str] = []
-    for vi in idx.iter_version_info():
-        if vi.generate_profile:
-            vfx_keys.append(vi.version)
-            if vi.ci_common_version:
-                ci_common_keys.add(vi.ci_common_version)
-    return sorted(ci_common_keys) + sorted(vfx_keys)
+    return sorted(vi.version for vi in idx.iter_version_info() if vi.generate_profile)
 
 
 class ConanProfileGen:
@@ -70,30 +62,18 @@ class ConanProfileGen:
 
     def _template_context(self) -> typing.Dict[str, typing.Any]:
         # Resolve OS-distro–specific package versions (bison, flex, etc.) from
-        # the ASWF_BASEOS_DISTRO value inherited by this version entry.  For
-        # vfx year entries the value is inherited from the ci_common parent
-        # (e.g. "6" carries ASWF_BASEOS_DISTRO: "rockylinux8").  The distro
-        # entry in versions.yaml is keyed by that distro name.
+        # the ASWF_BASEOS_DISTRO value of this version entry (e.g. "2027"
+        # carries ASWF_BASEOS_DISTRO: "rockylinux9").  The distro entry in
+        # versions.yaml is keyed by that distro name.
         baseos_distro = self.version_info.all_package_versions.get("ASWF_BASEOS_DISTRO")
         distro_versions: typing.Dict[str, str] = {}
         if baseos_distro:
             distro_versions = self._idx.version_info(baseos_distro).package_versions
-        ci_common_version = self.version_info.ci_common_version
-        clang_versions: typing.Dict[str, str] = {}
-        if ci_common_version:
-            prefix = f"{ci_common_version}-clang"
-            for vi in self._idx.iter_version_info():
-                if vi.version.startswith(prefix):
-                    major = vi.package_versions.get("ASWF_CLANG_MAJOR_VERSION")
-                    full = vi.package_versions.get("ASWF_CLANG_VERSION")
-                    if major and full:
-                        clang_versions[major] = full
         return {
             "versions": self.version_info.all_package_versions,
             "distro_versions": distro_versions,
             "conan_profile": self.version_info.conan_profile,
-            "ci_common_version": ci_common_version,
-            "clang_versions": clang_versions,
+            "clang_versions": self.version_info.clang_versions,
         }
 
     def _output_path(self) -> str:
@@ -103,13 +83,8 @@ class ConanProfileGen:
             self.version_info.conan_profile,
         )
 
-    def _template_name(self) -> str:
-        if self.version_info.conan_profile.startswith("ci_common"):
-            return "conan-profile-ci-common.jinja2"
-        return "conan-profile-vfx.jinja2"
-
     def _render(self) -> typing.Tuple[str, str]:
-        tmpl = self._env.get_template(self._template_name())
+        tmpl = self._env.get_template("conan-profile-vfx.jinja2")
         return self._output_path(), tmpl.render(self._template_context())
 
     def generate(self) -> str:
