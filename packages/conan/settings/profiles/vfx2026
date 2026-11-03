@@ -19,150 +19,150 @@ qt/*:compiler.cppstd=gnu20
 [tool_requires]
 [replace_requires]
 # common group packages
-openssl/*: openssl/1.1.1k@{{ org }}/vfx2026
-gnutls/*: gnutls/3.6.16@{{ org }}/vfx2026
-ninja/*: ninja/1.13.2@{{ org }}/vfx2026
+openssl/*: openssl/1.1.1k@{{ org }}/vfx2026_9
+gnutls/*: gnutls/3.6.16@{{ org }}/vfx2026_9
+ninja/*: ninja/1.13.2@{{ org }}/vfx2026_9
 # Other packages
-aces_container/*: aces_container/1.0.2@{{ org }}/vfx2026
-alembic/*: alembic/1.8.10@{{ org }}/vfx2026
-boost/*: boost/1.88.0@{{ org }}/vfx2026
-brotli/*: brotli/system@{{ org }}/vfx2026
-bzip2/*: bzip2/1.0.8@{{ org }}/vfx2026
-c-blosc/*: c-blosc/1.21.6@{{ org }}/vfx2026
-ceres-solver/*: ceres-solver/2.2.0@{{ org }}/vfx2026
-cimg/*: cimg/3.3.2@{{ org }}/vfx2026
-cppunit/*: cppunit/1.15.1@{{ org }}/vfx2026
-cpython/*: cpython/3.13.17@{{ org }}/vfx2026
-dbus/*: dbus/system@{{ org }}/vfx2026
-double-conversion/*: double-conversion/system@{{ org }}/vfx2026
-eigen/*: eigen/3.4.1@{{ org }}/vfx2026
-embree/*: embree/4.3.3@{{ org }}/vfx2026
-expat/*: expat/2.7.1@{{ org }}/vfx2026
-fmt/*: fmt/11.2.0@{{ org }}/vfx2026
-fontconfig/*: fontconfig/system@{{ org }}/vfx2026
-freetype/*: freetype/2.13.2@{{ org }}/vfx2026
-gdbm/*: gdbm/system@{{ org }}/vfx2026
-giflib/*: giflib/5.1.4@{{ org }}/vfx2026
-glew/*: glew/2.2.0@{{ org }}/vfx2026
-glfw/*: glfw/3.4@{{ org }}/vfx2026
-glu/*: glu/system@{{ org }}/vfx2026
-glib/*: glib/2.56.4@{{ org }}/vfx2026
-gtest/*: gtest/1.17.0@{{ org }}/vfx2026
-harfbuzz/*: harfbuzz/11.0.1@{{ org }}/vfx2026
-hdf5/*: hdf5/1.14.6@{{ org }}/vfx2026
-highway/*: highway/1.2.0@{{ org }}/vfx2026
-icu/*: icu/system@{{ org }}/vfx2026
-imath/*: imath/3.2.3@{{ org }}/vfx2026
-ispc/*: ispc/1.31.0@{{ org }}/vfx2026
-jasper/*: jasper/4.2.5@{{ org }}/vfx2026
-jsoncpp/*: jsoncpp/1.9.5@{{ org }}/vfx2026
-lcms/*: lcms/2.17@{{ org }}/vfx2026
-lensfun/*: lensfun/0.3.4@{{ org }}/vfx2026
-libalsa/*: libalsa/system@{{ org }}/vfx2026
-libcgroup/*: libcgroup/0.42.2@{{ org }}/vfx2026
-libaom-av1/*: libaom-av1/system@{{ org }}/vfx2026
-libbacktrace/*: libbacktrace/cci.20210118@{{ org }}/vfx2026
-libdeflate/*: libdeflate/1.24@{{ org }}/vfx2026
-libdrm/*: libdrm/2.4.115@{{ org }}/vfx2026
-libffi/*: libffi/system@{{ org }}/vfx2026
-libiconv/*: libiconv/1.18@{{ org }}/vfx2026
-libjpeg-turbo/*: libjpeg-turbo/3.1.0@{{ org }}/vfx2026
-libjxl/*: libjxl/0.11.1@{{ org }}/vfx2026
-libmp3lame/*: libmp3lame/system@{{ org }}/vfx2026
-libmicrohttpd/*: libmicrohttpd/0.9.72@{{ org }}/vfx2026
-libpng/*: libpng/1.6.34@{{ org }}/vfx2026
-libraw/*: libraw/0.21.4@{{ org }}/vfx2026
-libsndfile/*: libsndfile/system@{{ org }}/vfx2026
-libsquish/*: libsquish/system@{{ org }}/vfx2026
-libsvtav1/*: libsvtav1/system@{{ org }}/vfx2026
-libtiff/*: libtiff/4.0.9@{{ org }}/vfx2026
-libultrahdr/*: libultrahdr/1.4.0@{{ org }}/vfx2026
-libvpx/*: libvpx/system@{{ org }}/vfx2026
-libwebp/*: libwebp/1.5.0@{{ org }}/vfx2026
-libxcrypt/*: libxcrypt/4.4.38@{{ org }}/vfx2026
-libxshmfence/*: libxshmfence/system@{{ org }}/vfx2026
-log4cplus/*: log4cplus/2.1.2@{{ org }}/vfx2026
-lua/*: lua/5.4.4@{{ org }}/vfx2026
-lz4/*: lz4/1.10.0@{{ org }}/vfx2026
-materialx/*: materialx/1.39.4@{{ org }}/vfx2026
-md4c/*: md4c/0.5.2@{{ org }}/vfx2026
-mesa/*: mesa/23.1.4@{{ org }}/vfx2026
-minizip-ng/*: minizip-ng/4.0.10@{{ org }}/vfx2026
-moonray/*: moonray/3.6.0.1@{{ org }}/vfx2026
-mpdecimal/*: mpdecimal/system@{{ org }}/vfx2026
-mpg123/*: mpg123/system@{{ org }}/vfx2026
-nanobind/*: nanobind/2.11.0@{{ org }}/vfx2026
-nlohmann_json/*: nlohmann_json/3.12.0@{{ org }}/vfx2026
-nspr/*: nspr/system@{{ org }}/vfx2026
-nss/*: nss/3.124.0@{{ org }}/vfx2026
-ogg/*: ogg/system@{{ org }}/vfx2026
-onetbb/*: onetbb/2022.1.0@{{ org }}/vfx2026
-openal-soft/*: openal-soft/system@{{ org }}/vfx2026
-opencl-headers/*: opencl-headers/system@{{ org }}/vfx2026
-opencl-icd-loader/*: opencl-icd-loader/system@{{ org }}/vfx2026
-opencolorio/*: opencolorio/2.5.2@{{ org }}/vfx2026
-opencue/*: opencue/1.19.1@{{ org }}/vfx2026
-openexr/*: openexr/3.4.16@{{ org }}/vfx2026
-openfx/*: openfx/1.5.1@{{ org }}/vfx2026
-opengl/*: opengl/system@{{ org }}/vfx2026
-openimagedenoise/*: openimagedenoise/2.5.0@{{ org }}/vfx2026
-openimageio/*: openimageio/3.1.18.1@{{ org }}/vfx2026
-openjpeg/*: openjpeg/2.4.0@{{ org }}/vfx2026
-openjph/*: openjph/0.32.0@{{ org }}/vfx2026
-opensubdiv/*: opensubdiv/3.7.0@{{ org }}/vfx2026
-opentimelineio/*: opentimelineio/0.18.1@{{ org }}/vfx2026
-openusd/*: openusd/26.03@{{ org }}/vfx2026
-openvdb/*: openvdb/13.0.0@{{ org }}/vfx2026
-opus/*: opus/system@{{ org }}/vfx2026
-osl/*: osl/1.15.7.0@{{ org }}/vfx2026
-partio/*: partio/1.19.0@{{ org }}/vfx2026
-pcre2/*: pcre2/system@{{ org }}/vfx2026
-ptex/*: ptex/2.4.3@{{ org }}/vfx2026
-pugixml/*: pugixml/1.15@{{ org }}/vfx2026
-pulseaudio/*: pulseaudio/system@{{ org }}/vfx2026
-pybind11/*: pybind11/2.13.6@{{ org }}/vfx2026
-pyside/*: pyside/6.8.3@{{ org }}/vfx2026
-pystring/*: pystring/1.1.4@{{ org }}/vfx2026
-qt/*: qt/6.8.3@{{ org }}/vfx2026
-random123/*: random123/1.14.0@{{ org }}/vfx2026
-rapidjson/*: rapidjson/cci.20250205@{{ org }}/vfx2026
-rawtoaces/*: rawtoaces/2.2.2@{{ org }}/vfx2026
-rez/*: rez/3.4.0@{{ org }}/vfx2026
-snappy/*: snappy/1.2.2@{{ org }}/vfx2026
-spdlog/*: spdlog/1.15.3@{{ org }}/vfx2026
-sqlite3/*: sqlite3/system@{{ org }}/vfx2026
-tcl/*: tcl/system@{{ org }}/vfx2026
-tk/*: tk/system@{{ org }}/vfx2026
-tsl-robin-map/*: tsl-robin-map/1.4.0@{{ org }}/vfx2026
-util-linux-libuuid/*: util-linux-libuuid/system@{{ org }}/vfx2026
-vorbis/*: vorbis/system@{{ org }}/vfx2026
-vulkan-headers/*: vulkan-headers/system@{{ org }}/vfx2026
-vulkan-loader/*: vulkan-loader/system@{{ org }}/vfx2026
-xkbcommon/*: xkbcommon/0.9.1@{{ org }}/vfx2026
-xorg/*: xorg/system@{{ org }}/vfx2026
-xorg-proto/*: xorg-proto/system@{{ org }}/vfx2026
-xz_utils/*: xz_utils/system@{{ org }}/vfx2026
-yaml-cpp/*: yaml-cpp/0.8.0@{{ org }}/vfx2026
-zlib/*: zlib/1.3.2@{{ org }}/vfx2026
-zstd/*: zstd/1.5.7@{{ org }}/vfx2026
+aces_container/*: aces_container/1.0.2@{{ org }}/vfx2026_9
+alembic/*: alembic/1.8.10@{{ org }}/vfx2026_9
+boost/*: boost/1.88.0@{{ org }}/vfx2026_9
+brotli/*: brotli/system@{{ org }}/vfx2026_9
+bzip2/*: bzip2/1.0.8@{{ org }}/vfx2026_9
+c-blosc/*: c-blosc/1.21.6@{{ org }}/vfx2026_9
+ceres-solver/*: ceres-solver/2.2.0@{{ org }}/vfx2026_9
+cimg/*: cimg/3.3.2@{{ org }}/vfx2026_9
+cppunit/*: cppunit/1.15.1@{{ org }}/vfx2026_9
+cpython/*: cpython/3.13.17@{{ org }}/vfx2026_9
+dbus/*: dbus/system@{{ org }}/vfx2026_9
+double-conversion/*: double-conversion/system@{{ org }}/vfx2026_9
+eigen/*: eigen/3.4.1@{{ org }}/vfx2026_9
+embree/*: embree/4.3.3@{{ org }}/vfx2026_9
+expat/*: expat/2.7.1@{{ org }}/vfx2026_9
+fmt/*: fmt/11.2.0@{{ org }}/vfx2026_9
+fontconfig/*: fontconfig/system@{{ org }}/vfx2026_9
+freetype/*: freetype/2.13.2@{{ org }}/vfx2026_9
+gdbm/*: gdbm/system@{{ org }}/vfx2026_9
+giflib/*: giflib/5.1.4@{{ org }}/vfx2026_9
+glew/*: glew/2.2.0@{{ org }}/vfx2026_9
+glfw/*: glfw/3.4@{{ org }}/vfx2026_9
+glu/*: glu/system@{{ org }}/vfx2026_9
+glib/*: glib/2.56.4@{{ org }}/vfx2026_9
+gtest/*: gtest/1.17.0@{{ org }}/vfx2026_9
+harfbuzz/*: harfbuzz/11.0.1@{{ org }}/vfx2026_9
+hdf5/*: hdf5/1.14.6@{{ org }}/vfx2026_9
+highway/*: highway/1.2.0@{{ org }}/vfx2026_9
+icu/*: icu/system@{{ org }}/vfx2026_9
+imath/*: imath/3.2.3@{{ org }}/vfx2026_9
+ispc/*: ispc/1.31.0@{{ org }}/vfx2026_9
+jasper/*: jasper/4.2.5@{{ org }}/vfx2026_9
+jsoncpp/*: jsoncpp/1.9.5@{{ org }}/vfx2026_9
+lcms/*: lcms/2.17@{{ org }}/vfx2026_9
+lensfun/*: lensfun/0.3.4@{{ org }}/vfx2026_9
+libalsa/*: libalsa/system@{{ org }}/vfx2026_9
+libcgroup/*: libcgroup/0.42.2@{{ org }}/vfx2026_9
+libaom-av1/*: libaom-av1/system@{{ org }}/vfx2026_9
+libbacktrace/*: libbacktrace/cci.20210118@{{ org }}/vfx2026_9
+libdeflate/*: libdeflate/1.24@{{ org }}/vfx2026_9
+libdrm/*: libdrm/2.4.115@{{ org }}/vfx2026_9
+libffi/*: libffi/system@{{ org }}/vfx2026_9
+libiconv/*: libiconv/1.18@{{ org }}/vfx2026_9
+libjpeg-turbo/*: libjpeg-turbo/3.1.0@{{ org }}/vfx2026_9
+libjxl/*: libjxl/0.11.1@{{ org }}/vfx2026_9
+libmp3lame/*: libmp3lame/system@{{ org }}/vfx2026_9
+libmicrohttpd/*: libmicrohttpd/0.9.72@{{ org }}/vfx2026_9
+libpng/*: libpng/1.6.34@{{ org }}/vfx2026_9
+libraw/*: libraw/0.21.4@{{ org }}/vfx2026_9
+libsndfile/*: libsndfile/system@{{ org }}/vfx2026_9
+libsquish/*: libsquish/system@{{ org }}/vfx2026_9
+libsvtav1/*: libsvtav1/system@{{ org }}/vfx2026_9
+libtiff/*: libtiff/4.0.9@{{ org }}/vfx2026_9
+libultrahdr/*: libultrahdr/1.4.0@{{ org }}/vfx2026_9
+libvpx/*: libvpx/system@{{ org }}/vfx2026_9
+libwebp/*: libwebp/1.5.0@{{ org }}/vfx2026_9
+libxcrypt/*: libxcrypt/4.4.38@{{ org }}/vfx2026_9
+libxshmfence/*: libxshmfence/system@{{ org }}/vfx2026_9
+log4cplus/*: log4cplus/2.1.2@{{ org }}/vfx2026_9
+lua/*: lua/5.4.4@{{ org }}/vfx2026_9
+lz4/*: lz4/1.10.0@{{ org }}/vfx2026_9
+materialx/*: materialx/1.39.4@{{ org }}/vfx2026_9
+md4c/*: md4c/0.5.2@{{ org }}/vfx2026_9
+mesa/*: mesa/23.1.4@{{ org }}/vfx2026_9
+minizip-ng/*: minizip-ng/4.0.10@{{ org }}/vfx2026_9
+moonray/*: moonray/3.6.0.1@{{ org }}/vfx2026_9
+mpdecimal/*: mpdecimal/system@{{ org }}/vfx2026_9
+mpg123/*: mpg123/system@{{ org }}/vfx2026_9
+nanobind/*: nanobind/2.11.0@{{ org }}/vfx2026_9
+nlohmann_json/*: nlohmann_json/3.12.0@{{ org }}/vfx2026_9
+nspr/*: nspr/system@{{ org }}/vfx2026_9
+nss/*: nss/3.124.0@{{ org }}/vfx2026_9
+ogg/*: ogg/system@{{ org }}/vfx2026_9
+onetbb/*: onetbb/2022.1.0@{{ org }}/vfx2026_9
+openal-soft/*: openal-soft/system@{{ org }}/vfx2026_9
+opencl-headers/*: opencl-headers/system@{{ org }}/vfx2026_9
+opencl-icd-loader/*: opencl-icd-loader/system@{{ org }}/vfx2026_9
+opencolorio/*: opencolorio/2.5.2@{{ org }}/vfx2026_9
+opencue/*: opencue/1.19.1@{{ org }}/vfx2026_9
+openexr/*: openexr/3.4.16@{{ org }}/vfx2026_9
+openfx/*: openfx/1.5.1@{{ org }}/vfx2026_9
+opengl/*: opengl/system@{{ org }}/vfx2026_9
+openimagedenoise/*: openimagedenoise/2.5.0@{{ org }}/vfx2026_9
+openimageio/*: openimageio/3.1.18.1@{{ org }}/vfx2026_9
+openjpeg/*: openjpeg/2.4.0@{{ org }}/vfx2026_9
+openjph/*: openjph/0.32.0@{{ org }}/vfx2026_9
+opensubdiv/*: opensubdiv/3.7.0@{{ org }}/vfx2026_9
+opentimelineio/*: opentimelineio/0.18.1@{{ org }}/vfx2026_9
+openusd/*: openusd/26.03@{{ org }}/vfx2026_9
+openvdb/*: openvdb/13.0.0@{{ org }}/vfx2026_9
+opus/*: opus/system@{{ org }}/vfx2026_9
+osl/*: osl/1.15.7.0@{{ org }}/vfx2026_9
+partio/*: partio/1.19.0@{{ org }}/vfx2026_9
+pcre2/*: pcre2/system@{{ org }}/vfx2026_9
+ptex/*: ptex/2.4.3@{{ org }}/vfx2026_9
+pugixml/*: pugixml/1.15@{{ org }}/vfx2026_9
+pulseaudio/*: pulseaudio/system@{{ org }}/vfx2026_9
+pybind11/*: pybind11/2.13.6@{{ org }}/vfx2026_9
+pyside/*: pyside/6.8.3@{{ org }}/vfx2026_9
+pystring/*: pystring/1.1.4@{{ org }}/vfx2026_9
+qt/*: qt/6.8.3@{{ org }}/vfx2026_9
+random123/*: random123/1.14.0@{{ org }}/vfx2026_9
+rapidjson/*: rapidjson/cci.20250205@{{ org }}/vfx2026_9
+rawtoaces/*: rawtoaces/2.2.2@{{ org }}/vfx2026_9
+rez/*: rez/3.4.0@{{ org }}/vfx2026_9
+snappy/*: snappy/1.2.2@{{ org }}/vfx2026_9
+spdlog/*: spdlog/1.15.3@{{ org }}/vfx2026_9
+sqlite3/*: sqlite3/system@{{ org }}/vfx2026_9
+tcl/*: tcl/system@{{ org }}/vfx2026_9
+tk/*: tk/system@{{ org }}/vfx2026_9
+tsl-robin-map/*: tsl-robin-map/1.4.0@{{ org }}/vfx2026_9
+util-linux-libuuid/*: util-linux-libuuid/system@{{ org }}/vfx2026_9
+vorbis/*: vorbis/system@{{ org }}/vfx2026_9
+vulkan-headers/*: vulkan-headers/system@{{ org }}/vfx2026_9
+vulkan-loader/*: vulkan-loader/system@{{ org }}/vfx2026_9
+xkbcommon/*: xkbcommon/0.9.1@{{ org }}/vfx2026_9
+xorg/*: xorg/system@{{ org }}/vfx2026_9
+xorg-proto/*: xorg-proto/system@{{ org }}/vfx2026_9
+xz_utils/*: xz_utils/system@{{ org }}/vfx2026_9
+yaml-cpp/*: yaml-cpp/0.8.0@{{ org }}/vfx2026_9
+zlib/*: zlib/1.3.2@{{ org }}/vfx2026_9
+zstd/*: zstd/1.5.7@{{ org }}/vfx2026_9
 [replace_tool_requires]
 # common group packages
-cmake/*: cmake/4.0.6@{{ org }}/vfx2026
-ninja/*: ninja/1.13.2@{{ org }}/vfx2026
+cmake/*: cmake/4.0.6@{{ org }}/vfx2026_9
+ninja/*: ninja/1.13.2@{{ org }}/vfx2026_9
 # Other packages
-b2/*: b2/5.3.2@{{ org }}/vfx2026
+b2/*: b2/5.3.2@{{ org }}/vfx2026_9
 bison/*: bison/3.0.4@system
-cpython/*: cpython/3.13.17@{{ org }}/vfx2026
+cpython/*: cpython/3.13.17@{{ org }}/vfx2026_9
 flex/*: flex/2.6.1@system
 gperf/*: gperf/3.1@system
-ispc/*: ispc/1.31.0@{{ org }}/vfx2026
+ispc/*: ispc/1.31.0@{{ org }}/vfx2026_9
 libtool/*: libtool/2.4.6@system
-meson/*: meson/1.10.2@{{ org }}/vfx2026
-nasm/*: nasm/system@{{ org }}/vfx2026
+meson/*: meson/1.10.2@{{ org }}/vfx2026_9
+nasm/*: nasm/system@{{ org }}/vfx2026_9
 nodejs/*: nodejs/18.20.4@system
 pkgconf/*: pkgconf/1.4.2@system
-pyside/*: pyside/6.8.3@{{ org }}/vfx2026
-qt/*: qt/6.8.3@{{ org }}/vfx2026
+pyside/*: pyside/6.8.3@{{ org }}/vfx2026_9
+qt/*: qt/6.8.3@{{ org }}/vfx2026_9
 wayland/*: wayland/1.21.0@system
 wayland-protocols/*: wayland-protocols/1.25@system
 [platform_requires]
@@ -178,14 +178,14 @@ wayland-protocols/1.25
 [buildenv]
 GCC_INSTALL_DIR=/opt/rh/gcc-toolset-14/root/lib/gcc/x86_64-redhat-linux/14
 [conf]
-user.aswf:osl_clang_ref=clang/20.1.7@{{ org }}/vfx2026
-user.aswf:pyside_clang_ref=clang/19.1.7@{{ org }}/vfx2026
-user.aswf:ispc_clang_ref=clang/20.1.7@{{ org }}/vfx2026
-user.aswf:openimagedenoise_clang_ref=clang/20.1.7@{{ org }}/vfx2026
-user.aswf:openvdb_clang_ref=clang/20.1.7@{{ org }}/vfx2026
+user.aswf:osl_clang_ref=clang/20.1.7@{{ org }}/vfx2026_9
+user.aswf:pyside_clang_ref=clang/19.1.7@{{ org }}/vfx2026_9
+user.aswf:ispc_clang_ref=clang/20.1.7@{{ org }}/vfx2026_9
+user.aswf:openimagedenoise_clang_ref=clang/20.1.7@{{ org }}/vfx2026_9
+user.aswf:openvdb_clang_ref=clang/20.1.7@{{ org }}/vfx2026_9
 # mesa's swrast/llvmpipe driver must share one LLVM instance with
 # osl/openvdb/openimagedenoise in the same process (two different libLLVM
 # SONAMEs loaded together abort with "Option ... already exists!") -- alias
 # straight to osl's major version instead of adding a separate
 # ASWF_MESA_CLANG_MAJOR_VERSION key that could drift out of sync with it.
-user.aswf:mesa_clang_ref=clang/20.1.7@{{ org }}/vfx2026
+user.aswf:mesa_clang_ref=clang/20.1.7@{{ org }}/vfx2026_9

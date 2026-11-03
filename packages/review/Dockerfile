@@ -47,6 +47,7 @@ ARG ASWF_NUMPY_VERSION
 ARG ASWF_BOOST_VERSION
 ARG ASWF_ONETBB_VERSION
 ARG ASWF_PKG_ORG
+ARG ASWF_CONAN_PROFILE
 ARG ASWF_CONAN_CHANNEL
 ARG ASWF_VFXPLATFORM_VERSION
 
@@ -73,7 +74,7 @@ EOF
 RUN --mount=type=cache,target=/opt/conan_home/d \
     --mount=type=bind,rw,target=/opt/conan_home/.conan2,source=packages/conan/settings \
     conan install /usr/local \
-        --profile:all "${ASWF_CONAN_CHANNEL}" \
+        --profile:all "${ASWF_CONAN_PROFILE}" \
         --deployer aswf_deploy \
         --deployer-folder /usr/local
 
@@ -92,6 +93,7 @@ FROM ci-base-builder AS ci-openrv-builder
 ARG ASWF_OPENRV_VERSION
 ENV ASWF_OPENRV_VERSION=${ASWF_OPENRV_VERSION}
 ARG ASWF_PKG_ORG
+ARG ASWF_CONAN_PROFILE
 ARG ASWF_CONAN_CHANNEL
 ARG ASWF_VFXPLATFORM_VERSION
 ENV ASWF_VFXPLATFORM_VERSION=${ASWF_VFXPLATFORM_VERSION}
@@ -126,7 +128,7 @@ EOF
 RUN --mount=type=cache,target=/opt/conan_home/d \
     --mount=type=bind,rw,target=/opt/conan_home/.conan2,source=packages/conan/settings \
     conan install /usr/local \
-        --profile:all "${ASWF_CONAN_CHANNEL}" \
+        --profile:all "${ASWF_CONAN_PROFILE}" \
         --deployer aswf_deploy \
         --deployer-folder /usr/local
 
@@ -145,7 +147,7 @@ EOF
 RUN --mount=type=cache,target=/opt/conan_home/d \
     --mount=type=bind,rw,target=/opt/conan_home/.conan2,source=packages/conan/settings \
     conan install /tmp/qttemp \
-        --profile:all "${ASWF_CONAN_CHANNEL}" \
+        --profile:all "${ASWF_CONAN_PROFILE}" \
         --deployer aswf_deploy \
         --deployer-folder /tmp/qttemp
 

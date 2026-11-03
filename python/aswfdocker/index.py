@@ -34,9 +34,12 @@ class Index:
         self.per_clang_packages = set(self._versions.get("per_clang_packages", []))
         self._version_infos: typing.Dict[str, versioninfo.VersionInfo] = {}
         for version, v in self._versions["versions"].items():
+            if v.get("major_version") and not v.get("minor_version"):
+                raise RuntimeError(f"Version {version} has no minor_version")
             vi = versioninfo.VersionInfo(
                 version=version,
                 major_version=v.get("major_version"),
+                minor_version=v.get("minor_version"),
                 tags=v.get("tags", []),
                 legacy_common_version=v.get("legacy_common_version"),
                 package_versions=dict(v.get("package_versions", {})),
@@ -88,6 +91,7 @@ class Index:
             vi = versioninfo.VersionInfo(
                 version=f"{year.version}-clang{major}",
                 major_version=year.major_version,
+                minor_version=year.minor_version,
                 tags=year.tags if newest else [],
                 legacy_common_version=year.legacy_common_version,
                 package_versions={
@@ -113,12 +117,24 @@ class Index:
 
     def iter_versions(self, image_type: constants.ImageType, name: str):
         """
-        Iterates over all versions by image type and image name. A Conan
-        package is built for every year that pins its version, or for each
-        of those years' clang versions if it's one of per_clang_packages.
+        Iterates over all versions by image type and image name. An image
+        is built for every year's current release (see ci-images in
+        versions.yaml), e.g. "2027.4", or "2027-clang22.4" for each of the
+        year's clang versions. A Conan package is built for every year that
+        pins its version, or for each of those years' clang versions if it's
+        one of per_clang_packages.
         """
         if image_type == constants.ImageType.IMAGE:
-            yield from self._versions["ci-images"][name]
+            image = self._versions["ci-images"][name] or {}
+            excluded = image.get("exclude_versions", [])
+            for year in self.iter_years():
+                if year.version in excluded:
+                    continue
+                if image.get("per_clang"):
+                    for major in year.clang_versions:
+                        yield f"{year.version}-clang{major}.{year.minor_version}"
+                else:
+                    yield f"{year.version}.{year.minor_version}"
             return
         key = utils.package_version_key(name)
         for year in self.iter_years():

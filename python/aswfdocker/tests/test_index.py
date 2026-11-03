@@ -27,6 +27,51 @@ class TestIndex(unittest.TestCase):
         self.assertGreaterEqual(len(versions), 1)
         self.assertTrue(versions[0].startswith("2023."))
 
+    def test_image_versions_follow_year_releases(self):
+        years = list(self.index.iter_years())
+        # One "<year>.<minor>" version per year's current release...
+        self.assertEqual(
+            list(self.index.iter_versions(constants.ImageType.IMAGE, "base")),
+            [f"{y.version}.{y.minor_version}" for y in years],
+        )
+        # ...or one per clang version for per-clang images...
+        self.assertEqual(
+            list(self.index.iter_versions(constants.ImageType.IMAGE, "common")),
+            [
+                f"{y.version}-clang{major}.{y.minor_version}"
+                for y in years
+                for major in y.clang_versions
+            ],
+        )
+        # ...except for the years an image excludes.
+        self.assertNotIn(
+            "2023",
+            [
+                v.split(".")[0]
+                for v in self.index.iter_versions(constants.ImageType.IMAGE, "openrv")
+            ],
+        )
+
+    def test_every_image_is_in_a_group(self):
+        grouped = [
+            image
+            for images in self.index.groups[constants.ImageType.IMAGE].values()
+            for image in images
+        ]
+        self.assertEqual(
+            sorted(self.index.iter_images(constants.ImageType.IMAGE)), sorted(grouped)
+        )
+
+    def test_release_and_conan_channel(self):
+        year = self.index.version_info("2027")
+        self.assertEqual(year.release, f"2027.{year.minor_version}")
+        self.assertEqual(year.conan_channel, f"vfx2027_{year.minor_version}")
+        # A year's clang versions belong to the same release
+        for major in year.clang_versions:
+            vi = self.index.version_info(f"2027-clang{major}")
+            self.assertEqual(vi.release, year.release)
+            self.assertEqual(vi.conan_channel, year.conan_channel)
+
     def test_package_versions_follow_year_pins(self):
         # Built for every year that pins a version for it...
         self.assertEqual(

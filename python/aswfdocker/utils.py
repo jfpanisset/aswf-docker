@@ -13,7 +13,7 @@ import logging
 import typing
 import requests
 
-from aswfdocker import constants
+from aswfdocker import constants, versioninfo
 
 logger = logging.getLogger(__name__)
 
@@ -165,19 +165,22 @@ def package_version_key(package_name: str) -> str:
 
 
 def common_conan_bake_args(
-    docker_org: str, package_org: str, major_version: str, channel: str
+    docker_org: str, package_org: str, version_info: versioninfo.VersionInfo
 ) -> typing.Dict[str, str]:
     """The subset of packages/common/Dockerfile build ARGs needed by every
     bake target built from it, whether a real `conan create` package build
     (builder.py) or the read-only dependency-graph grapher (buildorder.py).
-    `major_version` is the VFX Platform year, whose ci-baseos-gl-conan image
-    packages are built in.
+    Packages are built in the ci-baseos-gl-conan image of the VFX Platform
+    release (year and minor version) `version_info` belongs to, in its
+    Conan channel and with its year's Conan profile.
     """
     return {
         "ASWF_ORG": docker_org,
         "ASWF_PKG_ORG": package_org,
-        "ASWF_VFXPLATFORM_VERSION": major_version,
-        "ASWF_CONAN_CHANNEL": channel,
+        "ASWF_VFXPLATFORM_VERSION": version_info.major_version,
+        "ASWF_VFXPLATFORM_MINOR_VERSION": str(version_info.minor_version),
+        "ASWF_CONAN_PROFILE": str(version_info.conan_profile),
+        "ASWF_CONAN_CHANNEL": version_info.conan_channel,
         "ASWF_CONAN_HOME": constants.ASWF_CONAN_HOME,
     }
 

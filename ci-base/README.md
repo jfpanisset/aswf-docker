@@ -17,7 +17,7 @@ Contains: Python, TBB, Boost and other base libraries
 
 [Docker Image Source](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/ci-base/Dockerfile)
 
-## [aswf/ci-base:2023.7](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2023.7)
+## [aswf/ci-base:2023.8](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2023.8)
 
 Contains:
 * b2-5.2.1
@@ -55,7 +55,7 @@ Contains:
 * numpy-1.23.5
 * vfxplatform-2023
 
-## [aswf/ci-base:2024.11](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2024.11)
+## [aswf/ci-base:2024.12](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2024.12)
 
 Contains:
 * b2-5.2.1
@@ -93,7 +93,7 @@ Contains:
 * numpy-1.24.3
 * vfxplatform-2024
 
-## [aswf/ci-base:2025.10](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2025.10)
+## [aswf/ci-base:2025.11](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2025.11)
 
 Contains:
 * b2-5.2.1
@@ -131,7 +131,7 @@ Contains:
 * numpy-1.26.4
 * vfxplatform-2025
 
-## [aswf/ci-base:2026.8](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2026.8)
+## [aswf/ci-base:2026.9](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2026.9)
 
 Contains:
 * b2-5.3.2
@@ -169,7 +169,7 @@ Contains:
 * numpy-2.3.2
 * vfxplatform-2026
 
-## [aswf/ci-base:2027.3](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2027.3)
+## [aswf/ci-base:2027.4](https://hub.docker.com/r/aswf/ci-base/tags?page=1&name=2027.4)
 
 Contains:
 * b2-5.5.3

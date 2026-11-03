@@ -76,7 +76,7 @@ class Builder:
                 # tags may not make much sense for Conan packages
                 tags = [
                     f"{constants.DOCKER_REGISTRY}/{self.build_info.docker_org}"
-                    + f"/ci-baseos-gl-conan:{major_version}"
+                    + f"/ci-baseos-gl-conan:{version_info.release}"
                 ]
                 docker_file = constants.CONAN_PACKAGE_DOCKERFILE
             else:
@@ -86,8 +86,7 @@ class Builder:
             args = utils.common_conan_bake_args(
                 self.build_info.docker_org,
                 self.build_info.package_org,
-                version_info.major_version,
-                version_info.conan_profile,
+                version_info,
             )
             args["ASWF_VERSION"] = version
             # Both package builds (conan create) and image builds (conan
@@ -285,7 +284,7 @@ class Builder:
             versions = dict(pairs)
             version_info = self.index.version_info(pass_version)
             year_done = done.setdefault(version_info.major_version, set())
-            channel = version_info.conan_profile
+            channel = version_info.conan_channel
             members = [
                 (
                     image,
@@ -301,8 +300,7 @@ class Builder:
                 repo_root,
                 self.build_info.docker_org,
                 self.build_info.package_org,
-                version_info.major_version,
-                channel,
+                version_info,
                 members,
                 conan_remote=self.conan_remote,
             )

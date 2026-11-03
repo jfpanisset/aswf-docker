@@ -38,9 +38,12 @@ aswf-docker/
 ### Key Concepts
 
 - **versions.yaml**: Central version registry with one section per VFX Platform
-  year (e.g. `2027`) holding all its pins, toolchain included. A
-  `<year>-clang<N>` version (e.g. `2027-clang22`) is derived from each of the
-  year's `clang_versions`, for per-clang images and `per_clang_packages`.
+  year (e.g. `2027`) holding all its pins, toolchain included, and its
+  current release's `minor_version`. A `<year>-clang<N>` version (e.g.
+  `2027-clang22`) is derived from each of the year's `clang_versions`, for
+  per-clang images and `per_clang_packages`.
+- **ci-images** (in versions.yaml): every image, built for each year's release
+  as `<year>.<minor>` (or `<year>-clang<N>.<minor>` when `per_clang`).
 - **image.yaml**: Per-image specs listing packages, base image, and metadata.
 - **Dockerfiles and Conan profiles are generated**: From Jinja2 templates via
   `aswfdocker dockergen`. Never edit `ci-*/Dockerfile`, `ci-*/README.md`, or
@@ -133,7 +136,9 @@ uv run aswfdocker dockergen --check
 ### Docker Images
 
 - Image names: `ci-{name}` (e.g., `ci-base`, `ci-openexr`)
-- Tags: `{major_version}` or `{major_version}-clang{N}` (e.g., `2026-clang20`);
+- Tags: `{major_version}` and `{major_version}.{minor_version}`, or
+  `{major_version}-clang{N}` and `{major_version}-clang{N}.{minor_version}`
+  (e.g., `2026-clang20.9`);
   `ci-common`/`ci-baseos-gl-conan` for 2023-2027 also keep their legacy
   `{legacy_common_version}` tags (e.g., `6-clang20`)
 - Docker orgs: `aswf` (production), `aswftesting` (testing), `aswflocaltesting` (local)
@@ -145,7 +150,11 @@ uv run aswfdocker dockergen --check
 - Each year's `<year>-clang<N>` versions (e.g., `2026-clang20`) inherit all of
   the year's pins, overriding only the clang version
 - `--version 2026` also selects every `2026-clang<N>` version; Conan packages
-  are built for every year pinning their version, in the `vfx<year>` channel
+  are built for every year pinning their version, in the release's
+  `vfx<year>_<minor>` channel (e.g. `vfx2027_4`), inside the
+  `ci-baseos-gl-conan:<year>.<minor>` image
+- Bumping a year's `minor_version` starts a new release: none of the previous
+  release's Conan packages are reused
 - The `major_version` field maps to VFX Platform years
 
 ## CI/CD Workflows

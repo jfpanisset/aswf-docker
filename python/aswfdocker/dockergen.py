@@ -72,7 +72,7 @@ class ConanProfileGen:
         return {
             "versions": self.version_info.all_package_versions,
             "distro_versions": distro_versions,
-            "conan_profile": self.version_info.conan_profile,
+            "conan_channel": self.version_info.conan_channel,
             "clang_versions": self.version_info.clang_versions,
         }
 

@@ -18,35 +18,35 @@ Warning: this image does *not* contain OpenEXR itself as it is used to *build* O
 
 [Docker Image Source](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/ci-openexr/Dockerfile)
 
-## [aswf/ci-openexr:2023.7](https://hub.docker.com/r/aswf/ci-openexr/tags?page=1&name=2023.7)
+## [aswf/ci-openexr:2023.8](https://hub.docker.com/r/aswf/ci-openexr/tags?page=1&name=2023.8)
 
 Contains:
 * openexr-3.1.13
 * numpy-1.23.5
 * vfxplatform-2023
 
-## [aswf/ci-openexr:2024.11](https://hub.docker.com/r/aswf/ci-openexr/tags?page=1&name=2024.11)
+## [aswf/ci-openexr:2024.12](https://hub.docker.com/r/aswf/ci-openexr/tags?page=1&name=2024.12)
 
 Contains:
 * openexr-3.2.12
 * numpy-1.24.3
 * vfxplatform-2024
 
-## [aswf/ci-openexr:2025.10](https://hub.docker.com/r/aswf/ci-openexr/tags?page=1&name=2025.10)
+## [aswf/ci-openexr:2025.11](https://hub.docker.com/r/aswf/ci-openexr/tags?page=1&name=2025.11)
 
 Contains:
 * openexr-3.3.14
 * numpy-1.26.4
 * vfxplatform-2025
 
-## [aswf/ci-openexr:2026.8](https://hub.docker.com/r/aswf/ci-openexr/tags?page=1&name=2026.8)
+## [aswf/ci-openexr:2026.9](https://hub.docker.com/r/aswf/ci-openexr/tags?page=1&name=2026.9)
 
 Contains:
 * openexr-3.4.16
 * numpy-2.3.2
 * vfxplatform-2026
 
-## [aswf/ci-openexr:2027.3](https://hub.docker.com/r/aswf/ci-openexr/tags?page=1&name=2027.3)
+## [aswf/ci-openexr:2027.4](https://hub.docker.com/r/aswf/ci-openexr/tags?page=1&name=2027.4)
 
 Contains:
 * openexr-3.5.2

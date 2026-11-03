@@ -22,9 +22,11 @@ class VersionInfo:
         package_versions: typing.Dict[str, str],
         use_major_version_as_tag=True,
         legacy_common_version: typing.Optional[str] = None,
+        minor_version: typing.Optional[str] = None,
     ):
         self.version = version
         self.major_version = major_version
+        self.minor_version = minor_version
         self.legacy_common_version = legacy_common_version
         self.tags = tags
         self.parent_versions = parent_versions
@@ -38,6 +40,19 @@ class VersionInfo:
         # ...or, for a "<year>-clang<major>" version derived from one of
         # them, that major version.
         self.clang_major_version: typing.Optional[str] = None
+
+    @property
+    def release(self) -> str:
+        """The VFX Platform release, e.g. "2027.4": the
+        ci-baseos-gl-conan image tag Conan packages are built in."""
+        return f"{self.major_version}.{self.minor_version}"
+
+    @property
+    def conan_channel(self) -> str:
+        """The release's Conan channel, e.g. "vfx2027_4" (Conan warns about
+        dots in channels), so that a release never reuses packages built
+        for a previous one."""
+        return f"{self.conan_profile}_{self.minor_version}"
 
     def get_tags(
         self,

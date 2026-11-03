@@ -17,150 +17,150 @@ build_type=Release
 [tool_requires]
 [replace_requires]
 # common group packages
-openssl/*: openssl/1.1.1k@{{ org }}/vfx2025
-gnutls/*: gnutls/3.6.16@{{ org }}/vfx2025
-ninja/*: ninja/1.13.2@{{ org }}/vfx2025
+openssl/*: openssl/1.1.1k@{{ org }}/vfx2025_11
+gnutls/*: gnutls/3.6.16@{{ org }}/vfx2025_11
+ninja/*: ninja/1.13.2@{{ org }}/vfx2025_11
 # Other packages
-aces_container/*: aces_container/1.0.2@{{ org }}/vfx2025
-alembic/*: alembic/1.8.8@{{ org }}/vfx2025
-boost/*: boost/1.85.0@{{ org }}/vfx2025
-brotli/*: brotli/system@{{ org }}/vfx2025
-bzip2/*: bzip2/1.0.8@{{ org }}/vfx2025
-c-blosc/*: c-blosc/1.21.6@{{ org }}/vfx2025
-ceres-solver/*: ceres-solver/2.2.0@{{ org }}/vfx2025
-cimg/*: cimg/3.3.2@{{ org }}/vfx2025
-cppunit/*: cppunit/1.15.1@{{ org }}/vfx2025
-cpython/*: cpython/3.11.17@{{ org }}/vfx2025
-dbus/*: dbus/system@{{ org }}/vfx2025
-double-conversion/*: double-conversion/system@{{ org }}/vfx2025
-eigen/*: eigen/3.4.1@{{ org }}/vfx2025
-embree/*: embree/4.3.3@{{ org }}/vfx2025
-expat/*: expat/2.6.4@{{ org }}/vfx2025
-fmt/*: fmt/11.2.0@{{ org }}/vfx2025
-fontconfig/*: fontconfig/system@{{ org }}/vfx2025
-freetype/*: freetype/2.13.2@{{ org }}/vfx2025
-gdbm/*: gdbm/system@{{ org }}/vfx2025
-giflib/*: giflib/5.1.4@{{ org }}/vfx2025
-glew/*: glew/2.2.0@{{ org }}/vfx2025
-glfw/*: glfw/3.4@{{ org }}/vfx2025
-glu/*: glu/system@{{ org }}/vfx2025
-glib/*: glib/2.56.4@{{ org }}/vfx2025
-gtest/*: gtest/1.15.2@{{ org }}/vfx2025
-harfbuzz/*: harfbuzz/11.0.1@{{ org }}/vfx2025
-hdf5/*: hdf5/1.14.6@{{ org }}/vfx2025
-highway/*: highway/1.2.0@{{ org }}/vfx2025
-icu/*: icu/system@{{ org }}/vfx2025
-imath/*: imath/3.1.12@{{ org }}/vfx2025
-ispc/*: ispc/1.26.0@{{ org }}/vfx2025
-jasper/*: jasper/4.2.5@{{ org }}/vfx2025
-jsoncpp/*: jsoncpp/1.9.5@{{ org }}/vfx2025
-lcms/*: lcms/2.17@{{ org }}/vfx2025
-lensfun/*: lensfun/0.3.4@{{ org }}/vfx2025
-libalsa/*: libalsa/system@{{ org }}/vfx2025
-libcgroup/*: libcgroup/0.42.2@{{ org }}/vfx2025
-libaom-av1/*: libaom-av1/system@{{ org }}/vfx2025
-libbacktrace/*: libbacktrace/cci.20210118@{{ org }}/vfx2025
-libdeflate/*: libdeflate/1.23@{{ org }}/vfx2025
-libdrm/*: libdrm/2.4.115@{{ org }}/vfx2025
-libffi/*: libffi/system@{{ org }}/vfx2025
-libiconv/*: libiconv/1.17@{{ org }}/vfx2025
-libjpeg-turbo/*: libjpeg-turbo/3.0.4@{{ org }}/vfx2025
-libjxl/*: libjxl/0.11.1@{{ org }}/vfx2025
-libmp3lame/*: libmp3lame/system@{{ org }}/vfx2025
-libmicrohttpd/*: libmicrohttpd/0.9.72@{{ org }}/vfx2025
-libpng/*: libpng/1.6.34@{{ org }}/vfx2025
-libraw/*: libraw/0.21.4@{{ org }}/vfx2025
-libsndfile/*: libsndfile/system@{{ org }}/vfx2025
-libsquish/*: libsquish/system@{{ org }}/vfx2025
-libsvtav1/*: libsvtav1/system@{{ org }}/vfx2025
-libtiff/*: libtiff/4.0.9@{{ org }}/vfx2025
-libultrahdr/*: libultrahdr/1.4.0@{{ org }}/vfx2025
-libvpx/*: libvpx/system@{{ org }}/vfx2025
-libwebp/*: libwebp/1.5.0@{{ org }}/vfx2025
-libxcrypt/*: libxcrypt/4.4.36@{{ org }}/vfx2025
-libxshmfence/*: libxshmfence/system@{{ org }}/vfx2025
-log4cplus/*: log4cplus/2.1.2@{{ org }}/vfx2025
-lua/*: lua/5.4.4@{{ org }}/vfx2025
-lz4/*: lz4/1.10.0@{{ org }}/vfx2025
-materialx/*: materialx/1.39.3@{{ org }}/vfx2025
-md4c/*: md4c/0.4.8@{{ org }}/vfx2025
-mesa/*: mesa/23.1.4@{{ org }}/vfx2025
-minizip-ng/*: minizip-ng/4.0.10@{{ org }}/vfx2025
-moonray/*: moonray/3.6.0.1@{{ org }}/vfx2025
-mpdecimal/*: mpdecimal/system@{{ org }}/vfx2025
-mpg123/*: mpg123/system@{{ org }}/vfx2025
-nanobind/*: nanobind/2.11.0@{{ org }}/vfx2025
-nlohmann_json/*: nlohmann_json/3.12.0@{{ org }}/vfx2025
-nspr/*: nspr/system@{{ org }}/vfx2025
-nss/*: nss/3.124.0@{{ org }}/vfx2025
-ogg/*: ogg/system@{{ org }}/vfx2025
-onetbb/*: onetbb/2021.13.0@{{ org }}/vfx2025
-openal-soft/*: openal-soft/system@{{ org }}/vfx2025
-opencl-headers/*: opencl-headers/system@{{ org }}/vfx2025
-opencl-icd-loader/*: opencl-icd-loader/system@{{ org }}/vfx2025
-opencolorio/*: opencolorio/2.4.2@{{ org }}/vfx2025
-opencue/*: opencue/1.13.8@{{ org }}/vfx2025
-openexr/*: openexr/3.3.14@{{ org }}/vfx2025
-openfx/*: openfx/1.5s@{{ org }}/vfx2025
-opengl/*: opengl/system@{{ org }}/vfx2025
-openimagedenoise/*: openimagedenoise/2.3.3@{{ org }}/vfx2025
-openimageio/*: openimageio/3.1.6.2@{{ org }}/vfx2025
-openjpeg/*: openjpeg/2.4.0@{{ org }}/vfx2025
-openjph/*: openjph/0.32.0@{{ org }}/vfx2025
-opensubdiv/*: opensubdiv/3.6.1@{{ org }}/vfx2025
-opentimelineio/*: opentimelineio/0.17.0@{{ org }}/vfx2025
-openusd/*: openusd/25.05.01@{{ org }}/vfx2025
-openvdb/*: openvdb/12.1.1@{{ org }}/vfx2025
-opus/*: opus/system@{{ org }}/vfx2025
-osl/*: osl/1.14.12.0@{{ org }}/vfx2025
-partio/*: partio/1.19.0@{{ org }}/vfx2025
-pcre2/*: pcre2/system@{{ org }}/vfx2025
-ptex/*: ptex/2.4.3@{{ org }}/vfx2025
-pugixml/*: pugixml/1.14@{{ org }}/vfx2025
-pulseaudio/*: pulseaudio/system@{{ org }}/vfx2025
-pybind11/*: pybind11/2.13.6@{{ org }}/vfx2025
-pyside/*: pyside/6.5.6@{{ org }}/vfx2025
-pystring/*: pystring/1.1.4@{{ org }}/vfx2025
-qt/*: qt/6.5.6@{{ org }}/vfx2025
-random123/*: random123/1.14.0@{{ org }}/vfx2025
-rapidjson/*: rapidjson/cci.20250205@{{ org }}/vfx2025
-rawtoaces/*: rawtoaces/2.1.1@{{ org }}/vfx2025
-rez/*: rez/3.4.0@{{ org }}/vfx2025
-snappy/*: snappy/1.1.10@{{ org }}/vfx2025
-spdlog/*: spdlog/1.15.3@{{ org }}/vfx2025
-sqlite3/*: sqlite3/system@{{ org }}/vfx2025
-tcl/*: tcl/system@{{ org }}/vfx2025
-tk/*: tk/system@{{ org }}/vfx2025
-tsl-robin-map/*: tsl-robin-map/1.3.0@{{ org }}/vfx2025
-util-linux-libuuid/*: util-linux-libuuid/system@{{ org }}/vfx2025
-vorbis/*: vorbis/system@{{ org }}/vfx2025
-vulkan-headers/*: vulkan-headers/system@{{ org }}/vfx2025
-vulkan-loader/*: vulkan-loader/system@{{ org }}/vfx2025
-xkbcommon/*: xkbcommon/0.9.1@{{ org }}/vfx2025
-xorg/*: xorg/system@{{ org }}/vfx2025
-xorg-proto/*: xorg-proto/system@{{ org }}/vfx2025
-xz_utils/*: xz_utils/system@{{ org }}/vfx2025
-yaml-cpp/*: yaml-cpp/0.8.0@{{ org }}/vfx2025
-zlib/*: zlib/1.3.2@{{ org }}/vfx2025
-zstd/*: zstd/1.5.6@{{ org }}/vfx2025
+aces_container/*: aces_container/1.0.2@{{ org }}/vfx2025_11
+alembic/*: alembic/1.8.8@{{ org }}/vfx2025_11
+boost/*: boost/1.85.0@{{ org }}/vfx2025_11
+brotli/*: brotli/system@{{ org }}/vfx2025_11
+bzip2/*: bzip2/1.0.8@{{ org }}/vfx2025_11
+c-blosc/*: c-blosc/1.21.6@{{ org }}/vfx2025_11
+ceres-solver/*: ceres-solver/2.2.0@{{ org }}/vfx2025_11
+cimg/*: cimg/3.3.2@{{ org }}/vfx2025_11
+cppunit/*: cppunit/1.15.1@{{ org }}/vfx2025_11
+cpython/*: cpython/3.11.17@{{ org }}/vfx2025_11
+dbus/*: dbus/system@{{ org }}/vfx2025_11
+double-conversion/*: double-conversion/system@{{ org }}/vfx2025_11
+eigen/*: eigen/3.4.1@{{ org }}/vfx2025_11
+embree/*: embree/4.3.3@{{ org }}/vfx2025_11
+expat/*: expat/2.6.4@{{ org }}/vfx2025_11
+fmt/*: fmt/11.2.0@{{ org }}/vfx2025_11
+fontconfig/*: fontconfig/system@{{ org }}/vfx2025_11
+freetype/*: freetype/2.13.2@{{ org }}/vfx2025_11
+gdbm/*: gdbm/system@{{ org }}/vfx2025_11
+giflib/*: giflib/5.1.4@{{ org }}/vfx2025_11
+glew/*: glew/2.2.0@{{ org }}/vfx2025_11
+glfw/*: glfw/3.4@{{ org }}/vfx2025_11
+glu/*: glu/system@{{ org }}/vfx2025_11
+glib/*: glib/2.56.4@{{ org }}/vfx2025_11
+gtest/*: gtest/1.15.2@{{ org }}/vfx2025_11
+harfbuzz/*: harfbuzz/11.0.1@{{ org }}/vfx2025_11
+hdf5/*: hdf5/1.14.6@{{ org }}/vfx2025_11
+highway/*: highway/1.2.0@{{ org }}/vfx2025_11
+icu/*: icu/system@{{ org }}/vfx2025_11
+imath/*: imath/3.1.12@{{ org }}/vfx2025_11
+ispc/*: ispc/1.26.0@{{ org }}/vfx2025_11
+jasper/*: jasper/4.2.5@{{ org }}/vfx2025_11
+jsoncpp/*: jsoncpp/1.9.5@{{ org }}/vfx2025_11
+lcms/*: lcms/2.17@{{ org }}/vfx2025_11
+lensfun/*: lensfun/0.3.4@{{ org }}/vfx2025_11
+libalsa/*: libalsa/system@{{ org }}/vfx2025_11
+libcgroup/*: libcgroup/0.42.2@{{ org }}/vfx2025_11
+libaom-av1/*: libaom-av1/system@{{ org }}/vfx2025_11
+libbacktrace/*: libbacktrace/cci.20210118@{{ org }}/vfx2025_11
+libdeflate/*: libdeflate/1.23@{{ org }}/vfx2025_11
+libdrm/*: libdrm/2.4.115@{{ org }}/vfx2025_11
+libffi/*: libffi/system@{{ org }}/vfx2025_11
+libiconv/*: libiconv/1.17@{{ org }}/vfx2025_11
+libjpeg-turbo/*: libjpeg-turbo/3.0.4@{{ org }}/vfx2025_11
+libjxl/*: libjxl/0.11.1@{{ org }}/vfx2025_11
+libmp3lame/*: libmp3lame/system@{{ org }}/vfx2025_11
+libmicrohttpd/*: libmicrohttpd/0.9.72@{{ org }}/vfx2025_11
+libpng/*: libpng/1.6.34@{{ org }}/vfx2025_11
+libraw/*: libraw/0.21.4@{{ org }}/vfx2025_11
+libsndfile/*: libsndfile/system@{{ org }}/vfx2025_11
+libsquish/*: libsquish/system@{{ org }}/vfx2025_11
+libsvtav1/*: libsvtav1/system@{{ org }}/vfx2025_11
+libtiff/*: libtiff/4.0.9@{{ org }}/vfx2025_11
+libultrahdr/*: libultrahdr/1.4.0@{{ org }}/vfx2025_11
+libvpx/*: libvpx/system@{{ org }}/vfx2025_11
+libwebp/*: libwebp/1.5.0@{{ org }}/vfx2025_11
+libxcrypt/*: libxcrypt/4.4.36@{{ org }}/vfx2025_11
+libxshmfence/*: libxshmfence/system@{{ org }}/vfx2025_11
+log4cplus/*: log4cplus/2.1.2@{{ org }}/vfx2025_11
+lua/*: lua/5.4.4@{{ org }}/vfx2025_11
+lz4/*: lz4/1.10.0@{{ org }}/vfx2025_11
+materialx/*: materialx/1.39.3@{{ org }}/vfx2025_11
+md4c/*: md4c/0.4.8@{{ org }}/vfx2025_11
+mesa/*: mesa/23.1.4@{{ org }}/vfx2025_11
+minizip-ng/*: minizip-ng/4.0.10@{{ org }}/vfx2025_11
+moonray/*: moonray/3.6.0.1@{{ org }}/vfx2025_11
+mpdecimal/*: mpdecimal/system@{{ org }}/vfx2025_11
+mpg123/*: mpg123/system@{{ org }}/vfx2025_11
+nanobind/*: nanobind/2.11.0@{{ org }}/vfx2025_11
+nlohmann_json/*: nlohmann_json/3.12.0@{{ org }}/vfx2025_11
+nspr/*: nspr/system@{{ org }}/vfx2025_11
+nss/*: nss/3.124.0@{{ org }}/vfx2025_11
+ogg/*: ogg/system@{{ org }}/vfx2025_11
+onetbb/*: onetbb/2021.13.0@{{ org }}/vfx2025_11
+openal-soft/*: openal-soft/system@{{ org }}/vfx2025_11
+opencl-headers/*: opencl-headers/system@{{ org }}/vfx2025_11
+opencl-icd-loader/*: opencl-icd-loader/system@{{ org }}/vfx2025_11
+opencolorio/*: opencolorio/2.4.2@{{ org }}/vfx2025_11
+opencue/*: opencue/1.13.8@{{ org }}/vfx2025_11
+openexr/*: openexr/3.3.14@{{ org }}/vfx2025_11
+openfx/*: openfx/1.5s@{{ org }}/vfx2025_11
+opengl/*: opengl/system@{{ org }}/vfx2025_11
+openimagedenoise/*: openimagedenoise/2.3.3@{{ org }}/vfx2025_11
+openimageio/*: openimageio/3.1.6.2@{{ org }}/vfx2025_11
+openjpeg/*: openjpeg/2.4.0@{{ org }}/vfx2025_11
+openjph/*: openjph/0.32.0@{{ org }}/vfx2025_11
+opensubdiv/*: opensubdiv/3.6.1@{{ org }}/vfx2025_11
+opentimelineio/*: opentimelineio/0.17.0@{{ org }}/vfx2025_11
+openusd/*: openusd/25.05.01@{{ org }}/vfx2025_11
+openvdb/*: openvdb/12.1.1@{{ org }}/vfx2025_11
+opus/*: opus/system@{{ org }}/vfx2025_11
+osl/*: osl/1.14.12.0@{{ org }}/vfx2025_11
+partio/*: partio/1.19.0@{{ org }}/vfx2025_11
+pcre2/*: pcre2/system@{{ org }}/vfx2025_11
+ptex/*: ptex/2.4.3@{{ org }}/vfx2025_11
+pugixml/*: pugixml/1.14@{{ org }}/vfx2025_11
+pulseaudio/*: pulseaudio/system@{{ org }}/vfx2025_11
+pybind11/*: pybind11/2.13.6@{{ org }}/vfx2025_11
+pyside/*: pyside/6.5.6@{{ org }}/vfx2025_11
+pystring/*: pystring/1.1.4@{{ org }}/vfx2025_11
+qt/*: qt/6.5.6@{{ org }}/vfx2025_11
+random123/*: random123/1.14.0@{{ org }}/vfx2025_11
+rapidjson/*: rapidjson/cci.20250205@{{ org }}/vfx2025_11
+rawtoaces/*: rawtoaces/2.1.1@{{ org }}/vfx2025_11
+rez/*: rez/3.4.0@{{ org }}/vfx2025_11
+snappy/*: snappy/1.1.10@{{ org }}/vfx2025_11
+spdlog/*: spdlog/1.15.3@{{ org }}/vfx2025_11
+sqlite3/*: sqlite3/system@{{ org }}/vfx2025_11
+tcl/*: tcl/system@{{ org }}/vfx2025_11
+tk/*: tk/system@{{ org }}/vfx2025_11
+tsl-robin-map/*: tsl-robin-map/1.3.0@{{ org }}/vfx2025_11
+util-linux-libuuid/*: util-linux-libuuid/system@{{ org }}/vfx2025_11
+vorbis/*: vorbis/system@{{ org }}/vfx2025_11
+vulkan-headers/*: vulkan-headers/system@{{ org }}/vfx2025_11
+vulkan-loader/*: vulkan-loader/system@{{ org }}/vfx2025_11
+xkbcommon/*: xkbcommon/0.9.1@{{ org }}/vfx2025_11
+xorg/*: xorg/system@{{ org }}/vfx2025_11
+xorg-proto/*: xorg-proto/system@{{ org }}/vfx2025_11
+xz_utils/*: xz_utils/system@{{ org }}/vfx2025_11
+yaml-cpp/*: yaml-cpp/0.8.0@{{ org }}/vfx2025_11
+zlib/*: zlib/1.3.2@{{ org }}/vfx2025_11
+zstd/*: zstd/1.5.6@{{ org }}/vfx2025_11
 [replace_tool_requires]
 # common group packages
-cmake/*: cmake/3.31.11@{{ org }}/vfx2025
-ninja/*: ninja/1.13.2@{{ org }}/vfx2025
+cmake/*: cmake/3.31.11@{{ org }}/vfx2025_11
+ninja/*: ninja/1.13.2@{{ org }}/vfx2025_11
 # Other packages
-b2/*: b2/5.2.1@{{ org }}/vfx2025
+b2/*: b2/5.2.1@{{ org }}/vfx2025_11
 bison/*: bison/3.0.4@system
-cpython/*: cpython/3.11.17@{{ org }}/vfx2025
+cpython/*: cpython/3.11.17@{{ org }}/vfx2025_11
 flex/*: flex/2.6.1@system
 gperf/*: gperf/3.1@system
-ispc/*: ispc/1.26.0@{{ org }}/vfx2025
+ispc/*: ispc/1.26.0@{{ org }}/vfx2025_11
 libtool/*: libtool/2.4.6@system
-meson/*: meson/1.10.2@{{ org }}/vfx2025
-nasm/*: nasm/system@{{ org }}/vfx2025
+meson/*: meson/1.10.2@{{ org }}/vfx2025_11
+nasm/*: nasm/system@{{ org }}/vfx2025_11
 nodejs/*: nodejs/18.20.4@system
 pkgconf/*: pkgconf/1.4.2@system
-pyside/*: pyside/6.5.6@{{ org }}/vfx2025
-qt/*: qt/6.5.6@{{ org }}/vfx2025
+pyside/*: pyside/6.5.6@{{ org }}/vfx2025_11
+qt/*: qt/6.5.6@{{ org }}/vfx2025_11
 wayland/*: wayland/1.21.0@system
 wayland-protocols/*: wayland-protocols/1.25@system
 [platform_requires]
@@ -176,14 +176,14 @@ wayland-protocols/1.25
 [buildenv]
 GCC_INSTALL_DIR=/opt/rh/gcc-toolset-11/root/lib/gcc/x86_64-redhat-linux/11
 [conf]
-user.aswf:osl_clang_ref=clang/18.1.8@{{ org }}/vfx2025
-user.aswf:pyside_clang_ref=clang/18.1.8@{{ org }}/vfx2025
-user.aswf:ispc_clang_ref=clang/18.1.8@{{ org }}/vfx2025
-user.aswf:openimagedenoise_clang_ref=clang/18.1.8@{{ org }}/vfx2025
-user.aswf:openvdb_clang_ref=clang/18.1.8@{{ org }}/vfx2025
+user.aswf:osl_clang_ref=clang/18.1.8@{{ org }}/vfx2025_11
+user.aswf:pyside_clang_ref=clang/18.1.8@{{ org }}/vfx2025_11
+user.aswf:ispc_clang_ref=clang/18.1.8@{{ org }}/vfx2025_11
+user.aswf:openimagedenoise_clang_ref=clang/18.1.8@{{ org }}/vfx2025_11
+user.aswf:openvdb_clang_ref=clang/18.1.8@{{ org }}/vfx2025_11
 # mesa's swrast/llvmpipe driver must share one LLVM instance with
 # osl/openvdb/openimagedenoise in the same process (two different libLLVM
 # SONAMEs loaded together abort with "Option ... already exists!") -- alias
 # straight to osl's major version instead of adding a separate
 # ASWF_MESA_CLANG_MAJOR_VERSION key that could drift out of sync with it.
-user.aswf:mesa_clang_ref=clang/18.1.8@{{ org }}/vfx2025
+user.aswf:mesa_clang_ref=clang/18.1.8@{{ org }}/vfx2025_11

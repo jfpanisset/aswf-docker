@@ -17,7 +17,7 @@ Contains: all supported VFX packages
 
 [Docker Image Source](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/ci-vfxall/Dockerfile)
 
-## [aswf/ci-vfxall:2023-clang14.7](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2023-clang14.7)
+## [aswf/ci-vfxall:2023-clang14.8](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2023-clang14.8)
 
 Contains:
 * cppunit-1.15.1
@@ -47,7 +47,7 @@ Contains:
 * vfxplatform-2023
 * rez-3.4.0
 
-## [aswf/ci-vfxall:2023-clang15.7](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2023-clang15.7)
+## [aswf/ci-vfxall:2023-clang15.8](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2023-clang15.8)
 
 Contains:
 * cppunit-1.15.1
@@ -77,7 +77,7 @@ Contains:
 * vfxplatform-2023
 * rez-3.4.0
 
-## [aswf/ci-vfxall:2024-clang16.11](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2024-clang16.11)
+## [aswf/ci-vfxall:2024-clang16.12](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2024-clang16.12)
 
 Contains:
 * cppunit-1.15.1
@@ -107,7 +107,7 @@ Contains:
 * vfxplatform-2024
 * rez-3.4.0
 
-## [aswf/ci-vfxall:2024-clang17.11](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2024-clang17.11)
+## [aswf/ci-vfxall:2024-clang17.12](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2024-clang17.12)
 
 Contains:
 * cppunit-1.15.1
@@ -137,7 +137,7 @@ Contains:
 * vfxplatform-2024
 * rez-3.4.0
 
-## [aswf/ci-vfxall:2025-clang18.10](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2025-clang18.10)
+## [aswf/ci-vfxall:2025-clang18.11](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2025-clang18.11)
 
 Contains:
 * cppunit-1.15.1
@@ -167,7 +167,7 @@ Contains:
 * vfxplatform-2025
 * rez-3.4.0
 
-## [aswf/ci-vfxall:2025-clang19.10](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2025-clang19.10)
+## [aswf/ci-vfxall:2025-clang19.11](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2025-clang19.11)
 
 Contains:
 * cppunit-1.15.1
@@ -197,7 +197,7 @@ Contains:
 * vfxplatform-2025
 * rez-3.4.0
 
-## [aswf/ci-vfxall:2026-clang19.8](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2026-clang19.8)
+## [aswf/ci-vfxall:2026-clang19.9](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2026-clang19.9)
 
 Contains:
 * cppunit-1.15.1
@@ -227,7 +227,7 @@ Contains:
 * vfxplatform-2026
 * rez-3.4.0
 
-## [aswf/ci-vfxall:2026-clang20.8](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2026-clang20.8)
+## [aswf/ci-vfxall:2026-clang20.9](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2026-clang20.9)
 
 Contains:
 * cppunit-1.15.1
@@ -257,7 +257,7 @@ Contains:
 * vfxplatform-2026
 * rez-3.4.0
 
-## [aswf/ci-vfxall:2027-clang21.3](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2027-clang21.3)
+## [aswf/ci-vfxall:2027-clang21.4](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2027-clang21.4)
 
 Contains:
 * cppunit-1.15.1
@@ -287,7 +287,7 @@ Contains:
 * vfxplatform-2027
 * rez-3.4.0
 
-## [aswf/ci-vfxall:2027-clang22.3](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2027-clang22.3)
+## [aswf/ci-vfxall:2027-clang22.4](https://hub.docker.com/r/aswf/ci-vfxall/tags?page=1&name=2027-clang22.4)
 
 Contains:
 * cppunit-1.15.1
