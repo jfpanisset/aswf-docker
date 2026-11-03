@@ -59,6 +59,26 @@ class GitHub:
         )
         logger.info("Release %s created.", real_tag)
 
+    def commit_exists(self, sha: str) -> bool:
+        try:
+            self.repo.get_commit(sha)
+        except GithubException:
+            return False
+        return True
+
+    def dispatch_workflow(
+        self, workflow: str, ref: str, inputs: typing.Dict[str, str]
+    ) -> None:
+        logger.debug("GitHub.dispatch_workflow(%s, ref=%s, %s)", workflow, ref, inputs)
+        if not self.repo.get_workflow(workflow).create_dispatch(ref=ref, inputs=inputs):
+            raise RuntimeError(f"Failed to start the {workflow} workflow")
+        logger.info(
+            "Started the %s workflow: %s/actions/workflows/%s",
+            workflow,
+            self.repo.html_url,
+            workflow,
+        )
+
 
 class Releaser:
     """Releaser creates GitHub releases for each Docker image."""
@@ -104,3 +124,64 @@ class Releaser:
                 self.gh.create_release(
                     self.sha, tag, release_message=message, prerelease=prerelease
                 )
+
+
+class PackageReleaser:
+    """PackageReleaser has the release-packages.yml GitHub Actions workflow
+    build Conan packages from a given commit and upload them to Artifactory,
+    which only GitHub Actions has the credentials for. Unlike image releases,
+    no GitHub release or tag is created."""
+
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        build_info: aswfinfo.ASWFInfo,
+        group_info: groupinfo.GroupInfo,
+        sha: str,
+        github_org="",
+        workflow_ref="",
+        force_rebuild=False,
+    ):
+        self.build_info = build_info
+        self.group_info = group_info
+        self.sha = sha
+        self.force_rebuild = force_rebuild
+        self.gh = GitHub(github_org)
+        # The workflow definition comes from this branch (by default the
+        # repository's default branch), but always builds `sha`.
+        self.workflow_ref = workflow_ref or self.gh.repo.default_branch
+        self.release_list: typing.List[str] = []
+
+    def gather(self):
+        for image, version in self.group_info.iter_images_versions():
+            self.release_list.append(f"{self.build_info.package_org}/{image}:{version}")
+
+    def inputs(self) -> typing.Dict[str, str]:
+        """The release-packages.yml workflow_dispatch inputs (all strings,
+        as the GitHub API requires)."""
+        return {
+            "sha": self.sha,
+            "package_org": self.build_info.package_org,
+            "groups": " ".join(self.group_info.names),
+            "versions": " ".join(self.group_info.versions),
+            "targets": " ".join(self.group_info.targets),
+            "force_rebuild": "true" if self.force_rebuild else "false",
+        }
+
+    def release(self, dry_run=True):
+        inputs = self.inputs()
+        if dry_run:
+            logger.info(
+                "Would start the %s workflow on %s with inputs: %s",
+                constants.PACKAGE_RELEASE_WORKFLOW,
+                self.workflow_ref,
+                inputs,
+            )
+            return
+        if not self.gh.commit_exists(self.sha):
+            raise RuntimeError(
+                f"Commit {self.sha} not found in {self.gh.repo.full_name}: "
+                "push it to a branch there before releasing packages built from it"
+            )
+        self.gh.dispatch_workflow(
+            constants.PACKAGE_RELEASE_WORKFLOW, self.workflow_ref, inputs
+        )

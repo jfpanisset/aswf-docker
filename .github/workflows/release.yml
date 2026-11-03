@@ -1,21 +1,40 @@
+# Builds released ci-image Docker images and pushes them to Docker Hub.
+# Conan packages are released by release-packages.yml instead.
 name: Release
 
 on:
   release:
     types: [created]
 
+permissions:
+  contents: read
+
 jobs:
-  release:
+  check-commit:
+    uses: $/.github/workflows/check-commit.yml
+    with:
+      sha: ${{ github.sha }}
+
+  release:  # zizmor: ignore[concurrency-limits] a concurrency group would cancel queued releases
+    needs: check-commit
     runs-on: ${{ (github.repository_owner == 'AcademySoftwareFoundation' && 'ubuntu-latest-8c-32g-300h') || 'ubuntu-latest' }}
     env:
       DOCKER_CLI_EXPERIMENTAL: enabled
       DOCKER_BUILDKIT: '1'
-      CONAN_LOGIN_USERNAME: ${{ secrets.ARTIFACTORY_USER }}
-      CONAN_PASSWORD: ${{ secrets.ARTIFACTORY_TOKEN }}
       GITHUB_REF_LOCAL: ${{ github.ref || format('{0}{1}', 'refs/tags/', github.event.release.tag_name) }}
 
     steps:
+    - name: Reject Conan package releases
+      if: ${{ contains(github.ref, '/ci-package') }}
+      run: |
+        echo "::error::Conan packages are released with 'aswfdocker release -t PACKAGE', which runs the Release Conan Packages workflow"
+        exit 1
+
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        # The commit the release's tag points to, which check-commit checked.
+        ref: ${{ github.sha }}
+        persist-credentials: false
 
     - name: Activate Docker buildx
       uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -38,28 +57,27 @@ jobs:
     - name: Install aswfdocker and dependencies
       run: uv sync --frozen
 
+    # Secrets go through the environment of the steps needing them, never on
+    # a command line or expanded into a script.
     - name: Login to DockerHub
-      if: ${{ !contains(github.ref, '/ci-package') }}
-      run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u aswfdocker --password-stdin
+      env:
+        DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      run: printenv DOCKERHUB_PASSWORD | docker login -u aswfdocker --password-stdin
 
     - name: Build and Push
-      # --force-rebuild: a release always (re)builds and uploads its package,
-      # even if Conan already finds an up-to-date binary on the remote.
-      # Ignored for image releases.
       run: |
         uv run aswfdocker \
           --repo-uri $GITHUB_REPOSITORY \
           --verbose \
           build \
           --full-name $GITHUB_REF_LOCAL \
-          --force-rebuild \
           --push YES
 
     - name: Update Docker Hub Description
-      if: ${{ !contains(github.ref, '/ci-package') }}
+      env:
+        DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
       run: |
         uv run aswfdocker \
           pushoverview \
           --username aswfdocker \
-          --password ${{ secrets.DOCKERHUB_PASSWORD }} \
           --full-name $GITHUB_REF_LOCAL

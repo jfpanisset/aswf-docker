@@ -12,12 +12,25 @@ on:
     paths-ignore:
       - '**.md'
 
+permissions:
+  contents: read
+
+# Superseded runs for the same branch or pull request are cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ${{ (github.repository_owner == 'AcademySoftwareFoundation' && 'ubuntu-latest-8c-32g-300h') || 'ubuntu-latest' }}
     env:
       DOCKER_CLI_EXPERIMENTAL: enabled
       DOCKER_BUILDKIT: '1'
+      # Matrix values go through the environment rather than being expanded
+      # into scripts.
+      MATRIX_NAME: ${{ matrix.name }}
+      MATRIX_VERSION: ${{ matrix.version }}
+      MATRIX_TEST: ${{ matrix.test }}
 
     strategy:
       # Don't let a failure for one year affect the others
@@ -35,6 +48,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
 
     - name: Activate Docker buildx
       uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
@@ -92,7 +107,7 @@ jobs:
           build \
           --ci-image-type IMAGE \
           --group baseos-gl-conan \
-          --version ${{ matrix.version }} \
+          --version "$MATRIX_VERSION" \
           --push NO
 
     - name: Build common packages (OpenSSL/GnuTLS wrappers, Ninja, CMake, every Clang version)
@@ -103,7 +118,7 @@ jobs:
           build \
           --ci-image-type PACKAGE \
           --group common \
-          --version ${{ matrix.version }} \
+          --version "$MATRIX_VERSION" \
           --build-missing \
           --push NO
 
@@ -114,7 +129,7 @@ jobs:
           build \
           --ci-image-type IMAGE \
           --group common \
-          --version ${{ matrix.version }} \
+          --version "$MATRIX_VERSION" \
           --push NO
 
     - name: Build base1 packages
@@ -125,7 +140,7 @@ jobs:
           build \
           --ci-image-type PACKAGE \
           --group base1 \
-          --version ${{ matrix.version }} \
+          --version "$MATRIX_VERSION" \
           --build-missing \
           --push NO
 
@@ -137,7 +152,7 @@ jobs:
           build \
           --ci-image-type PACKAGE \
           --group base2 \
-          --version ${{ matrix.version }} \
+          --version "$MATRIX_VERSION" \
           --build-missing \
           --push NO
 
@@ -149,7 +164,7 @@ jobs:
           build \
           --ci-image-type PACKAGE \
           --group base3 \
-          --version ${{ matrix.version }} \
+          --version "$MATRIX_VERSION" \
           --build-missing \
           --push NO
 
@@ -161,7 +176,7 @@ jobs:
           build \
           --ci-image-type IMAGE \
           --group base \
-          --version ${{ matrix.version }} \
+          --version "$MATRIX_VERSION" \
           --push NO
 
     - name: Build vfx packages
@@ -172,7 +187,7 @@ jobs:
           build \
           --ci-image-type PACKAGE \
           --group vfx \
-          --version ${{ matrix.version }} \
+          --version "$MATRIX_VERSION" \
           --build-missing \
           --push NO
 
@@ -184,20 +199,20 @@ jobs:
           build \
           --ci-image-type IMAGE \
           --group vfx \
-          --version ${{ matrix.version }} \
+          --version "$MATRIX_VERSION" \
           --push NO
 
     - run: |
         set -ex
         export DOCKER_ORG=`uv run aswfdocker --repo-uri $GITHUB_REPOSITORY --source-branch $GITHUB_REF getdockerorg`
-        test_script=scripts/tests/${{ matrix.version }}/test_${{ matrix.test }}.sh
+        test_script="scripts/tests/$MATRIX_VERSION/test_$MATRIX_TEST.sh"
         if [ -f $test_script ]
         then
           echo "Going to run ${test_script}"
-          echo "docker run -i --rm ${DOCKER_ORG}/ci-${{ matrix.test }}:${{ matrix.version }} run < ${test_script}"
+          echo "docker run -i --rm ${DOCKER_ORG}/ci-${MATRIX_TEST}:${MATRIX_VERSION} run < ${test_script}"
           docker run -i --rm \
-            -v $(Pipeline.Workspace)/cache/ci-image_${{ matrix.name }}_${{ matrix.version }}/ccache:/tmp/ccache \
-            ${DOCKER_ORG}/ci-${{ matrix.test }}:${{ matrix.version }} run < ${test_script}
+            -v $(Pipeline.Workspace)/cache/ci-image_${MATRIX_NAME}_${MATRIX_VERSION}/ccache:/tmp/ccache \
+            ${DOCKER_ORG}/ci-${MATRIX_TEST}:${MATRIX_VERSION} run < ${test_script}
         else
           echo "No test script found $test_script"
         fi

@@ -98,24 +98,109 @@ Release done.
 """,
         )
 
-    def test_release_cli_package(self):
-        # A package release triggers the Release workflow, which builds and
-        # uploads it from GitHub Actions.
+    @mock.patch.object(releaser, "GitHub")
+    def test_release_cli_package(self, mock_github):
+        # A package release starts the package release workflow, which builds
+        # and uploads the packages from GitHub Actions, without creating any
+        # GitHub release.
+        mock_github.return_value.repo.default_branch = "main"
+        sha = utils.get_current_sha()
+        result = CliRunner().invoke(
+            aswfdocker.cli,
+            ["release", "-n", "aswf/ci-package-boost:2027", "--sha", sha],
+            input="y\n",
+        )
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        self.assertIn("aswf/ci-package-boost:2027", result.output)
+        gh = mock_github.return_value
+        gh.create_release.assert_not_called()
+        gh.dispatch_workflow.assert_called_once_with(
+            constants.PACKAGE_RELEASE_WORKFLOW,
+            "main",
+            {
+                "sha": sha,
+                "package_org": "aswf",
+                "groups": "base1",
+                "versions": "2027",
+                "targets": "boost",
+                "force_rebuild": "false",
+            },
+        )
+
+    @mock.patch.object(releaser, "GitHub")
+    def test_release_cli_package_group(self, mock_github):
         result = CliRunner().invoke(
             aswfdocker.cli,
             [
                 "release",
-                "-n",
-                "aswf/ci-package-boost:2027",
+                "-t",
+                "PACKAGE",
+                "-g",
+                "common",
+                "-v",
+                "2027",
+                "--docker-org",
+                "aswf",
                 "--sha",
-                utils.get_current_sha(),
-                "--dry-run",
+                "abc123",
+                "--force-rebuild",
+                "--workflow-ref",
+                "my-branch",
             ],
             input="y\n",
         )
         self.assertEqual(result.exit_code, 0, msg=result.output)
+        # Every clang version of the year is listed
+        self.assertIn("aswf/ci-package-clang:2027-clang22", result.output)
+        self.assertIn("aswf/ci-package-cmake:2027", result.output)
+        mock_github.return_value.dispatch_workflow.assert_called_once_with(
+            constants.PACKAGE_RELEASE_WORKFLOW,
+            "my-branch",
+            {
+                "sha": "abc123",
+                "package_org": "aswf",
+                "groups": "common",
+                "versions": "2027",
+                "targets": "",
+                "force_rebuild": "true",
+            },
+        )
+
+    @mock.patch.object(releaser, "GitHub")
+    def test_release_cli_package_dry_run(self, mock_github):
+        result = CliRunner().invoke(
+            aswfdocker.cli,
+            ["release", "-n", "aswf/ci-package-boost:2027", "--sha", "abc123", "-d"],
+            input="y\n",
+        )
+        self.assertEqual(result.exit_code, 0, msg=result.output)
         self.assertIn(
-            "Would create this GitHub release on current commit: "
-            "aswf/ci-package-boost:2027",
+            f"Would start the {constants.PACKAGE_RELEASE_WORKFLOW} workflow",
             result.output,
         )
+        mock_github.return_value.commit_exists.assert_not_called()
+        mock_github.return_value.dispatch_workflow.assert_not_called()
+
+    @mock.patch.object(releaser, "GitHub")
+    def test_release_cli_package_unknown_commit(self, mock_github):
+        # e.g. a local commit that was never pushed
+        mock_github.return_value.commit_exists.return_value = False
+        result = CliRunner().invoke(
+            aswfdocker.cli,
+            ["release", "-n", "aswf/ci-package-boost:2027", "--sha", "abc123"],
+            input="y\n",
+        )
+        self.assertNotEqual(result.exit_code, 0)
+        self.assertIn("Commit abc123 not found", result.output)
+        mock_github.return_value.dispatch_workflow.assert_not_called()
+
+    @mock.patch.object(releaser, "GitHub")
+    def test_release_cli_image_refuses_package_options(self, mock_github):
+        result = CliRunner().invoke(
+            aswfdocker.cli,
+            ["release", "-n", "aswf/ci-base:2027.4", "--sha", "abc", "--force-rebuild"],
+            input="y\n",
+        )
+        self.assertNotEqual(result.exit_code, 0)
+        self.assertIn("only apply to Conan package releases", result.output)
+        mock_github.return_value.create_release.assert_not_called()

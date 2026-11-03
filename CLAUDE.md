@@ -30,7 +30,7 @@ aswf-docker/
 │   ├── conan/settings/    # Conan profile settings (profiles/ is auto-generated)
 │   └── common/            # Shared build utilities
 ├── scripts/               # Shell utilities, VFX scripts, tests
-├── .github/workflows/     # CI: python.yml, docker-builds.yml, release.yml, python-sonar.yml
+├── .github/workflows/     # CI: python.yml, docker-builds.yml, release.yml, release-packages.yml, python-sonar.yml
 ├── versions.yaml          # Symlink to python/aswfdocker/data/versions.yaml
 └── pyproject.toml         # Python project config (uv, pytest, black)
 ```
@@ -80,6 +80,9 @@ uv run pylint python/aswfdocker
 
 # Formatting (Black, targets Python 3.10)
 uv run black python/ packages/conan/settings/extensions/deployers/ packages/conan/settings/extensions/commands/ packages/conan/settings/extensions/hooks/
+
+# GitHub Actions workflow security audit
+uv run zizmor .github/workflows
 
 # Run all pre-commit hooks
 uv run pre-commit run --all-files
@@ -161,10 +164,11 @@ uv run aswfdocker dockergen --check
 
 | Workflow | Trigger | Purpose |
 |---|---|---|
-| `python.yml` | Push/PR | Pre-commit hooks: black, pytest, mypy, pylint, dockergen --check |
+| `python.yml` | Push/PR | Pre-commit hooks: black, pytest, mypy, pylint, zizmor, dockergen --check |
 | `docker-builds.yml` | Push/PR | Build Docker images and Conan packages (matrix by VFX year) |
 | `python-sonar.yml` | Push to main | Code quality analysis with SonarCloud |
-| `release.yml` | GitHub Release | Full build + push to Docker Hub |
+| `release.yml` | GitHub Release | Build released images + push to Docker Hub (rejects package releases) |
+| `release-packages.yml` | `workflow_dispatch` from `aswfdocker release -t PACKAGE` | Build Conan packages from a commit + upload to Artifactory |
 
 ## Git Conventions
 
@@ -221,6 +225,8 @@ uv run aswfdocker dockergen --check
    only place holding the Artifactory credentials (and, in future, package
    signing keys): `aswfdocker build -t PACKAGE --push YES` refuses to run
    elsewhere. Local package builds only use the local Conan cache.
+   `aswfdocker release -t PACKAGE` starts `release-packages.yml` via the
+   GitHub API (no GitHub release or tag is created).
 8. **Images are only pushed to Docker Hub from GitHub Actions**, the only place
    holding the Docker Hub token (and, in future, image signing keys):
    `aswfdocker build --push YES` (or `--push AUTO` resolving to a push) and
