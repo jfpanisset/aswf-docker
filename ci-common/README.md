@@ -17,7 +17,7 @@ Contains: GCC, Clang, CMake, Ninja, ccache and all base OS libraries
 
 [Docker Image Source](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/ci-common/Dockerfile)
 
-## [aswf/ci-common:2023-clang14.7](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2023-clang14.7)
+## [aswf/ci-common:2023-clang14.8](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2023-clang14.8)
 
 Contains:
 * clang-14.0.6
@@ -32,7 +32,7 @@ Contains:
 * conan-2.29.0
 * yq-4.45.2
 
-## [aswf/ci-common:2023-clang15.7](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2023-clang15.7)
+## [aswf/ci-common:2023-clang15.8](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2023-clang15.8)
 
 Contains:
 * clang-15.0.7
@@ -47,7 +47,7 @@ Contains:
 * conan-2.29.0
 * yq-4.45.2
 
-## [aswf/ci-common:2024-clang16.11](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2024-clang16.11)
+## [aswf/ci-common:2024-clang16.12](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2024-clang16.12)
 
 Contains:
 * clang-16.0.6
@@ -62,7 +62,7 @@ Contains:
 * conan-2.29.0
 * yq-4.45.2
 
-## [aswf/ci-common:2024-clang17.11](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2024-clang17.11)
+## [aswf/ci-common:2024-clang17.12](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2024-clang17.12)
 
 Contains:
 * clang-17.0.6
@@ -77,7 +77,7 @@ Contains:
 * conan-2.29.0
 * yq-4.45.2
 
-## [aswf/ci-common:2025-clang18.10](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2025-clang18.10)
+## [aswf/ci-common:2025-clang18.11](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2025-clang18.11)
 
 Contains:
 * clang-18.1.8
@@ -92,7 +92,7 @@ Contains:
 * conan-2.29.0
 * yq-4.45.2
 
-## [aswf/ci-common:2025-clang19.10](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2025-clang19.10)
+## [aswf/ci-common:2025-clang19.11](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2025-clang19.11)
 
 Contains:
 * clang-19.1.7
@@ -107,7 +107,7 @@ Contains:
 * conan-2.29.0
 * yq-4.45.2
 
-## [aswf/ci-common:2026-clang19.8](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2026-clang19.8)
+## [aswf/ci-common:2026-clang19.9](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2026-clang19.9)
 
 Contains:
 * clang-19.1.7
@@ -122,7 +122,7 @@ Contains:
 * conan-2.29.0
 * yq-4.45.4
 
-## [aswf/ci-common:2026-clang20.8](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2026-clang20.8)
+## [aswf/ci-common:2026-clang20.9](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2026-clang20.9)
 
 Contains:
 * clang-20.1.7
@@ -137,7 +137,7 @@ Contains:
 * conan-2.29.0
 * yq-4.45.4
 
-## [aswf/ci-common:2027-clang21.3](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2027-clang21.3)
+## [aswf/ci-common:2027-clang21.4](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2027-clang21.4)
 
 Contains:
 * clang-21.1.8
@@ -152,7 +152,7 @@ Contains:
 * conan-2.29.0
 * yq-4.53.3
 
-## [aswf/ci-common:2027-clang22.3](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2027-clang22.3)
+## [aswf/ci-common:2027-clang22.4](https://hub.docker.com/r/aswf/ci-common/tags?page=1&name=2027-clang22.4)
 
 Contains:
 * clang-22.1.7

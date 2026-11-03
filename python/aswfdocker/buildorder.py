@@ -20,7 +20,7 @@ Reusing that same cache mount (rather than a plain `docker run`, which
 cannot see a BuildKit cache mount at all) matters for correctness, not just
 consistency: `--build=missing`'s decision of what still needs building has
 to see whatever is already sitting in the *local* Conan cache from a
-previous local build, so a local `aswfdocker build --group vfx1` only
+previous local build, so a local `aswfdocker build --group vfx` only
 rebuilds what actually changed and its dependents. On a fresh GHA runner
 that cache mount starts empty, so the same mechanism naturally falls
 through to checking the configured remotes (remotes.json) instead -- which
@@ -58,7 +58,7 @@ import uuid
 
 import yaml
 
-from aswfdocker import bake, constants, utils
+from aswfdocker import bake, constants, utils, versioninfo
 
 CONFIG_YML_NAME = "config.yml"
 BAKE_TARGET_NAME = "ci-conan-graph"
@@ -91,7 +91,7 @@ class UnbuiltDependenciesError(BuildOrderError):
 
 def _name_from_ref(ref: str) -> str:
     """Extracts the bare package name from a Conan ref string, e.g.
-    "osl/1.14.4.0@aswf/vfx2027" -> "osl"."""
+    "osl/1.14.4.0@aswf/vfx2027_4" -> "osl"."""
     return ref.split("@", 1)[0].split("/", 1)[0]
 
 
@@ -160,7 +160,7 @@ def parse_build_order_json(data: dict) -> BuildOrder:
     `conan graph build-order --order-by=recipe --format=json` (unreduced).
 
     Each entry in data["order"] is a level (list of recipe-reference
-    dicts); each dict has "ref" (e.g. "osl/1.14.4.0@aswf/vfx2027"),
+    dicts); each dict has "ref" (e.g. "osl/1.14.4.0@aswf/vfx2027_4"),
     "depends" (a list of other recipe-ref strings) and "packages" (levels
     of binary-package dicts, each with a "binary" status such as "Build"
     or "Cache").
@@ -314,13 +314,16 @@ def _export_all_command(
     )
 
 
-def _build_order_command(
+def _build_order_command(  # pylint: disable=too-many-arguments
     members: typing.Sequence[typing.Tuple[str, str]],
     package_org: str,
+    profile_name: str,
     channel: str,
     remote_args: typing.Sequence[str],
 ) -> str:
-    profile = os.path.join(constants.ASWF_CONAN_HOME, ".conan2", "profiles", channel)
+    profile = os.path.join(
+        constants.ASWF_CONAN_HOME, ".conan2", "profiles", profile_name
+    )
     requires = " ".join(
         f"--requires={shlex.quote(f'{name}/{version}@{package_org}/{channel}')}"
         for name, version in members
@@ -345,7 +348,7 @@ def profile_refs(
     """(name, version, channel) for every one of our own packages the given
     generated Conan profile (following its include()s) can redirect a
     dependency to: the targets of [replace_requires]/[replace_tool_requires]
-    and user.aswf:*_ref conf values, e.g. "cmake/4.3.3@{{ org }}/vfx2027".
+    and user.aswf:*_ref conf values, e.g. "cmake/4.3.3@{{ org }}/vfx2027_4".
 
     These are exactly the references Conan will look up while resolving a
     graph with that profile -- including packages outside the group being
@@ -387,9 +390,10 @@ def profile_refs(
     return list(refs)
 
 
-def _graph_script(
+def _graph_script(  # pylint: disable=too-many-arguments
     repo_root: str,
     package_org: str,
+    profile_name: str,
     channel: str,
     members: typing.Sequence[typing.Tuple[str, str]],
     exports: typing.Sequence[typing.Tuple[str, str, str]],
@@ -405,19 +409,18 @@ def _graph_script(
     ]
     return (
         f"{_export_all_command(entries, remote_args)} && "
-        f"{_build_order_command(members, package_org, channel, remote_args)}"
+        f"{_build_order_command(members, package_org, profile_name, channel, remote_args)}"
     )
 
 
 def _bake_dict(
     docker_org: str,
     package_org: str,
-    major_version: str,
-    channel: str,
+    version_info: versioninfo.VersionInfo,
     script: str,
     nonce: str,
 ) -> dict:
-    args = utils.common_conan_bake_args(docker_org, package_org, major_version, channel)
+    args = utils.common_conan_bake_args(docker_org, package_org, version_info)
     args["ASWF_CONAN_GRAPH_SCRIPT"] = script
     # See ASWF_CONAN_NONCE in packages/common/Dockerfile: forces the graph RUN
     # to execute every time, without the no-cache/no-cache-filter side effect
@@ -485,17 +488,17 @@ def compute_build_order(
     repo_root: str,
     docker_org: str,
     package_org: str,
-    major_version: str,
-    channel: str,
+    version_info: versioninfo.VersionInfo,
     members: typing.Sequence[typing.Tuple[str, str]],
     conan_remote: str = constants.CONAN_REMOTE_AUTO,
     progress: str = "plain",
 ) -> BuildOrder:
     """Computes the build order for `members` (a sequence of (name, version)
-    pairs, e.g. the flattened image list of a "vfx1" meta-group), via
+    pairs, e.g. the flattened image list of a "vfx" meta-group), via
     `docker buildx bake` against the same packages/common/Dockerfile real
     package builds use (see module docstring for why this has to be bake
-    and not a plain `docker run`). Every package the `channel` profile can
+    and not a plain `docker run`), in the Conan channel and with the
+    profile of `version_info`'s release. Every package that profile can
     redirect a dependency to is exported first (see profile_refs()).
     `conan_remote` is the same remote policy real builds apply (see
     utils.resolve_conan_remote()), so "what needs building" is answered
@@ -507,12 +510,14 @@ def compute_build_order(
     remote_args = utils.conan_remote_args(
         utils.resolve_conan_remote(conan_remote, package_org)
     )
-    exports = profile_refs(repo_root, channel)
+    profile_name = str(version_info.conan_profile)
+    channel = version_info.conan_channel
+    exports = profile_refs(repo_root, profile_name)
     script = _graph_script(
-        repo_root, package_org, channel, members, exports, remote_args
+        repo_root, package_org, profile_name, channel, members, exports, remote_args
     )
     bake_dict = _bake_dict(
-        docker_org, package_org, major_version, channel, script, uuid.uuid4().hex
+        docker_org, package_org, version_info, script, uuid.uuid4().hex
     )
     data = _run_bake_and_read_output(repo_root, bake_dict, progress)
     return parse_build_order_json(data)

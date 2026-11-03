@@ -9,7 +9,7 @@ import logging
 
 from click.testing import CliRunner
 
-from aswfdocker import dockergen
+from aswfdocker import constants, dockergen, index
 from aswfdocker.cli import aswfdocker
 
 
@@ -18,6 +18,16 @@ class TestDockerGen(unittest.TestCase):
         dg = dockergen.DockerGen("base")
         self.assertTrue(dg.check_dockerfile())
         self.assertTrue(dg.check_readme())
+
+    def test_images_from_ci_common_pin_its_release(self):
+        # Never inadvertently built on top of a previous release's ci-common.
+        for image in index.Index().iter_images(constants.ImageType.IMAGE):
+            docker_from = dockergen.DockerGen(image).image_data["docker_from"]
+            if "/ci-common:" in docker_from:
+                self.assertTrue(
+                    docker_from.endswith(".${ASWF_VFXPLATFORM_MINOR_VERSION}"),
+                    msg=f"ci-{image}: {docker_from}",
+                )
 
 
 class TestUtilsCli(unittest.TestCase):

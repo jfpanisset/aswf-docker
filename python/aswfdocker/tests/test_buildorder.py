@@ -12,7 +12,7 @@ import tempfile
 import unittest
 from unittest.mock import patch, MagicMock
 
-from aswfdocker import buildorder
+from aswfdocker import buildorder, versioninfo
 
 # TestNameFromRef/TestRecipeFolder/TestExportCommand use real aswf-docker
 # package names (osl, qt, zlib) because they exercise this project's real
@@ -32,7 +32,8 @@ from aswfdocker import buildorder
 # mean something about, say, osl's or openexr's real dependencies, which
 # they don't and needn't.
 TEST_PACKAGE_ORG = "aswf"
-TEST_CHANNEL = "vfx2027"
+TEST_PROFILE = "vfx2027"
+TEST_CHANNEL = "vfx2027_4"
 OTHER_TEST_CHANNEL = "other_test_channel"
 ZLIB_TEST_VERSION = "1.3.1"
 OSL_TEST_VERSION = "1.14.4.0"
@@ -46,6 +47,20 @@ PKGE_TEST_VERSION = "5.0.0"
 
 def _ref(name, version, org=TEST_PACKAGE_ORG, channel=TEST_CHANNEL):
     return f"{name}/{version}@{org}/{channel}"
+
+
+def _version_info():
+    """The 2027.4 release, built with TEST_PROFILE in TEST_CHANNEL."""
+    vi = versioninfo.VersionInfo(
+        version="2027",
+        major_version="2027",
+        minor_version="4",
+        tags=[],
+        parent_versions=[],
+        package_versions={},
+    )
+    vi.conan_profile = TEST_PROFILE
+    return vi
 
 
 def _ref_entry(ref, depends=(), binary=None):
@@ -387,6 +402,7 @@ class TestBuildOrderCommand(unittest.TestCase):
         cmd = buildorder._build_order_command(
             [("pkga", PKGA_TEST_VERSION), ("pkgb", PKGB_TEST_VERSION)],
             TEST_PACKAGE_ORG,
+            TEST_PROFILE,
             TEST_CHANNEL,
             ["--no-remote"],
         )
@@ -401,17 +417,17 @@ class TestBuildOrderCommand(unittest.TestCase):
                 buildorder.constants.ASWF_CONAN_HOME,
                 ".conan2",
                 "profiles",
-                TEST_CHANNEL,
+                TEST_PROFILE,
             ),
             cmd,
         )
 
 
 def _write_profiles(repo_root):
-    """A synthetic pair of generated profiles: TEST_CHANNEL includes
+    """A synthetic pair of generated profiles: TEST_PROFILE includes
     OTHER_TEST_CHANNEL (profile_refs() follows include()s, although the
     generated profiles don't currently use them), redirects pkga/pkgb to
-    itself, pkgc (via the include) and pkgd (via a *_ref conf value) to
+    TEST_CHANNEL, pkgc (via the include) and pkgd (via a *_ref conf value) to
     OTHER_TEST_CHANNEL, and also lists refs that must be ignored: a
     platform-style ref with no {{ org }}/channel, and one of our refs with
     no recipe directory."""
@@ -429,7 +445,7 @@ def _write_profiles(repo_root):
             "[replace_tool_requires]\n"
             f"pkgc/*: pkgc/{PKGC_TEST_VERSION}@{{{{ org }}}}/{OTHER_TEST_CHANNEL}\n"
         )
-    with open(os.path.join(profiles_dir, TEST_CHANNEL), "w", encoding="utf-8") as f:
+    with open(os.path.join(profiles_dir, TEST_PROFILE), "w", encoding="utf-8") as f:
         f.write(
             "# generated\n"
             f"{org}\n"
@@ -452,7 +468,7 @@ class TestProfileRefs(unittest.TestCase):
         with tempfile.TemporaryDirectory() as repo_root:
             _write_profiles(repo_root)
             self.assertEqual(
-                buildorder.profile_refs(repo_root, TEST_CHANNEL),
+                buildorder.profile_refs(repo_root, TEST_PROFILE),
                 [
                     ("pkgc", PKGC_TEST_VERSION, OTHER_TEST_CHANNEL),
                     ("pkga", PKGA_TEST_VERSION, TEST_CHANNEL),
@@ -496,8 +512,7 @@ class TestComputeBuildOrder(unittest.TestCase):
             self.repo_root,
             TEST_PACKAGE_ORG,
             TEST_PACKAGE_ORG,
-            "2027",
-            TEST_CHANNEL,
+            _version_info(),
             self.members if members is None else members,
             conan_remote=conan_remote,
         )
@@ -561,6 +576,8 @@ class TestComputeBuildOrder(unittest.TestCase):
         self.assertEqual(args["ASWF_ORG"], TEST_PACKAGE_ORG)
         self.assertEqual(args["ASWF_PKG_ORG"], TEST_PACKAGE_ORG)
         self.assertEqual(args["ASWF_VFXPLATFORM_VERSION"], "2027")
+        self.assertEqual(args["ASWF_VFXPLATFORM_MINOR_VERSION"], "4")
+        self.assertEqual(args["ASWF_CONAN_PROFILE"], TEST_PROFILE)
         self.assertEqual(args["ASWF_CONAN_CHANNEL"], TEST_CHANNEL)
         self.assertIn("ASWF_CONAN_GRAPH_SCRIPT", args)
         self.assertIn("conan graph build-order", args["ASWF_CONAN_GRAPH_SCRIPT"])

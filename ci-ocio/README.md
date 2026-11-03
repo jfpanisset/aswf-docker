@@ -18,7 +18,7 @@ Warning: this image does *not* contain OpenColorIO itself as it is used to *buil
 
 [Docker Image Source](https://github.com/AcademySoftwareFoundation/aswf-docker/blob/main/ci-ocio/Dockerfile)
 
-## [aswf/ci-ocio:2023.7](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2023.7)
+## [aswf/ci-ocio:2023.8](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2023.8)
 
 Contains:
 * glew-2.2.0
@@ -27,7 +27,7 @@ Contains:
 * numpy-1.23.5
 * vfxplatform-2023
 
-## [aswf/ci-ocio:2024.11](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2024.11)
+## [aswf/ci-ocio:2024.12](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2024.12)
 
 Contains:
 * glew-2.2.0
@@ -36,7 +36,7 @@ Contains:
 * numpy-1.24.3
 * vfxplatform-2024
 
-## [aswf/ci-ocio:2025.10](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2025.10)
+## [aswf/ci-ocio:2025.11](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2025.11)
 
 Contains:
 * glew-2.2.0
@@ -45,7 +45,7 @@ Contains:
 * numpy-1.26.4
 * vfxplatform-2025
 
-## [aswf/ci-ocio:2026.8](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2026.8)
+## [aswf/ci-ocio:2026.9](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2026.9)
 
 Contains:
 * glew-2.2.0
@@ -54,7 +54,7 @@ Contains:
 * numpy-2.3.2
 * vfxplatform-2026
 
-## [aswf/ci-ocio:2027.3](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2027.3)
+## [aswf/ci-ocio:2027.4](https://hub.docker.com/r/aswf/ci-ocio/tags?page=1&name=2027.4)
 
 Contains:
 * glew-2.3.1

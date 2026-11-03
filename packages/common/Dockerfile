@@ -10,6 +10,7 @@ ARG ASWF_CONAN_VERSION
 ARG ASWF_CONAN_REMOTE
 ARG ASWF_CONAN_PYTHON_VERSION
 ARG ASWF_VFXPLATFORM_VERSION
+ARG ASWF_VFXPLATFORM_MINOR_VERSION
 ARG ASWF_CLANG_VERSION
 ARG ASWF_CUDA_VERSION
 ARG ASWF_OPTIX_VERSION
@@ -20,10 +21,13 @@ ARG ASWF_BASEOS_VERSION
 ARG ASWF_BASEOS_IMAGE
 
 #################### ci-conan-package-builder ####################
-FROM ${ASWF_ORG}/ci-baseos-gl-conan:${ASWF_VFXPLATFORM_VERSION} AS ci-conan-package-builder
+# Packages are built in the ci-baseos-gl-conan image of the release they
+# belong to (e.g. 2027.4), never a previous release's.
+FROM ${ASWF_ORG}/ci-baseos-gl-conan:${ASWF_VFXPLATFORM_VERSION}.${ASWF_VFXPLATFORM_MINOR_VERSION} AS ci-conan-package-builder
 
 ARG ASWF_ORG
 ARG ASWF_CCACHE_VERSION
+ARG ASWF_CONAN_PROFILE
 ARG ASWF_CONAN_CHANNEL
 ARG ASWF_CONAN_VERSION
 ARG ASWF_CONAN_REMOTE
@@ -106,7 +110,7 @@ ARG ASWF_FREETYPE_VERSION
 ENV ASWF_FREETYPE_VERSION=${ASWF_FREETYPE_VERSION}
 
 # These are a bit of a circular dependency, but ci-conan-package-builder
-# is also used to build vfx1/vfx2 packages
+# is also used to build vfx packages
 
 ARG ASWF_IMATH_VERSION
 ENV ASWF_IMATH_VERSION=${ASWF_IMATH_VERSION}
@@ -170,7 +174,7 @@ ENV ASWF_PKG_YML=${ASWF_PKG_DIR}/config.yml
 #    --mount=type=secret,id=conan_login_username,env=CONAN_LOGIN_USERNAME \
 #    --mount=type=secret,id=conan_password,env=CONAN_PASSWORD \
 #    conan graph info \
-#      --profile:all "${ASWF_CONAN_HOME}"/.conan2/profiles/"${ASWF_CONAN_CHANNEL}" \
+#      --profile:all "${ASWF_CONAN_HOME}"/.conan2/profiles/"${ASWF_CONAN_PROFILE}" \
 #      --name "${ASWF_PKG_NAME}" \
 #      --version "${ASWF_PKG_VERSION}" \
 #      --user "${ASWF_PKG_ORG}" \
@@ -191,7 +195,7 @@ RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=${ASWF_CONAN_HO
       conan create \
         ${ASWF_CONAN_BUILD_MISSING} \
         ${ASWF_CONAN_REMOTE_ARGS} \
-        --profile:all "${ASWF_CONAN_HOME}"/.conan2/profiles/"${ASWF_CONAN_CHANNEL}" \
+        --profile:all "${ASWF_CONAN_HOME}"/.conan2/profiles/"${ASWF_CONAN_PROFILE}" \
         --name "${ASWF_PKG_NAME}" \
         --version "${ASWF_PKG_VERSION}" \
         --user "${ASWF_PKG_ORG}" \

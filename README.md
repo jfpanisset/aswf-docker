@@ -115,8 +115,9 @@ as the major version number, and a minor version number to indicate minor
 changes in the Docker Image that still point to the same calendar year version,
 e.g. `2026.0` would be followed if necessary by a `2026.1` version.
 The minor version here does *not* point to a calendar month or quarter, it is
-solely to express that the image has changed internally. We could also have a
-patch version.
+solely to express that the image has changed internally. All the images of a
+VFX Platform year share the same minor version, which identifies a release of
+the whole set of images (and of the Conan packages they are built from).
 
 ### Image Tags
 
@@ -126,8 +127,8 @@ The most precise version tag is the `ASWF_VERSION` of the image, e.g.
 `aswf/ci-openexr:2026`.
 
 The `latest` tag is pointing to the current VFX Platform year images, e.g.
-`aswf/ci-openexr:latest` points to `aswf/ci-openexr:2026.0` but will be
-updated to point to `aswf/ci-openexr:2027.0` in the calendar year 2027.
+`aswf/ci-openexr:latest` points to `aswf/ci-openexr:2027.4` but will be
+updated to point to the 2028 images once VFX Platform 2028 images are released.
 
 ## Testing Images
 
@@ -221,7 +222,7 @@ To build a single image:
 # First list the available CI images to know which package belong to which "group":
 aswfdocker images
 # Then run the build
-aswfdocker --verbose build --ci-image-type IMAGE --group vfx1 --version 2026 --target openexr
+aswfdocker --verbose build --ci-image-type IMAGE --group vfx --version 2026 --target openexr
 # Or the simpler but less flexible syntax:
 aswfdocker build --ci-image-type aswftesting/ci-openexr:2026
 ```

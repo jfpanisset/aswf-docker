@@ -8,7 +8,9 @@
 ARG ASWF_ORG
 ARG ASWF_PKG_ORG
 ARG ASWF_VFXPLATFORM_VERSION
+ARG ASWF_VFXPLATFORM_MINOR_VERSION
 ARG ASWF_CLANG_MAJOR_VERSION
+ARG ASWF_CONAN_PROFILE
 ARG ASWF_CONAN_CHANNEL
 ARG ASWF_CXX_STANDARD
 
@@ -54,13 +56,14 @@ ARG ASWF_VFXPLATFORM_VERSION
 
 
 
-FROM ${ASWF_ORG}/ci-common:${ASWF_VFXPLATFORM_VERSION}-clang${ASWF_CLANG_MAJOR_VERSION} AS ci-base
+FROM ${ASWF_ORG}/ci-common:${ASWF_VFXPLATFORM_VERSION}-clang${ASWF_CLANG_MAJOR_VERSION}.${ASWF_VFXPLATFORM_MINOR_VERSION} AS ci-base
 
 
 ARG ASWF_ORG
 ARG ASWF_CONAN_HOME
 ARG ASWF_PKG_ORG
 ARG ASWF_VERSION
+ARG ASWF_CONAN_PROFILE
 ARG ASWF_CONAN_CHANNEL
 ARG ASWF_CONAN_REMOTE_ARGS
 ARG ASWF_CXX_STANDARD
@@ -261,7 +264,7 @@ ENV CONAN_HOME=${ASWF_CONAN_HOME}/.conan2
 RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=/opt/conan_home/d \
     --mount=type=bind,rw,target=/opt/conan_home/.conan2,source=packages/conan/settings \
     conan install /usr/local \
-        --profile:all "${ASWF_CONAN_CHANNEL}" \
+        --profile:all "${ASWF_CONAN_PROFILE}" \
         ${ASWF_CONAN_REMOTE_ARGS} \
         --deployer aswf_deploy \
         --deployer-folder /usr/local \

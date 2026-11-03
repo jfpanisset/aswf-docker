@@ -79,12 +79,18 @@ class TestBuilder(unittest.TestCase):
         # tags may not make much sense for Conan packages
         self.assertEqual(
             target["tags"],
-            [f"{constants.DOCKER_REGISTRY}/aswflocaltesting/ci-baseos-gl-conan:2027"],
+            [
+                f"{constants.DOCKER_REGISTRY}/aswflocaltesting/ci-baseos-gl-conan:"
+                + index.Index().version_info("2027").release
+            ],
         )
         self.assertEqual(opentimelineio_version, "2027")
         self.assertEqual(target["args"]["ASWF_VERSION"], "2027")
         self.assertEqual(target["args"]["ASWF_VFXPLATFORM_VERSION"], "2027")
-        self.assertEqual(target["args"]["ASWF_CONAN_CHANNEL"], "vfx2027")
+        self.assertEqual(
+            target["args"]["ASWF_CONAN_CHANNEL"],
+            index.Index().version_info("2027").conan_channel,
+        )
         self.assertEqual(target["dockerfile"], "packages/common/Dockerfile")
 
     def test_package_remote_args_follow_environment(self):
@@ -278,7 +284,8 @@ class TestBuilder(unittest.TestCase):
             ),
         )
         targets = b.make_bake_dict(False)["target"]
-        majors = list(index.Index().version_info("2027").clang_versions)
+        year = index.Index().version_info("2027")
+        majors = list(year.clang_versions)
         self.assertEqual(
             sorted(targets), sorted(f"ci-common-2027-clang{m}" for m in majors)
         )
@@ -286,7 +293,7 @@ class TestBuilder(unittest.TestCase):
             args = targets[f"ci-common-2027-clang{major}"]["args"]
             self.assertEqual(args["ASWF_CLANG_MAJOR_VERSION"], major)
             self.assertEqual(args["ASWF_VFXPLATFORM_VERSION"], "2027")
-            self.assertEqual(args["ASWF_CONAN_CHANNEL"], "vfx2027")
+            self.assertEqual(args["ASWF_CONAN_CHANNEL"], year.conan_channel)
 
     def test_image_common_legacy_tags(self):
         # ci-common keeps its pre-2028 ci_common version tags alongside the
@@ -350,7 +357,7 @@ class TestBuilder(unittest.TestCase):
         for major, full in year.clang_versions.items():
             args = targets[f"ci-package-clang-2027-clang{major}"]["args"]
             self.assertEqual(args["ASWF_PKG_VERSION"], full)
-            self.assertEqual(args["ASWF_CONAN_CHANNEL"], "vfx2027")
+            self.assertEqual(args["ASWF_CONAN_CHANNEL"], year.conan_channel)
 
 
 def _version_for(image_type, name, major_version):
@@ -381,7 +388,9 @@ def _expected_image_target(image, major_version, image_version, tags):
         "ASWF_ORG": "aswflocaltesting",
         "ASWF_PKG_ORG": "aswftesting",
         "ASWF_VFXPLATFORM_VERSION": version_info.major_version,
-        "ASWF_CONAN_CHANNEL": version_info.conan_profile,
+        "ASWF_VFXPLATFORM_MINOR_VERSION": version_info.minor_version,
+        "ASWF_CONAN_PROFILE": version_info.conan_profile,
+        "ASWF_CONAN_CHANNEL": version_info.conan_channel,
         "ASWF_CONAN_HOME": constants.ASWF_CONAN_HOME,
         "ASWF_VERSION": image_version,
         "ASWF_CONAN_REMOTE_ARGS": "--no-remote",
@@ -407,7 +416,7 @@ def _expected_image_target(image, major_version, image_version, tags):
 def _all_members_need_build(*args, **_kwargs):
     """Stands in for buildorder.compute_build_order() (which runs Docker):
     a flat graph in which every member needs building."""
-    members = args[5]
+    members = args[4]
     order = buildorder.BuildOrder([[name for name, _ in members]])
     order.need_build = {name for name, _ in members}
     return order
@@ -451,8 +460,8 @@ class TestBuilderCli(unittest.TestCase):
         )
         # The build order is computed over the whole group, not just the target
         mock_compute.assert_called_once()
-        self.assertIn("openexr", [name for name, _ in mock_compute.call_args.args[5]])
-        self.assertGreater(len(mock_compute.call_args.args[5]), 1)
+        self.assertIn("openexr", [name for name, _ in mock_compute.call_args.args[4]])
+        self.assertGreater(len(mock_compute.call_args.args[4]), 1)
         self.assertIn(
             "INFO:aswfdocker.builder:2027: building openexr; up to date: nothing",
             result.output,
@@ -640,7 +649,7 @@ class TestBuilderCli(unittest.TestCase):
     @staticmethod
     def _clang_needs_cmake(*args, **_kwargs):
         """A graph where clang tool-requires cmake, everything needing a build."""
-        names = [name for name, _ in args[5]]
+        names = [name for name, _ in args[4]]
         order = buildorder.BuildOrder([names])
         if "clang" in names and "cmake" in names:
             order.add_edge("clang", "cmake")
@@ -662,8 +671,8 @@ class TestBuilderCli(unittest.TestCase):
         self.assertEqual(mock_compute.call_count, len(majors))
         clang_versions = index.Index().version_info("2027").clang_versions
         for call, major in zip(mock_compute.call_args_list, majors):
-            self.assertIn(("clang", clang_versions[major]), call.args[5])
-            self.assertIn("cmake", [name for name, _ in call.args[5]])
+            self.assertIn(("clang", clang_versions[major]), call.args[4])
+            self.assertIn("cmake", [name for name, _ in call.args[4]])
         # ...but the other packages are only built by the first one
         self.assertEqual(
             self._bake_targets(result.output),
@@ -745,7 +754,7 @@ class TestBuilderCli(unittest.TestCase):
 
     def test_unbuilt_dependency_refuses_with_list(self, mock_compute):
         def imath_needs_build(*args, **_kwargs):
-            names = [name for name, _ in args[5]]
+            names = [name for name, _ in args[4]]
             order = buildorder.BuildOrder([names])
             order.add_edge("openexr", "imath")
             order.need_build = {"imath", "openexr"}

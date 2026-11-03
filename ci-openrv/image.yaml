@@ -10,7 +10,7 @@ packages:
 implicit_packages:
   - numpy
   - vfxplatform
-docker_from: ${ASWF_ORG}/ci-common:${ASWF_VFXPLATFORM_VERSION}-clang${ASWF_CLANG_MAJOR_VERSION}
+docker_from: ${ASWF_ORG}/ci-common:${ASWF_VFXPLATFORM_VERSION}-clang${ASWF_CLANG_MAJOR_VERSION}.${ASWF_VFXPLATFORM_MINOR_VERSION}
 docker_package_version: $ASWF_VFXPLATFORM_VERSION
 docker_post_commands: |
   # Workaround: Reinstall Qt to a temporary location to prevent conflicts with PySide during OpenRV builds.
@@ -19,7 +19,7 @@ docker_post_commands: |
   RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=/opt/conan_home/d \
       --mount=type=bind,rw,target=/opt/conan_home/.conan2,source=packages/conan/settings \
       conan install --requires qt/"${ASWF_QT_VERSION}"@"${ASWF_PKG_ORG}"/"${ASWF_CONAN_CHANNEL}" \
-          --profile:all "${ASWF_CONAN_CHANNEL}" \
+          --profile:all "${ASWF_CONAN_PROFILE}" \
           ${ASWF_CONAN_REMOTE_ARGS} \
           --deployer aswf_deploy \
           --deployer-folder /tmp/qttemp

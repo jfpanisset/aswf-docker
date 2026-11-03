@@ -592,19 +592,43 @@ In order to update the templated images with updated version numbers, run `aswfd
 `versions.yaml` has one section per VFX Platform year (e.g. `"2027"`) holding every version pin for that year, from the
 toolchain (GCC, CUDA, CMake...) to the VFX packages. Each year:
 
-* builds its Conan packages in the `vfx<year>` channel, with the `vfx<year>` Conan profile generated from its pins;
-* builds a Conan package for every package it pins a version for;
+* has a `minor_version`, its current release (e.g. `4` for the 2027.4 release);
+* builds every image listed in `ci-images` (unless listed in its `exclude_versions`), tagged with the release version
+  (e.g. `ci-base:2027.4`);
+* builds a Conan package for every package it pins a version for, in the `vfx<year>_<minor>` Conan channel
+  (e.g. `vfx2027_4`), with the `vfx<year>` Conan profile generated from its pins, in the
+  `ci-baseos-gl-conan:<year>.<minor>` image;
 * lists its clang versions in `clang_versions`. A `<year>-clang<major>` version (e.g. `2027-clang22`) is derived for
-  each one, for the images listed with such versions in `ci-images` (`ci-common`, `ci-osl`, `ci-openvdb`,
-  `ci-vfxall`) and for the Conan packages listed in `per_clang_packages` (`clang` itself). Everything else uses the
-  year's `ASWF_CLANG_MAJOR_VERSION`, and only the newest clang version's images also get the bare year tag
-  (e.g. `ci-common:2027`).
+  each one, for the images marked `per_clang` in `ci-images` (`ci-common`, `ci-osl`, `ci-openvdb`, `ci-vfxall`,
+  tagged e.g. `ci-osl:2027-clang22.4`) and for the Conan packages listed in `per_clang_packages` (`clang` itself).
+  Everything else uses the year's `ASWF_CLANG_MAJOR_VERSION`, and only the newest clang version's images also get the
+  bare year tag (e.g. `ci-common:2027`) and the year's extra `tags` (e.g. `latest`).
 
 `--version 2027` selects all of 2027's clang versions as well, while `--version 2027-clang22` only selects that one.
 
 Until 2027, `ci-common` and `ci-baseos-gl-conan` were versioned separately from the VFX Platform year (`3` for 2023 up
 to `7` for 2027). For existing users, their 2023 to 2027 images are still also tagged with those versions
 (e.g. `ci-common:7-clang22` as well as `ci-common:2027-clang22`), as set by each year's `legacy_common_version`.
+
+### Starting a new release
+
+To start a new release of a VFX Platform year, increment its `minor_version` in `versions.yaml` and run
+`aswfdocker dockergen`. Since the new release has its own Conan channel, none of the previous release's Conan packages
+are reused: the whole release is rebuilt, in this order (see
+[Example of a large re-release of all supported images](#example-of-a-large-re-release-of-all-supported-images)):
+
+1. the `ci-baseos-gl-conan` image, which every Conan package of the release is built in;
+2. the Conan packages, group by group (`common`, `base1`, `base2`, `base3`, `vfx`);
+3. the other images, starting with `ci-common`.
+
+Similarly, whenever `ci-baseos-gl-conan` changes, every Conan package built in it needs to be rebuilt, which is
+best done by starting a new release.
+
+For local builds, build the release's `ci-baseos-gl-conan` image first:
+
+```bash
+aswfdocker build -t IMAGE -g baseos-gl-conan -v 2027
+```
 
 ### Releasing Conan packages
 
@@ -621,8 +645,8 @@ previous GitHub release and tag.
 ### Manual GitHub release creation
 
 * Create a new release in [GitHub New Release](https://github.com/AcademySoftwareFoundation/aswf-docker/releases/new)
-    * Use the following tag format: `ci-NAME:X.Y` (e.g. `ci-common:2027-clang22.3`)
-    * Use the following release name format: `aswf/ci-NAME:X.Y` (e.g. `aswf/ci-common:2027-clang22.3`)
+    * Use the following tag format: `ci-NAME:X.Y` (e.g. `ci-common:2027-clang22.4`)
+    * Use the following release name format: `aswf/ci-NAME:X.Y` (e.g. `aswf/ci-common:2027-clang22.4`)
     * Enter the release notes for that particular image
     * Click Create
 * Run a manual build in GitHub Actions on the specific tagged commit created before
@@ -641,7 +665,7 @@ previous GitHub release and tag.
   ```
   or for a whole group of images:
   ```bash
-  aswfdocker release -t IMAGE -g vfx1 -v 2026 --docker-org aswftesting -m "Testing release"
+  aswfdocker release -t IMAGE -g vfx -v 2026 --docker-org aswftesting -m "Testing release"
   ```
 
   Releasing Conan packages (`-t PACKAGE`) has GitHub Actions build and upload them, see
@@ -657,7 +681,8 @@ should be prepared with most upstream dependencies of the `xyz` library.
 
 It is usually a good idea to add this `xyz` package to the `vfxall` library so that it can be tested there.
 
-* Add a new `xyz` version section in the `versions.yaml`, for both the `ci-package-xyz` Docker package and the `ci-xyz` for the CI image.
+* Add the `xyz` version pin to each year of `versions.yaml` it should be built for, and add `xyz` to its `ci-images` (and
+  image `groups`).
 * Create a new `ci-xyx/Dockerfile` using an existing one as an example (e.g. `ci-otio/Dockerfile`).
 * Create a new `scripts/vfx/build_xyz.sh` file that builds and installs `xyz` from source.
 * Add a new `xyz` section at the end of the `packages/Dockerfile` file to build the `ci-package-xyz` Docker package using the previous script.
@@ -683,7 +708,8 @@ Check [#66](https://github.com/AcademySoftwareFoundation/aswf-docker/pull/66) fo
 
 ### Example of a large re-release of all supported images
 
-Conan packages need to be uploaded to Artifactory before the images using them are released, by releasing them
+Conan packages are built in the `ci-baseos-gl-conan` image of their release, so that image needs to be released
+first. Conan packages then need to be uploaded to Artifactory before the images using them are released, by releasing them
 group by group in dependency order (`common`, `base1`, `base2`, `base3`, `vfx`) and waiting for each
 group's GitHub Actions builds to finish (see [Releasing Conan packages](#releasing-conan-packages)). A bare year
 version also selects all of that year's clang versions, e.g. both `ci-common:2027-clang21` and
@@ -693,12 +719,14 @@ version also selects all of that year's clang versions, e.g. both `ci-common:202
 # Image for building Conan packages
 aswfdocker release -t IMAGE -g baseos-gl-conan -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
 
+# Then the Conan packages, one group at a time, waiting for each group's GitHub Actions builds to finish
+aswfdocker release -t PACKAGE -g common -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
+# ... and similarly for base1, base2, base3 and vfx
+
 # ci-common needs the clang packages, and needs to be built before the base images
 aswfdocker release -t IMAGE -g common -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
 
 # Then the CI images
 aswfdocker release -t IMAGE -g base -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t IMAGE -g vfx1 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t IMAGE -g vfx2 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
-aswfdocker release -t IMAGE -g vfx3 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
+aswfdocker release -t IMAGE -g vfx -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
 ```

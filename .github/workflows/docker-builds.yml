@@ -176,26 +176,14 @@ jobs:
           --build-missing \
           --push NO
 
-    - name: Build vfx1 / vfx2 images   
+    - name: Build vfx images
       run: |
         set -ex
         uv run aswfdocker \
           --verbose \
           build \
           --ci-image-type IMAGE \
-          --group vfx1 \
-          --group vfx2 \
-          --version ${{ matrix.version }} \
-          --push NO
-
-    - name: Build vfx3 images
-      run: |
-        set -ex
-        uv run aswfdocker \
-          --verbose \
-          build \
-          --ci-image-type IMAGE \
-          --group vfx3 \
+          --group vfx \
           --version ${{ matrix.version }} \
           --push NO
 

@@ -9,5 +9,5 @@ packages:
 implicit_packages:
   - numpy
   - vfxplatform
-docker_from: ${ASWF_ORG}/ci-common:${ASWF_VFXPLATFORM_VERSION}-clang${ASWF_CLANG_MAJOR_VERSION}
+docker_from: ${ASWF_ORG}/ci-common:${ASWF_VFXPLATFORM_VERSION}-clang${ASWF_CLANG_MAJOR_VERSION}.${ASWF_VFXPLATFORM_MINOR_VERSION}
 docker_package_version: $ASWF_VFXPLATFORM_VERSION

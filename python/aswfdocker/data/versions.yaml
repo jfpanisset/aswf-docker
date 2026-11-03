@@ -29,8 +29,12 @@ versions:
       ASWF_WAYLAND_PROTOCOLS_VERSION: "1.37.1"
   # VFX Platform year entries, one per supported year:
   #   major_version: the VFX Platform year; images are tagged with it and
-  #     Conan packages are built in the vfx<year> channel with the vfx<year>
-  #     Conan profile.
+  #     Conan packages are built with the vfx<year> Conan profile.
+  #   minor_version: the year's current release. Images are tagged
+  #     "<year>.<minor>" (or "<year>-clang<major>.<minor>"), and Conan
+  #     packages are built in the vfx<year>_<minor> channel, in the
+  #     ci-baseos-gl-conan:<year>.<minor> image: bumping it starts a release
+  #     whose packages are all rebuilt, never reusing a previous release's.
   #   legacy_common_version: ci-common and ci-baseos-gl-conan images are also
   #     tagged with this pre-2028 ci_common version (e.g. ci-common:7-clang22
   #     as well as ci-common:2027-clang22) for existing consumers. Years from
@@ -44,6 +48,7 @@ versions:
   #     version everything not built per clang version uses.
   "2023":
     major_version: "2023"
+    minor_version: "8"
     legacy_common_version: "3"
     conan_profile: "vfx2023"
     generate_profile: true
@@ -213,6 +218,7 @@ versions:
       ASWF_REZ_VERSION: "3.4.0"
   "2024":
     major_version: "2024"
+    minor_version: "12"
     legacy_common_version: "4"
     conan_profile: "vfx2024"
     generate_profile: true
@@ -382,6 +388,7 @@ versions:
       ASWF_REZ_VERSION: "3.4.0"
   "2025":
     major_version: "2025"
+    minor_version: "11"
     legacy_common_version: "5"
     conan_profile: "vfx2025"
     generate_profile: true
@@ -551,8 +558,8 @@ versions:
       ASWF_REZ_VERSION: "3.4.0"
   "2026":
     major_version: "2026"
+    minor_version: "9"
     legacy_common_version: "6"
-    tags: ["latest"]
     conan_profile: "vfx2026"
     generate_profile: true
     clang_versions:
@@ -721,8 +728,9 @@ versions:
       ASWF_REZ_VERSION: "3.4.0"
   "2027":
     major_version: "2027"
+    minor_version: "4"
     legacy_common_version: "7"
-    tags: ["draft"]
+    tags: ["latest"]
     conan_profile: "vfx2027"
     generate_profile: true
     clang_versions:
@@ -896,146 +904,36 @@ versions:
 per_clang_packages:
   - clang
 
+# Every CI image, built for each year as version "<year>.<minor>", or with
+# per_clang: true, for each of the year's clang_versions as
+# "<year>-clang<major>.<minor>". exclude_versions lists years an image isn't
+# built for.
 ci-images:
-  baseos-gl-conan:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
+  baseos-gl-conan: {}
   common:
-    - "2023-clang14.7"
-    - "2023-clang15.7"
-    - "2024-clang16.11"
-    - "2024-clang17.11"
-    - "2025-clang18.10"
-    - "2025-clang19.10"
-    - "2026-clang19.8"
-    - "2026-clang20.8"
-    - "2027-clang21.3"
-    - "2027-clang22.3"
-  base:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
-  baseqt:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
-  imath:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
-  openexr:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
-  openfx:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
-  ocio:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
-  oiio:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
-  opencue:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
-  rez:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
-  rawtoaces:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
-  usd:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
-  otio:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
-  materialx:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
+    per_clang: true
+  base: {}
+  baseqt: {}
+  imath: {}
+  openexr: {}
+  openfx: {}
+  ocio: {}
+  oiio: {}
+  opencue: {}
+  rez: {}
+  rawtoaces: {}
+  usd: {}
+  otio: {}
+  materialx: {}
   openrv:
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
+    exclude_versions: ["2023"]
   osl:
-    - "2023-clang14.7"
-    - "2023-clang15.7"
-    - "2024-clang16.11"
-    - "2024-clang17.11"
-    - "2025-clang18.10"
-    - "2025-clang19.10"
-    - "2026-clang19.8"
-    - "2026-clang20.8"
-    - "2027-clang21.3"
-    - "2027-clang22.3"
+    per_clang: true
   openvdb:
-    - "2023-clang14.7"
-    - "2023-clang15.7"
-    - "2024-clang16.11"
-    - "2024-clang17.11"
-    - "2025-clang18.10"
-    - "2025-clang19.10"
-    - "2026-clang19.8"
-    - "2026-clang20.8"
-    - "2027-clang21.3"
-    - "2027-clang22.3"
+    per_clang: true
   vfxall:
-    - "2023-clang14.7"
-    - "2023-clang15.7"
-    - "2024-clang16.11"
-    - "2024-clang17.11"
-    - "2025-clang18.10"
-    - "2025-clang19.10"
-    - "2026-clang19.8"
-    - "2026-clang20.8"
-    - "2027-clang21.3"
-    - "2027-clang22.3"
-  moonray:
-    - "2023.7"
-    - "2024.11"
-    - "2025.10"
-    - "2026.8"
-    - "2027.3"
+    per_clang: true
+  moonray: {}
 groups:
   package:
       common:
@@ -1180,13 +1078,12 @@ groups:
       base:
         - base
         - baseqt
-      vfx1:
+      vfx:
         - imath
         - opencue
         - openexr
         - openfx
         - rez
-      vfx2:
         - ocio
         - oiio
         - otio
@@ -1194,7 +1091,6 @@ groups:
         - usd
         - moonray
         - rawtoaces
-      vfx3:
         - osl
         - openvdb
         - vfxall
