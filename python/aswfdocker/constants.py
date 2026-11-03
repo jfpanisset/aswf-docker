@@ -28,6 +28,10 @@ MAIN_GITHUB_ASWF_DOCKER_URL = (
     f"https://github.com/{MAIN_GITHUB_ASWF_ORG}/{MAIN_GITHUB_REPO_NAME}"
 )
 
+# Builds Conan packages and uploads them to Artifactory, started by
+# `aswfdocker release -t PACKAGE`.
+PACKAGE_RELEASE_WORKFLOW = "release-packages.yml"
+
 CCI_GITHUB_ORG = "conan-io"
 CCI_GITHUB_REPO_NAME = "conan-center-index"
 CCI_DEFAULT_BRANCH = "master"

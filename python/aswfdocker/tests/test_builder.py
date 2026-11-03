@@ -133,6 +133,38 @@ class TestBuilder(unittest.TestCase):
         self.assertTrue(all(nonces))
         self.assertNotEqual(nonces[0], nonces[1])
 
+    def test_only_package_uploads_get_artifactory_credentials(self):
+        # Downloads are anonymous, so nothing else needs the secrets.
+        for type_, names, image, push, expected in (
+            (
+                constants.ImageType.PACKAGE,
+                ["vfx"],
+                "ci-package-opentimelineio",
+                True,
+                True,
+            ),
+            (
+                constants.ImageType.PACKAGE,
+                ["vfx"],
+                "ci-package-opentimelineio",
+                False,
+                False,
+            ),
+            (constants.ImageType.IMAGE, ["base"], "ci-base", True, False),
+        ):
+            group_info = groupinfo.GroupInfo(
+                names=names,
+                versions=["2027"],
+                type_=type_,
+                targets=(
+                    ["opentimelineio"] if type_ == constants.ImageType.PACKAGE else []
+                ),
+            )
+            target = builder.Builder(
+                self.build_info, group_info, push=push
+            ).make_bake_dict(False)["target"][f"{image}-2027"]
+            self.assertEqual("secret" in target, expected, (type_, push))
+
     def test_image_builds_get_no_nonce(self):
         # Replaying cached image layers is fine, and keeps image builds fast.
         b = builder.Builder(
@@ -406,10 +438,6 @@ def _expected_image_target(image, major_version, image_version, tags):
         },
         "tags": tags,
         "output": ["type=docker"],
-        "secret": [
-            "id=conan_login_username,env=CONAN_LOGIN_USERNAME",
-            "id=conan_password,env=CONAN_PASSWORD",
-        ],
     }
 
 
@@ -596,6 +624,12 @@ class TestBuilderCli(unittest.TestCase):
                 + "--progress auto ci-package-openexr-2027'"
             ],
         )
+
+    def test_docker_org_overrides_repo_derived_org(self, mock_compute):
+        result = self._package_build("--target", "openexr", "--docker-org", "aswf")
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        # package_org (the Conan user and remote) follows the Docker org
+        self.assertEqual(mock_compute.call_args.args[1:3], ("aswf", "aswf"))
 
     def test_package_push_refused_outside_github_actions(self, mock_compute):
         with patch.dict(os.environ):

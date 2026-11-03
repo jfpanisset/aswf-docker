@@ -279,6 +279,19 @@ for aswf-docker and is required to be run before any commit.
 We follow PEP-8 naming convention which is also checked before any commit by the
 [PyLint](https://docs.pylint.org/) linter.
 
+#### GitHub Actions Workflows
+
+Workflows in `.github/workflows/` are audited for security issues by
+[zizmor](https://docs.zizmor.sh/) before any commit. In particular, inputs and secrets
+go through the environment of the steps needing them rather than being expanded into
+scripts, secrets are only given to the steps that use them, actions are pinned to a
+commit SHA, and every workflow sets minimal `permissions`.
+
+The SonarCloud analysis ([python-sonar.yml](.github/workflows/python-sonar.yml)) runs on
+pushes to `main` when a `SONAR_TOKEN` repository secret exists, so forks skip it. To
+analyse a fork in your own SonarCloud project, set the `SONAR_TOKEN` secret and the
+`SONAR_ORGANIZATION` and `SONAR_PROJECT_KEY` repository variables.
+
 #### Copyright Notices
 
 All new source files should begin with a copyright and license stating:
@@ -632,15 +645,29 @@ aswfdocker build -t IMAGE -g baseos-gl-conan -v 2027
 
 ### Releasing Conan packages
 
-Conan packages are built and uploaded to Artifactory by the `Release` GitHub Actions workflow, triggered by a GitHub release
-of the package, for each VFX Platform year (or year and clang version, for `clang`) it is built for:
+Conan packages are built and uploaded to Artifactory by the `Release Conan Packages` GitHub Actions workflow
+([release-packages.yml](.github/workflows/release-packages.yml)), which `aswfdocker release -t PACKAGE` starts directly:
+no GitHub release or tag is created. The packages are built from the given commit (`--sha`, by default the current commit
+of `main`), which must be on a branch of the repository: `main`, or a release branch for a maintenance release. The
+workflow refuses any other commit (such as one only pushed to a fork), so the Artifactory credentials only ever see
+reviewed code. They are also only given to the `conan upload` step: Artifactory downloads need no credentials.
 
 ```bash
-aswfdocker release -t PACKAGE -g common -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
+# A whole group, for every clang version of the year where relevant
+aswfdocker release -t PACKAGE -g common -v 2027 --docker-org aswf
+# Specific packages
+aswfdocker release -t PACKAGE -g vfx -v 2027 --target openexr --target osl --docker-org aswf
 ```
 
-Package release tags have no release number (e.g. `aswf/ci-package-cmake/2027`): releasing a package again replaces its
-previous GitHub release and tag.
+As with local builds, packages Artifactory already has an up-to-date binary of are skipped, so a release that failed
+part way through can simply be started again. `--force-rebuild` rebuilds and uploads them regardless. Packages are built
+in dependency order within their group, but a package release fails if one of the packages it needs from another group
+hasn't been uploaded yet, so groups need releasing in order (`common`, `base1`, `base2`, `base3`, `vfx`), waiting for
+each group's workflow run to finish.
+
+The workflow runs can be followed in the repository's GitHub Actions tab. The workflow definition is taken from the
+repository's default branch, unless `--workflow-ref` names another branch (e.g. to test a change to the workflow on a
+fork, together with `--github-org`).
 
 ### Manual GitHub release creation
 
@@ -653,8 +680,18 @@ previous GitHub release and tag.
 
 ### Automatic GitHub release creation
 
-* Generate a GitHub token to allow `aswfdocker release` to create GitHub releases:
-  [GitHub Settings](https://github.com/settings/tokens) with **"repo"** permissions.
+* Generate a [fine-grained GitHub token](https://github.com/settings/personal-access-tokens) for `aswfdocker release`,
+  with access to the repository you release from (`AcademySoftwareFoundation/aswf-docker`, or your fork when testing)
+  and these permissions:
+  * **Contents: Read and write**: image releases create a git tag on the released commit and a GitHub release, which
+    starts the `Release` workflow that builds and pushes the images.
+  * **Actions: Read and write**: package releases start the package build workflow directly, without creating a tag
+    or release. That workflow is the only place allowed to upload Conan packages to Artifactory.
+  * **Email addresses: Read-only** (account permission): image release tags are created under your GitHub name and
+    email.
+
+  Also select **Public repositories (read-only)** access if you use `aswfdocker conandiff` to compare vendored recipes
+  with Conan Center Index. A classic token with the **"repo"** scope also works.
 * Configure the token in the `aswfdocker` settings by running:
   ```bash
   aswfdocker settings --github-access-token MYTOKEN
@@ -671,8 +708,10 @@ previous GitHub release and tag.
   Releasing Conan packages (`-t PACKAGE`) has GitHub Actions build and upload them, see
   [Releasing Conan packages](#releasing-conan-packages).
 
-An email address must be publicly visible in your GitHub profile in order for the [PyGithub module](https://github.com/PyGithub/PyGithub) used
-by `aswfdocker` to work. For pre-releases you can use the `--sha` option to build from a specific commit.
+For image releases, an email address must be publicly visible in your GitHub profile in order for the
+[PyGithub module](https://github.com/PyGithub/PyGithub) used by `aswfdocker` to work. For pre-releases you can use the
+`--sha` option to build from a specific commit. As for Conan packages, the release workflow refuses to build and push
+images from a commit that isn't on a branch of the repository.
 
 ### Adding a new `ci` image
 
@@ -720,7 +759,7 @@ version also selects all of that year's clang versions, e.g. both `ci-common:202
 aswfdocker release -t IMAGE -g baseos-gl-conan -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
 
 # Then the Conan packages, one group at a time, waiting for each group's GitHub Actions builds to finish
-aswfdocker release -t PACKAGE -g common -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
+aswfdocker release -t PACKAGE -g common -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf
 # ... and similarly for base1, base2, base3 and vfx
 
 # ci-common needs the clang packages, and needs to be built before the base images

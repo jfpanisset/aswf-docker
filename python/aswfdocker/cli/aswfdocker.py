@@ -223,6 +223,13 @@ def get_group_info(build_info, ci_image_type, groups, versions, full_name, targe
     "its binary up to date (e.g. after a system library change). Image builds always "
     "rebuild.",
 )
+@click.option(
+    "--docker-org",
+    "-do",
+    default="",
+    help="The Docker organization (and Conan user/remote) to build for, instead of "
+    "the one derived from the repository URI and branch.",
+)
 @pass_build_info
 def build(  # pylint: disable=too-many-arguments,too-many-locals
     build_info,
@@ -239,12 +246,15 @@ def build(  # pylint: disable=too-many-arguments,too-many-locals
     target_to,
     target_from,
     force_rebuild,
+    docker_org,
 ):
     """Builds a Conan package or ci-image Docker image.
 
     Conan packages are built in dependency order, skipping packages whose
     binary is already up to date unless --force-rebuild is given.
     """
+    if docker_org:
+        build_info.set_org(docker_org)
     if push == "YES":
         pushb = True
     elif push == "AUTO":
@@ -456,11 +466,24 @@ def settings(settings_path, github_access_token):
 @click.option(
     "--message",
     "-m",
-    help="The release message.",
+    help="The release message (images only).",
+)
+@click.option(
+    "--force-rebuild",
+    is_flag=True,
+    help="Conan packages only: rebuild and upload the selected packages even if "
+    "Artifactory already has an up-to-date binary.",
+)
+@click.option(
+    "--workflow-ref",
+    default="",
+    help="Conan packages only: the branch to run the package release workflow "
+    "definition from, defaults to the repository's default branch. Packages are "
+    "always built from --sha.",
 )
 @click.option("--dry-run", "-d", is_flag=True, help="Just logs what would happen.")
 @pass_build_info
-def release(
+def release(  # pylint: disable=too-many-arguments,too-many-locals
     build_info,
     ci_image_type,
     group,
@@ -471,9 +494,18 @@ def release(
     github_org,
     docker_org,
     message,
+    force_rebuild,
+    workflow_ref,
     dry_run,
 ):
-    """Creates a GitHub release for a ci-package or ci-image Docker image."""
+    """Releases ci-image Docker images or Conan packages.
+
+    Images get a GitHub release (and tag) on the commit, which has the Release
+    GitHub Actions workflow build and push them to Docker Hub. Conan packages
+    are built from the commit and uploaded to Artifactory by the package
+    release GitHub Actions workflow, started directly without a GitHub
+    release.
+    """
 
     # Disable SSL unclosed ResourceWarning coming from GitHub
     warnings.filterwarnings(
@@ -489,11 +521,43 @@ def release(
             sys.exit(1)
         sha = utils.get_current_sha()
     if docker_org:
-        build_info.docker_org = docker_org
+        build_info.set_org(docker_org)
 
     group_info = get_group_info(
         build_info, ci_image_type, group, version, full_name, target
     )
+    if group_info.type == constants.ImageType.PACKAGE:
+        pr = releaser.PackageReleaser(
+            build_info=build_info,
+            group_info=group_info,
+            sha=sha,
+            github_org=github_org,
+            workflow_ref=workflow_ref,
+            force_rebuild=force_rebuild,
+        )
+        pr.gather()
+        if not click.confirm(
+            "Are you sure you want GitHub Actions to build and upload these {} "
+            "Conan packages from sha={} ({})?\n{}\n".format(
+                len(pr.release_list),
+                pr.sha,
+                "forcing a rebuild" if force_rebuild else "unless up to date",
+                "\n".join(pr.release_list),
+            )
+        ):
+            click.echo("Release cancelled.")
+            return
+        try:
+            pr.release(dry_run=dry_run)
+        except RuntimeError as e:
+            raise click.ClickException(e.args[0])
+        click.echo("Release started.")
+        return
+    if force_rebuild or workflow_ref:
+        raise click.BadOptionUsage(
+            "--force-rebuild/--workflow-ref",
+            "--force-rebuild/--workflow-ref only apply to Conan package releases",
+        )
     r = releaser.Releaser(
         github_org=github_org,
         build_info=build_info,
@@ -578,7 +642,8 @@ def dockergen(context, image_name, check, verbose):
 @click.option(
     "--password",
     "-p",
-    help="Docker Hub password",
+    envvar="DOCKERHUB_PASSWORD",
+    help="Docker Hub password (default: the DOCKERHUB_PASSWORD environment variable).",
 )
 @pass_build_info
 def pushoverview(

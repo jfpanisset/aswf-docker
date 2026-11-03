@@ -123,11 +123,14 @@ class Builder:
                 },
                 "tags": tags,
                 "output": ["type=registry,push=true" if self.push else "type=docker"],
-                "secret": [
+            }
+            # Artifactory downloads are anonymous: only package uploads need
+            # the credentials.
+            if self.group_info.type == constants.ImageType.PACKAGE and self.push:
+                target_dict["secret"] = [
                     "id=conan_login_username,env=CONAN_LOGIN_USERNAME",
                     "id=conan_password,env=CONAN_PASSWORD",
-                ],
-            }
+                ]
             # Docker Desktop on Apple Silicon defaults to linux/arm64; pin amd64 to match CI.
             if sys.platform == "darwin":
                 target_dict["platforms"] = ["linux/amd64"]

@@ -5,13 +5,50 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
+# Superseded runs for the same branch or pull request are cancelled.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # Forks without their own SONAR_TOKEN skip the analysis. Secrets can't be
+  # tested in `if:` conditions, and putting the token in the sonar job's
+  # environment would expose it to every step, so a separate job checks it.
+  check-token:
+    runs-on: ubuntu-latest
+    outputs:
+      available: ${{ steps.check.outputs.available }}
+    steps:
+    - name: Check for a SONAR_TOKEN secret
+      id: check
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        # A fork with its own SonarCloud project sets the SONAR_ORGANIZATION
+        # and SONAR_PROJECT_KEY repository variables to override
+        # sonar-project.properties.
+        args: >-
+          ${{ vars.SONAR_ORGANIZATION && format('-Dsonar.organization={0}', vars.SONAR_ORGANIZATION) || '' }}
+          ${{ vars.SONAR_PROJECT_KEY && format('-Dsonar.projectKey={0}', vars.SONAR_PROJECT_KEY) || '' }}
+      run: |
+        if [[ -n "$SONAR_TOKEN" ]]; then
+          echo "available=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "::notice::No SONAR_TOKEN secret, skipping the SonarCloud analysis"
+        fi
+
   sonar:
+    needs: check-token
+    if: needs.check-token.outputs.available == 'true'
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
+        persist-credentials: false
         # Disabling shallow clones is recommended for improving the relevancy of reporting
         fetch-depth: 0
 
@@ -38,3 +75,10 @@ jobs:
       uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        # A fork with its own SonarCloud project sets the SONAR_ORGANIZATION
+        # and SONAR_PROJECT_KEY repository variables to override
+        # sonar-project.properties.
+        args: >-
+          ${{ vars.SONAR_ORGANIZATION && format('-Dsonar.organization={0}', vars.SONAR_ORGANIZATION) || '' }}
+          ${{ vars.SONAR_PROJECT_KEY && format('-Dsonar.projectKey={0}', vars.SONAR_PROJECT_KEY) || '' }}

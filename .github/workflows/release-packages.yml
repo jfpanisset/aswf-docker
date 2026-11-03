@@ -1,0 +1,122 @@
+# Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Builds Conan packages from a given commit and uploads them to Artifactory.
+# Started by `aswfdocker release -t PACKAGE` (see CONTRIBUTING.md), as only
+# GitHub Actions holds the Artifactory credentials (and, in future, the
+# package signing keys).
+name: Release Conan Packages
+run-name: "Conan packages ${{ inputs.groups }} ${{ inputs.targets }} ${{ inputs.versions }} for ${{ inputs.package_org }} at ${{ inputs.sha }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit to build the packages from
+        required: true
+        type: string
+      package_org:
+        description: Conan user and Artifactory remote to upload to
+        required: true
+        type: choice
+        options:
+          - aswftesting
+          - aswf
+      groups:
+        description: Space-separated package groups
+        required: true
+        type: string
+      versions:
+        description: Space-separated versions (e.g. "2027", or "2027-clang22")
+        required: false
+        type: string
+        default: ""
+      targets:
+        description: Space-separated packages to build (default the whole groups)
+        required: false
+        type: string
+        default: ""
+      force_rebuild:
+        description: Rebuild even if Artifactory has an up-to-date binary
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  check-commit:
+    uses: $/.github/workflows/check-commit.yml
+    with:
+      sha: ${{ inputs.sha }}
+
+  release:  # zizmor: ignore[concurrency-limits] a concurrency group would cancel queued releases
+    needs: check-commit
+    runs-on: ${{ (github.repository_owner == 'AcademySoftwareFoundation' && 'ubuntu-latest-8c-32g-300h') || 'ubuntu-latest' }}
+    env:
+      DOCKER_CLI_EXPERIMENTAL: enabled
+      DOCKER_BUILDKIT: '1'
+
+    steps:
+    # Inputs go through the environment rather than being expanded into
+    # scripts, and are checked before anything uses them.
+    - name: Check inputs
+      env:
+        PACKAGE_GROUPS: ${{ inputs.groups }}
+        PACKAGE_VERSIONS: ${{ inputs.versions }}
+        PACKAGE_TARGETS: ${{ inputs.targets }}
+      run: |
+        set -euo pipefail
+        for input in "$PACKAGE_GROUPS" "$PACKAGE_VERSIONS" "$PACKAGE_TARGETS"; do
+          if [[ ! "$input" =~ ^[A-Za-z0-9._\ -]*$ ]]; then
+            echo "::error::Invalid input: $input"
+            exit 1
+          fi
+        done
+
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        # The commit check-commit checked.
+        ref: ${{ inputs.sha }}
+        persist-credentials: false
+
+    - name: Activate Docker buildx
+      uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      with:
+        # Use the docker driver for consistency with docker-builds.yml and local development.
+        driver: docker
+      env:
+        BUILDKIT_STEP_LOG_MAX_SIZE: 10485760
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+      with:
+        enable-cache: auto
+
+    - name: Set up Python
+      run: uv python install 3.10
+
+    - name: Install aswfdocker and dependencies
+      run: uv sync --frozen
+
+    - name: Build and upload
+      env:
+        # Only this step gets the Artifactory credentials, and only the
+        # `conan upload` step of the package builds (see
+        # packages/common/Dockerfile) gets them from it, as BuildKit secrets.
+        CONAN_LOGIN_USERNAME: ${{ secrets.ARTIFACTORY_USER }}
+        CONAN_PASSWORD: ${{ secrets.ARTIFACTORY_TOKEN }}
+        PACKAGE_ORG: ${{ inputs.package_org }}
+        PACKAGE_GROUPS: ${{ inputs.groups }}
+        PACKAGE_VERSIONS: ${{ inputs.versions }}
+        PACKAGE_TARGETS: ${{ inputs.targets }}
+        FORCE_REBUILD: ${{ inputs.force_rebuild }}
+      run: |
+        set -euo pipefail
+        args=(--ci-image-type PACKAGE --docker-org "$PACKAGE_ORG" --push YES)
+        for group in $PACKAGE_GROUPS; do args+=(--group "$group"); done
+        for version in $PACKAGE_VERSIONS; do args+=(--version "$version"); done
+        for target in $PACKAGE_TARGETS; do args+=(--target "$target"); done
+        if [[ "$FORCE_REBUILD" == "true" ]]; then args+=(--force-rebuild); fi
+        uv run aswfdocker --repo-uri "$GITHUB_REPOSITORY" --verbose build "${args[@]}"

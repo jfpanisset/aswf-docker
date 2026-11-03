@@ -152,8 +152,6 @@ ENV ASWF_PKG_YML=${ASWF_PKG_DIR}/config.yml
 #    --mount=type=cache,id=aswf-ccache,sharing=locked,target=${CCACHE_DIR} \
 #    --mount=type=bind,rw,target=${ASWF_CONAN_HOME}/.conan2,source=packages/conan/settings \
 #    --mount=type=bind,rw,target=${ASWF_CONAN_HOME}/recipes,source=packages/conan/recipes \
-#    --mount=type=secret,id=conan_login_username,env=CONAN_LOGIN_USERNAME \
-#    --mount=type=secret,id=conan_password,env=CONAN_PASSWORD \
 #    conan cache clean "fmt/*"  --source --build --download --temp --backup-sources && \
 #    conan remove --confirm "fmt/*"
 
@@ -162,8 +160,6 @@ ENV ASWF_PKG_YML=${ASWF_PKG_DIR}/config.yml
 #    --mount=type=cache,id=aswf-ccache,sharing=locked,target=${CCACHE_DIR} \
 #    --mount=type=bind,rw,target=${ASWF_CONAN_HOME}/.conan2,source=packages/conan/settings \
 #    --mount=type=bind,rw,target=${ASWF_CONAN_HOME}/recipes,source=packages/conan/recipes \
-#    --mount=type=secret,id=conan_login_username,env=CONAN_LOGIN_USERNAME \
-#    --mount=type=secret,id=conan_password,env=CONAN_PASSWORD \
 #    conan list
 
 # When you want to generate an HTML dependency graph
@@ -171,8 +167,6 @@ ENV ASWF_PKG_YML=${ASWF_PKG_DIR}/config.yml
 #    --mount=type=cache,id=aswf-ccache,sharing=locked,target=${CCACHE_DIR} \
 #    --mount=type=bind,rw,target=${ASWF_CONAN_HOME}/.conan2,source=packages/conan/settings \
 #    --mount=type=bind,rw,target=${ASWF_CONAN_HOME}/recipes,source=packages/conan/recipes \
-#    --mount=type=secret,id=conan_login_username,env=CONAN_LOGIN_USERNAME \
-#    --mount=type=secret,id=conan_password,env=CONAN_PASSWORD \
 #    conan graph info \
 #      --profile:all "${ASWF_CONAN_HOME}"/.conan2/profiles/"${ASWF_CONAN_PROFILE}" \
 #      --name "${ASWF_PKG_NAME}" \
@@ -187,8 +181,6 @@ RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=${ASWF_CONAN_HO
     --mount=type=cache,id=aswf-ccache,sharing=locked,target=${CCACHE_DIR} \
     --mount=type=bind,rw,target=${ASWF_CONAN_HOME}/.conan2,source=packages/conan/settings \
     --mount=type=bind,rw,target=${ASWF_CONAN_HOME}/recipes,source=packages/conan/recipes \
-    --mount=type=secret,id=conan_login_username,env=CONAN_LOGIN_USERNAME \
-    --mount=type=secret,id=conan_password,env=CONAN_PASSWORD \
     if [ -n "${ASWF_CONAN_GRAPH_SCRIPT}" ] ; then \
       eval "${ASWF_CONAN_GRAPH_SCRIPT}" > /aswf-build-order.json ; \
     else \
@@ -203,7 +195,9 @@ RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=${ASWF_CONAN_HO
         "${ASWF_PKG_DIR}"/$(if [[ -f "${ASWF_PKG_YML}" ]] ; then yq '.versions["'"${ASWF_PKG_VERSION}"'"].folder' "${ASWF_PKG_YML}" ; fi) ; \
     fi
 
-# Upload build to repository if called for
+# Upload build to repository if called for. Only this step gets the Artifactory
+# credentials: downloads are anonymous, so the recipes and upstream build systems
+# run by conan create above never see them.
 RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=${ASWF_CONAN_HOME}/d \
     --mount=type=cache,id=aswf-ccache,sharing=locked,target=${CCACHE_DIR} \
     --mount=type=bind,rw,target=${ASWF_CONAN_HOME}/.conan2,source=packages/conan/settings \

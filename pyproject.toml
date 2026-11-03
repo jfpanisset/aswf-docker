@@ -63,6 +63,7 @@ dev = [
   "types-pyyaml",
   "types-requests",
   "twine",
+  "zizmor",
 ]
 
 [project.scripts]
