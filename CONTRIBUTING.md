@@ -278,8 +278,12 @@ We follow PEP-8 naming convention which is also checked before any commit by the
 
 #### GitHub Actions Workflows
 
-Workflows in `.github/workflows/` and actions in `.github/actions/` are audited for
-security issues by [zizmor](https://docs.zizmor.sh/) before any commit. In particular,
+Before any commit, workflows in `.github/workflows/` and actions in `.github/actions/`
+are checked for correctness by [jactionlint](https://github.com/jdx/jactionlint)
+(workflow syntax, `${{ }}` expressions, inputs of actions and reusable workflows, and
+`run:` scripts with shellcheck), and audited for security issues by
+[zizmor](https://docs.zizmor.sh/). jactionlint only runs its `correctness` profile
+([.github/jactionlint.yaml](.github/jactionlint.yaml)), as zizmor covers security. In particular,
 inputs and secrets go through the environment of the steps needing them rather than
 being expanded into scripts, secrets are only given to the steps that use them, actions
 are pinned to a commit SHA, and every workflow sets minimal `permissions`.

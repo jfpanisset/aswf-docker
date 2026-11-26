@@ -1,0 +1,9 @@
+# Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# jactionlint configuration (run by pre-commit, see CONTRIBUTING.md).
+# jactionlint checks the correctness of workflows and actions; their
+# security is audited by zizmor, so only the correctness profile is used,
+# leaving out jactionlint's security and policy rules (which follow
+# zizmor's audits) to avoid every finding and ignore comment twice.
+profile: correctness

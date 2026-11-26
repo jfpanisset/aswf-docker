@@ -57,12 +57,14 @@ dependencies = [
 dev = [
     { name = "atomicwrites", marker = "sys_platform == 'win32'" },
     { name = "black" },
+    { name = "jactionlint" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "pylint" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-pylint" },
+    { name = "shellcheck-py" },
     { name = "twine" },
     { name = "types-click" },
     { name = "types-jinja2" },
@@ -87,6 +89,7 @@ requires-dist = [
     { name = "fasteners", specifier = "==0.19" },
     { name = "idna", specifier = "==3.15" },
     { name = "importlib-resources", specifier = "==5.12.0" },
+    { name = "jactionlint", marker = "extra == 'dev'" },
     { name = "jinja2", specifier = "==3.1.6" },
     { name = "markupsafe", specifier = "==2.1.5" },
     { name = "mypy", marker = "extra == 'dev'" },
@@ -104,6 +107,7 @@ requires-dist = [
     { name = "python-dateutil", specifier = "==2.9.0.post0" },
     { name = "pyyaml", specifier = "==6.0.3" },
     { name = "requests", specifier = "==2.33.0" },
+    { name = "shellcheck-py", marker = "extra == 'dev'" },
     { name = "six", specifier = "==1.16.0" },
     { name = "tqdm", specifier = "==4.66.3" },
     { name = "twine", marker = "extra == 'dev'" },
@@ -702,6 +706,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/87/f9/c1eb8635a24e87ade2efce21e3ce8cd6b8630bb685ddc9cdaca1349b2eb5/isort-5.13.2.tar.gz", hash = "sha256:48fdfcb9face5d58a4f6dde2e72a1fb8dcaf8ab26f95ab49fab84c2ddefb0109", size = 175303, upload-time = "2023-12-13T20:37:26.124Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/b3/8def84f539e7d2289a02f0524b944b15d7c75dab7628bedf1c4f0992029c/isort-5.13.2-py3-none-any.whl", hash = "sha256:8ca5e72a8d85860d5a3fa69b8745237f2939afe12dbf656afbcb47fe72d947a6", size = 92310, upload-time = "2023-12-13T20:37:23.244Z" },
+]
+
+[[package]]
+name = "jactionlint"
+version = "2.6.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/01/7d/5299d354518eed2cc12c7cebca9b17cd46e601f508fab94a33f4b3c57b78/jactionlint-2.6.0-py3-none-macosx_10_9_x86_64.whl", hash = "sha256:55a0c67cdd228910aa5d520a6935205f09aade3a02acea2119b41f86605b7c1d", size = 20113297, upload-time = "2026-11-12T17:59:05.038Z" },
+    { url = "https://files.pythonhosted.org/packages/6e/64/4d4de1263fbf08939e878c664aa2e17b20c33a3922d3d2bd5b61623b0f54/jactionlint-2.6.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:53ff5a9b211d235b29fd747de70b6ce0316d40f302b1ffd8a151c57d4494ad54", size = 18684870, upload-time = "2026-11-12T17:59:07.544Z" },
+    { url = "https://files.pythonhosted.org/packages/74/52/b63faf525184d25107b99a617b02b5f0bdd478afa19907cb5119c188a5cd/jactionlint-2.6.0-py3-none-manylinux_2_17_aarch64.whl", hash = "sha256:831093514388f37afee588aaf1a33cb1fd21ddd597a3d545a79815a4e93281dd", size = 18291687, upload-time = "2026-11-12T17:59:10.13Z" },
+    { url = "https://files.pythonhosted.org/packages/91/d6/c9d3eb17364b50d574e9abd280ea399aeca95c0dcf26abd0bc0ed26c4c69/jactionlint-2.6.0-py3-none-manylinux_2_17_x86_64.whl", hash = "sha256:b8b16e1e1f13411a7611cec18705e3211c4376fd5cb8b073dae4332c07abcd06", size = 19782631, upload-time = "2026-11-12T17:59:15.712Z" },
+    { url = "https://files.pythonhosted.org/packages/8c/e2/67cb8e0bf1943ac5d0c67b761971ef06aba1182f0b8af06ac7912e83282f/jactionlint-2.6.0-py3-none-win_amd64.whl", hash = "sha256:a15f6f5a46d80f38f8b7b32d0c430faf0c2cbf00f9c7ea4924b12b304b8b6e18", size = 20283717, upload-time = "2026-11-12T17:59:18.625Z" },
+    { url = "https://files.pythonhosted.org/packages/8a/a9/e4d709cfd35491ea256948d44fee90a27d300aca75e46331cb51dafc206b/jactionlint-2.6.0-py3-none-win_arm64.whl", hash = "sha256:9682cedc90a29e45a19298c90ab2d0365e2aba3c7e98874dd5a0dace8a506163", size = 18494789, upload-time = "2026-11-12T17:59:20.828Z" },
 ]
 
 [[package]]
@@ -1459,6 +1476,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/1c/03/e834bcd866f2f8a49a85eaff47340affa3bfa391ee9912a952a1faa68c7b/secretstorage-3.5.0.tar.gz", hash = "sha256:f04b8e4689cbce351744d5537bf6b1329c6fc68f91fa666f60a380edddcd11be", size = 19884, upload-time = "2025-11-23T19:02:53.191Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b7/46/f5af3402b579fd5e11573ce652019a67074317e18c1935cc0b4ba9b35552/secretstorage-3.5.0-py3-none-any.whl", hash = "sha256:0ce65888c0725fcb2c5bc0fdb8e5438eece02c523557ea40ce0703c266248137", size = 15554, upload-time = "2025-11-23T19:02:51.545Z" },
+]
+
+[[package]]
+name = "shellcheck-py"
+version = "0.11.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/df/55/455b097417b3df3d330eff029c72c32f08b25739e3010acb30ad06d268ef/shellcheck_py-0.11.0.1.tar.gz", hash = "sha256:5c620c88901e8f1d3be5934b31ea99e3310065e1245253741eafd0a275c8c9cc", size = 3139, upload-time = "2025-08-09T17:53:42.492Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/54/27/d75b03e5458cefdb6d3b674566cd20476c3e4d3fe6cc9d68b7e3b854b296/shellcheck_py-0.11.0.1-py2.py3-none-macosx_10_9_x86_64.whl", hash = "sha256:b6a3fee28efda2e16e38d6e6d59faf7224300256456639727370d404730849e8", size = 6774472, upload-time = "2025-08-09T17:53:34.573Z" },
+    { url = "https://files.pythonhosted.org/packages/61/ac/2a84c37171c0cf5a10ea4b0a27d43eb0a1d29bd98b49c2c5ffe17ad24bbe/shellcheck_py-0.11.0.1-py2.py3-none-macosx_11_0_arm64.whl", hash = "sha256:6b88d0a244c82ed07e06a53e444da841f69330ca59ae15d4a66c391655dae7a0", size = 11381835, upload-time = "2025-08-09T17:53:36.852Z" },
+    { url = "https://files.pythonhosted.org/packages/96/55/250e0e3367613a5c22bd82e33b16b889287d81ab0f7dda67e6514a4cccf4/shellcheck_py-0.11.0.1-py2.py3-none-manylinux1_x86_64.manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:1b274df81de5b000ff78db433e7328b87e52e3c38481c60f8e488c3095beef05", size = 3800600, upload-time = "2025-08-09T17:53:38.643Z" },
+    { url = "https://files.pythonhosted.org/packages/15/5b/bb14c0a7474463b1aa3c09e866cb172dffc66ed2993b7ea8f1db581e86ee/shellcheck_py-0.11.0.1-py2.py3-none-win_amd64.whl", hash = "sha256:784156289ecb17e91c692cd783ab5152333309588cabb10032a047331c63e759", size = 8027541, upload-time = "2025-08-09T17:53:40.889Z" },
 ]
 
 [[package]]

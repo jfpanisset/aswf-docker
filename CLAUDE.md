@@ -85,6 +85,9 @@ uv run black python/ packages/conan/settings/extensions/deployers/ packages/cona
 # GitHub Actions workflow security audit
 uv run zizmor .github/workflows .github/actions
 
+# GitHub Actions workflow and action correctness check (with shellcheck on run: scripts)
+uv run jactionlint
+
 # Run all pre-commit hooks
 uv run pre-commit run --all-files
 
@@ -165,7 +168,7 @@ uv run aswfdocker dockergen --check
 
 | Workflow | Trigger | Purpose |
 |---|---|---|
-| `python.yml` | Push/PR | Pre-commit hooks: black, pytest, mypy, pylint, zizmor, dockergen --check |
+| `python.yml` | Push/PR | Pre-commit hooks: black, pytest, mypy, pylint, zizmor, jactionlint, dockergen --check |
 | `docker-builds.yml` | Push/PR | Build Docker images and Conan packages (matrix by VFX year) |
 | `python-sonar.yml` | Push to main | Code quality analysis with SonarCloud |
 | `release-packages.yml` | `workflow_dispatch` from `aswfdocker release -t PACKAGE`, or `release-all.yml` | Build Conan packages from a commit + upload to Artifactory (one job per version) |

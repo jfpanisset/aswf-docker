@@ -64,6 +64,8 @@ dev = [
   "types-requests",
   "twine",
   "zizmor",
+  "jactionlint",
+  "shellcheck-py",
 ]
 
 [project.scripts]

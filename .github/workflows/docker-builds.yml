@@ -28,9 +28,7 @@ jobs:
       DOCKER_BUILDKIT: '1'
       # Matrix values go through the environment rather than being expanded
       # into scripts.
-      MATRIX_NAME: ${{ matrix.name }}
       MATRIX_VERSION: ${{ matrix.version }}
-      MATRIX_TEST: ${{ matrix.test }}
 
     strategy:
       # Don't let a failure for one year affect the others
@@ -44,7 +42,6 @@ jobs:
           - group: vfx-2027
             name: vfx-2027
             version: 2027
-            test: ""
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -193,20 +190,3 @@ jobs:
           --group vfx \
           --version "$MATRIX_VERSION" \
           --push NO
-
-    - run: |
-        set -ex
-        export DOCKER_ORG=`uv run aswfdocker --repo-uri $GITHUB_REPOSITORY --source-branch $GITHUB_REF getdockerorg`
-        test_script="scripts/tests/$MATRIX_VERSION/test_$MATRIX_TEST.sh"
-        if [ -f $test_script ]
-        then
-          echo "Going to run ${test_script}"
-          echo "docker run -i --rm ${DOCKER_ORG}/ci-${MATRIX_TEST}:${MATRIX_VERSION} run < ${test_script}"
-          docker run -i --rm \
-            -v $(Pipeline.Workspace)/cache/ci-image_${MATRIX_NAME}_${MATRIX_VERSION}/ccache:/tmp/ccache \
-            ${DOCKER_ORG}/ci-${MATRIX_TEST}:${MATRIX_VERSION} run < ${test_script}
-        else
-          echo "No test script found $test_script"
-        fi
-      name: Run test script ${{ matrix.version }}/test_${{ matrix.test }}.sh to check Docker image
-      if: ${{ matrix.test != '' }}

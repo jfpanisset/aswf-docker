@@ -26,13 +26,6 @@ jobs:
       id: check
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        # A fork with its own SonarCloud project sets the SONAR_ORGANIZATION
-        # and SONAR_PROJECT_KEY repository variables to override
-        # sonar-project.properties.
-        args: >-
-          ${{ vars.SONAR_ORGANIZATION && format('-Dsonar.organization={0}', vars.SONAR_ORGANIZATION) || '' }}
-          ${{ vars.SONAR_PROJECT_KEY && format('-Dsonar.projectKey={0}', vars.SONAR_PROJECT_KEY) || '' }}
       run: |
         if [[ -n "$SONAR_TOKEN" ]]; then
           echo "available=true" >> "$GITHUB_OUTPUT"
