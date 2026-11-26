@@ -28,9 +28,16 @@ MAIN_GITHUB_ASWF_DOCKER_URL = (
     f"https://github.com/{MAIN_GITHUB_ASWF_ORG}/{MAIN_GITHUB_REPO_NAME}"
 )
 
-# Builds Conan packages and uploads them to Artifactory, started by
-# `aswfdocker release -t PACKAGE`.
+# Release GitHub Actions workflows, started by `aswfdocker release`:
+# Conan packages built and uploaded to Artifactory (-t PACKAGE), images built
+# and pushed to Docker Hub (-t IMAGE), or both in dependency order
+# (--full-release).
 PACKAGE_RELEASE_WORKFLOW = "release-packages.yml"
+IMAGE_RELEASE_WORKFLOW = "release-images.yml"
+FULL_RELEASE_WORKFLOW = "release-all.yml"
+# The image groups release-all.yml releases (checked by test_releaser), for
+# `aswfdocker release --full-release` to create their draft GitHub releases.
+FULL_RELEASE_IMAGE_GROUPS = ("baseos-gl-conan", "common", "base", "vfx")
 
 CCI_GITHUB_ORG = "conan-io"
 CCI_GITHUB_REPO_NAME = "conan-center-index"

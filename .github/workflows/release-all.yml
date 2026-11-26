@@ -1,0 +1,180 @@
+# Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Releases every Conan package and image of the given versions from a given
+# commit, in dependency order: each stage starts once the stages it needs
+# have released every version. Package builds only need ci-baseos-gl-conan
+# and the packages they depend on, so images are built alongside the next
+# package groups:
+#
+#   stage                  needs
+#   baseos-gl-conan image  -
+#   common packages        baseos-gl-conan image
+#   common image           common packages
+#   base1 packages         common packages
+#   base2 packages         base1 packages
+#   base3 packages         base2 packages
+#   base images            common image, base3 packages
+#   vfx packages           base3 packages
+#   vfx images             common image, vfx packages
+#
+# Started by `aswfdocker release --full-release`
+# (see CONTRIBUTING.md). After a failure, re-running the failed jobs resumes
+# the release: packages Artifactory already has are skipped.
+#
+# The review group (OpenRV) isn't released while it's broken.
+name: Release All
+run-name: "Full release of ${{ inputs.versions }} for ${{ inputs.org }} at ${{ inputs.sha }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit to release
+        required: true
+        type: string
+      org:
+        description: Docker Hub organization and Conan user to release to
+        required: true
+        type: choice
+        options:
+          - aswftesting
+          - aswf
+      versions:
+        description: Space-separated versions (e.g. "2026 2027"), each built by its own jobs
+        required: true
+        type: string
+      force_rebuild:
+        description: Rebuild Conan packages even if Artifactory has an up-to-date binary
+        required: false
+        type: boolean
+        default: false
+      message:
+        description: Image release message
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  baseos-gl-conan-image:
+    uses: $/.github/workflows/release-images.yml
+    permissions:
+      contents: write  # for release-images.yml's record job, creating the GitHub releases
+    with:
+      sha: ${{ inputs.sha }}
+      docker_org: ${{ inputs.org }}
+      groups: baseos-gl-conan
+      versions: ${{ inputs.versions }}
+      message: ${{ inputs.message }}
+    secrets:
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+  common-packages:
+    needs: baseos-gl-conan-image
+    uses: $/.github/workflows/release-packages.yml
+    with:
+      sha: ${{ inputs.sha }}
+      package_org: ${{ inputs.org }}
+      groups: common
+      versions: ${{ inputs.versions }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+    secrets:
+      ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+      ARTIFACTORY_TOKEN: ${{ secrets.ARTIFACTORY_TOKEN }}
+
+  common-image:
+    needs: common-packages
+    uses: $/.github/workflows/release-images.yml
+    permissions:
+      contents: write  # for release-images.yml's record job, creating the GitHub releases
+    with:
+      sha: ${{ inputs.sha }}
+      docker_org: ${{ inputs.org }}
+      groups: common
+      versions: ${{ inputs.versions }}
+      message: ${{ inputs.message }}
+    secrets:
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+  base1-packages:
+    needs: common-packages
+    uses: $/.github/workflows/release-packages.yml
+    with:
+      sha: ${{ inputs.sha }}
+      package_org: ${{ inputs.org }}
+      groups: base1
+      versions: ${{ inputs.versions }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+    secrets:
+      ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+      ARTIFACTORY_TOKEN: ${{ secrets.ARTIFACTORY_TOKEN }}
+
+  base2-packages:
+    needs: base1-packages
+    uses: $/.github/workflows/release-packages.yml
+    with:
+      sha: ${{ inputs.sha }}
+      package_org: ${{ inputs.org }}
+      groups: base2
+      versions: ${{ inputs.versions }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+    secrets:
+      ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+      ARTIFACTORY_TOKEN: ${{ secrets.ARTIFACTORY_TOKEN }}
+
+  base3-packages:
+    needs: base2-packages
+    uses: $/.github/workflows/release-packages.yml
+    with:
+      sha: ${{ inputs.sha }}
+      package_org: ${{ inputs.org }}
+      groups: base3
+      versions: ${{ inputs.versions }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+    secrets:
+      ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+      ARTIFACTORY_TOKEN: ${{ secrets.ARTIFACTORY_TOKEN }}
+
+  base-images:
+    needs: [common-image, base3-packages]
+    uses: $/.github/workflows/release-images.yml
+    permissions:
+      contents: write  # for release-images.yml's record job, creating the GitHub releases
+    with:
+      sha: ${{ inputs.sha }}
+      docker_org: ${{ inputs.org }}
+      groups: base
+      versions: ${{ inputs.versions }}
+      message: ${{ inputs.message }}
+    secrets:
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+  vfx-packages:
+    needs: base3-packages
+    uses: $/.github/workflows/release-packages.yml
+    with:
+      sha: ${{ inputs.sha }}
+      package_org: ${{ inputs.org }}
+      groups: vfx
+      versions: ${{ inputs.versions }}
+      force_rebuild: ${{ inputs.force_rebuild }}
+    secrets:
+      ARTIFACTORY_USER: ${{ secrets.ARTIFACTORY_USER }}
+      ARTIFACTORY_TOKEN: ${{ secrets.ARTIFACTORY_TOKEN }}
+
+  vfx-images:
+    needs: [common-image, vfx-packages]
+    uses: $/.github/workflows/release-images.yml
+    permissions:
+      contents: write  # for release-images.yml's record job, creating the GitHub releases
+    with:
+      sha: ${{ inputs.sha }}
+      docker_org: ${{ inputs.org }}
+      groups: vfx
+      versions: ${{ inputs.versions }}
+      message: ${{ inputs.message }}
+    secrets:
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
