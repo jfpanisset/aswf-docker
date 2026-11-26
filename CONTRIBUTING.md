@@ -264,9 +264,6 @@ test.
 Pre-commit hooks need to be installed by running `pre-commit install`, and
 tests can be run manually by running `pre-commit run --all-files`.
 
-If the `test_releaser.py` test fails, it is possibly because your GitHub API
-token has expired or didn't get configured with `aswfdocker settings  --github-access-token`.
-
 ## Coding Style
 
 #### Formatting
@@ -281,11 +278,18 @@ We follow PEP-8 naming convention which is also checked before any commit by the
 
 #### GitHub Actions Workflows
 
-Workflows in `.github/workflows/` are audited for security issues by
-[zizmor](https://docs.zizmor.sh/) before any commit. In particular, inputs and secrets
-go through the environment of the steps needing them rather than being expanded into
-scripts, secrets are only given to the steps that use them, actions are pinned to a
-commit SHA, and every workflow sets minimal `permissions`.
+Workflows in `.github/workflows/` and actions in `.github/actions/` are audited for
+security issues by [zizmor](https://docs.zizmor.sh/) before any commit. In particular,
+inputs and secrets go through the environment of the steps needing them rather than
+being expanded into scripts, secrets are only given to the steps that use them, actions
+are pinned to a commit SHA, and every workflow sets minimal `permissions`.
+
+Every job running `aswfdocker` sets it up with the
+[setup-aswfdocker](.github/actions/setup-aswfdocker/action.yml) composite action
+(uv, Python and the project's dependencies, with `dev: 'true'` adding the dev
+dependencies), right after `actions/checkout`. It is referenced as
+`$/.github/actions/setup-aswfdocker`, so the action comes from the commit the workflow
+runs from, rather than from the commit checked out.
 
 The SonarCloud analysis ([python-sonar.yml](.github/workflows/python-sonar.yml)) runs on
 pushes to `main` when a `SONAR_TOKEN` repository secret exists, so forks skip it. To
@@ -634,6 +638,8 @@ are reused: the whole release is rebuilt, in this order (see
 2. the Conan packages, group by group (`common`, `base1`, `base2`, `base3`, `vfx`);
 3. the other images, starting with `ci-common`.
 
+`aswfdocker release --full-release` does all of this in one go, see [Full releases](#full-releases).
+
 Similarly, whenever `ci-baseos-gl-conan` changes, every Conan package built in it needs to be rebuilt, which is
 best done by starting a new release.
 
@@ -663,32 +669,65 @@ As with local builds, packages Artifactory already has an up-to-date binary of a
 part way through can simply be started again. `--force-rebuild` rebuilds and uploads them regardless. Packages are built
 in dependency order within their group, but a package release fails if one of the packages it needs from another group
 hasn't been uploaded yet, so groups need releasing in order (`common`, `base1`, `base2`, `base3`, `vfx`), waiting for
-each group's workflow run to finish.
+each group's workflow run to finish, unless they're released by a [full release](#full-releases). Each version
+(`-v`) is built by its own job, in parallel.
 
 The workflow runs can be followed in the repository's GitHub Actions tab. The workflow definition is taken from the
 repository's default branch, unless `--workflow-ref` names another branch (e.g. to test a change to the workflow on a
 fork, together with `--github-org`).
 
-### Manual GitHub release creation
+### Releasing images
 
-* Create a new release in [GitHub New Release](https://github.com/AcademySoftwareFoundation/aswf-docker/releases/new)
-    * Use the following tag format: `ci-NAME:X.Y` (e.g. `ci-common:2027-clang22.4`)
-    * Use the following release name format: `aswf/ci-NAME:X.Y` (e.g. `aswf/ci-common:2027-clang22.4`)
-    * Enter the release notes for that particular image
-    * Click Create
-* Run a manual build in GitHub Actions on the specific tagged commit created before
+Images are built and pushed to Docker Hub by the `Release Images` GitHub Actions workflow
+([release-images.yml](.github/workflows/release-images.yml)), which `aswfdocker release -t IMAGE` starts directly. As
+for Conan packages, the images are built from the given commit (`--sha`, by default the current commit of `main`),
+which must be on a branch of the repository, and each version (`-v`) is built by its own job.
 
-### Automatic GitHub release creation
+Each image is recorded as a GitHub release on the commit, e.g. `aswf/ci-base:2027.4`, with the release message given
+with `-m`. `aswfdocker release` first creates these releases as drafts, with your GitHub token, so they're attributed
+to you. Drafts are only visible to the repository's maintainers, and have no tag yet. Once the images are pushed, the
+workflow publishes the drafts, which creates their tags, replacing any earlier release (and tag) of the same images.
+If a build fails, its images' drafts stay until the release is run again, and the earlier published releases are left
+alone.
 
-* Generate a [fine-grained GitHub token](https://github.com/settings/personal-access-tokens) for `aswfdocker release`,
-  with access to the repository you release from (`AcademySoftwareFoundation/aswf-docker`, or your fork when testing)
-  and these permissions:
-  * **Contents: Read and write**: image releases create a git tag on the released commit and a GitHub release, which
-    starts the `Release` workflow that builds and pushes the images.
-  * **Actions: Read and write**: package releases start the package build workflow directly, without creating a tag
-    or release. That workflow is the only place allowed to upload Conan packages to Artifactory.
-  * **Email addresses: Read-only** (account permission): image release tags are created under your GitHub name and
-    email.
+```bash
+# A single image
+aswfdocker release -n aswftesting/ci-base:2026
+# A whole group of images
+aswfdocker release -t IMAGE -g vfx -v 2026 --docker-org aswftesting -m "Testing release"
+```
+
+Images released to `aswftesting` are marked as pre-releases. Creating a GitHub release by hand doesn't build anything.
+If the workflow is started without drafts (e.g. from the GitHub Actions tab), it creates the releases itself, attributed
+to GitHub Actions.
+
+### Full releases
+
+`aswfdocker release --full-release` has the `Release All` GitHub Actions workflow
+([release-all.yml](.github/workflows/release-all.yml)) release every Conan package and image of the given years, in
+dependency order, without anyone waiting on each group. Like image releases, it first creates the draft releases of
+every image it will release:
+
+```bash
+aswfdocker release --full-release -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
+```
+
+It runs the package and image release workflows above, one stage per group, starting each stage once the stages it
+needs are released for every year (see the table in `release-all.yml`). `--force-rebuild` rebuilds the Conan packages
+even if Artifactory already has them. If a stage fails, "Re-run failed jobs" in the GitHub Actions tab resumes the
+release: packages already uploaded are skipped. The `review` group (OpenRV) isn't part of full releases.
+
+### GitHub token for releases
+
+`aswfdocker release` starts the release workflows through the GitHub API, which needs a GitHub token:
+
+* Generate a [fine-grained GitHub token](https://github.com/settings/personal-access-tokens), with access to the
+  repository you release from (`AcademySoftwareFoundation/aswf-docker`, or your fork when testing) and these
+  permissions:
+  * **Actions: Read and write**: to start the release workflows, the only place allowed to upload Conan packages to
+    Artifactory and push images to Docker Hub.
+  * **Contents: Read and write**: to check that the commit to release exists, and to create the draft GitHub releases
+    of images, which the release workflow publishes once the images are pushed.
 
   Also select **Public repositories (read-only)** access if you use `aswfdocker conandiff` to compare vendored recipes
   with Conan Center Index. A classic token with the **"repo"** scope also works.
@@ -696,22 +735,8 @@ fork, together with `--github-org`).
   ```bash
   aswfdocker settings --github-access-token MYTOKEN
   ```
-* Run the `release` command for a given image:
-  ```bash
-  aswfdocker release -n aswftesting/ci-base:2026
-  ```
-  or for a whole group of images:
-  ```bash
-  aswfdocker release -t IMAGE -g vfx -v 2026 --docker-org aswftesting -m "Testing release"
-  ```
 
-  Releasing Conan packages (`-t PACKAGE`) has GitHub Actions build and upload them, see
-  [Releasing Conan packages](#releasing-conan-packages).
-
-For image releases, an email address must be publicly visible in your GitHub profile in order for the
-[PyGithub module](https://github.com/PyGithub/PyGithub) used by `aswfdocker` to work. For pre-releases you can use the
-`--sha` option to build from a specific commit. As for Conan packages, the release workflow refuses to build and push
-images from a commit that isn't on a branch of the repository.
+Publishing the draft releases (which creates their tags) is done by the release workflow itself, with its own token.
 
 ### Adding a new `ci` image
 
@@ -747,18 +772,21 @@ Check [#66](https://github.com/AcademySoftwareFoundation/aswf-docker/pull/66) fo
 
 ### Example of a large re-release of all supported images
 
-Conan packages are built in the `ci-baseos-gl-conan` image of their release, so that image needs to be released
-first. Conan packages then need to be uploaded to Artifactory before the images using them are released, by releasing them
-group by group in dependency order (`common`, `base1`, `base2`, `base3`, `vfx`) and waiting for each
-group's GitHub Actions builds to finish (see [Releasing Conan packages](#releasing-conan-packages)). A bare year
-version also selects all of that year's clang versions, e.g. both `ci-common:2027-clang21` and
+A [full release](#full-releases) releases everything, in dependency order:
+
+```bash
+aswfdocker release --full-release -v all --docker-org aswf -m "RELEASE_NOTES!"
+```
+
+Doing the same group by group needs waiting for each group's GitHub Actions runs to finish before releasing the next
+one. A bare year version also selects all of that year's clang versions, e.g. both `ci-common:2027-clang21` and
 `ci-common:2027-clang22`.
 
 ```bash
 # Image for building Conan packages
 aswfdocker release -t IMAGE -g baseos-gl-conan -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
 
-# Then the Conan packages, one group at a time, waiting for each group's GitHub Actions builds to finish
+# Then the Conan packages, one group at a time
 aswfdocker release -t PACKAGE -g common -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf
 # ... and similarly for base1, base2, base3 and vfx
 

@@ -1,0 +1,39 @@
+# Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Installs uv, Python and aswfdocker with its dependencies, shared by every
+# workflow job running aswfdocker. Workflows reference it as
+# `$/.github/actions/setup-aswfdocker`, so it is read from the commit the
+# workflow runs from, not from the checkout: release workflows building an
+# older commit still get this setup. It installs the checked-out project, so
+# actions/checkout must run first.
+name: Set up aswfdocker
+description: Install uv, Python and aswfdocker with its dependencies
+
+inputs:
+  dev:
+    description: Also install the dev dependencies ("true" or "false")
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+  - name: Install uv
+    uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+    with:
+      enable-cache: auto
+
+  - name: Set up Python
+    shell: bash
+    run: uv python install 3.10
+
+  - name: Install aswfdocker and dependencies
+    if: ${{ inputs.dev != 'true' }}
+    shell: bash
+    run: uv sync --frozen
+
+  - name: Install aswfdocker and dev dependencies
+    if: ${{ inputs.dev == 'true' }}
+    shell: bash
+    run: uv sync --all-extras --frozen

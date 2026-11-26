@@ -1,0 +1,102 @@
+# Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Checks a release's inputs, for the release workflows to call before the
+# jobs holding the Artifactory or Docker Hub credentials. Runs as its own
+# job, which gets no secrets.
+#
+# In particular, the commit must be on a branch of this repository (main, or
+# a release branch for maintenance releases): GitHub serves any commit of
+# the fork network through this repository, so without this check a commit
+# only pushed to a fork could be released.
+name: Check Release
+
+on:
+  workflow_call:
+    inputs:
+      sha:
+        description: Full SHA of the commit to release
+        required: true
+        type: string
+      org:
+        description: Docker organization and Conan user to release to (aswf or aswftesting)
+        required: true
+        type: string
+      groups:
+        description: Space-separated groups
+        required: true
+        type: string
+      versions:
+        description: Space-separated versions
+        required: true
+        type: string
+      targets:
+        description: Space-separated targets
+        required: false
+        type: string
+        default: ""
+    outputs:
+      versions:
+        description: The versions as a JSON array, for a per-version matrix
+        value: ${{ jobs.check-release.outputs.versions }}
+
+permissions:
+  contents: read
+
+jobs:
+  check-release:  # zizmor: ignore[concurrency-limits] a concurrency group would cancel queued releases
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.check-inputs.outputs.versions }}
+    steps:
+    # Inputs go through the environment rather than being expanded into
+    # scripts, and are checked before anything uses them.
+    - name: Check inputs
+      id: check-inputs
+      env:
+        SHA: ${{ inputs.sha }}
+        ORG: ${{ inputs.org }}
+        GROUPS_INPUT: ${{ inputs.groups }}
+        VERSIONS: ${{ inputs.versions }}
+        TARGETS: ${{ inputs.targets }}
+      run: |
+        set -euo pipefail
+        if [[ ! "$SHA" =~ ^[0-9a-f]{40}$ ]]; then
+          echo "::error::sha must be a full 40-character commit SHA: $SHA"
+          exit 1
+        fi
+        if [[ "$ORG" != "aswf" && "$ORG" != "aswftesting" ]]; then
+          echo "::error::org must be aswf or aswftesting: $ORG"
+          exit 1
+        fi
+        for input in "$GROUPS_INPUT" "$VERSIONS" "$TARGETS"; do
+          if [[ ! "$input" =~ ^[A-Za-z0-9._\ -]*$ ]]; then
+            echo "::error::Invalid input: $input"
+            exit 1
+          fi
+        done
+        if [[ -z "${GROUPS_INPUT// }" || -z "${VERSIONS// }" ]]; then
+          echo "::error::groups and versions must not be empty"
+          exit 1
+        fi
+        echo "versions=$(jq -cn --arg v "$VERSIONS" '$v | split(" ") | map(select(. != ""))')" >> "$GITHUB_OUTPUT"
+
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ inputs.sha }}
+        # All branches, for the check below.
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Check the commit is on a branch of ${{ github.repository }}
+      env:
+        SHA: ${{ inputs.sha }}
+      run: |
+        set -euo pipefail
+        branches=$(git branch --remotes --contains "$SHA")
+        if [[ -z "$branches" ]]; then
+          echo "::error::Commit $SHA is not on any branch of $GITHUB_REPOSITORY"
+          exit 1
+        fi
+        echo "Commit $SHA is on:"
+        echo "$branches"

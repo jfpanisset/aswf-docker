@@ -30,7 +30,8 @@ aswf-docker/
 │   ├── conan/settings/    # Conan profile settings (profiles/ is auto-generated)
 │   └── common/            # Shared build utilities
 ├── scripts/               # Shell utilities, VFX scripts, tests
-├── .github/workflows/     # CI: python.yml, docker-builds.yml, release.yml, release-packages.yml, python-sonar.yml
+├── .github/workflows/     # CI: python.yml, docker-builds.yml, python-sonar.yml, release-*.yml, check-release.yml
+├── .github/actions/       # setup-aswfdocker composite action (uv, Python, uv sync) used by the workflows
 ├── versions.yaml          # Symlink to python/aswfdocker/data/versions.yaml
 └── pyproject.toml         # Python project config (uv, pytest, black)
 ```
@@ -82,7 +83,7 @@ uv run pylint python/aswfdocker
 uv run black python/ packages/conan/settings/extensions/deployers/ packages/conan/settings/extensions/commands/ packages/conan/settings/extensions/hooks/
 
 # GitHub Actions workflow security audit
-uv run zizmor .github/workflows
+uv run zizmor .github/workflows .github/actions
 
 # Run all pre-commit hooks
 uv run pre-commit run --all-files
@@ -167,8 +168,10 @@ uv run aswfdocker dockergen --check
 | `python.yml` | Push/PR | Pre-commit hooks: black, pytest, mypy, pylint, zizmor, dockergen --check |
 | `docker-builds.yml` | Push/PR | Build Docker images and Conan packages (matrix by VFX year) |
 | `python-sonar.yml` | Push to main | Code quality analysis with SonarCloud |
-| `release.yml` | GitHub Release | Build released images + push to Docker Hub (rejects package releases) |
-| `release-packages.yml` | `workflow_dispatch` from `aswfdocker release -t PACKAGE` | Build Conan packages from a commit + upload to Artifactory |
+| `release-packages.yml` | `workflow_dispatch` from `aswfdocker release -t PACKAGE`, or `release-all.yml` | Build Conan packages from a commit + upload to Artifactory (one job per version) |
+| `release-images.yml` | `workflow_dispatch` from `aswfdocker release -t IMAGE`, or `release-all.yml` | Build images from a commit + push to Docker Hub, then publish the draft GitHub release of each (one job per version) |
+| `release-all.yml` | `workflow_dispatch` from `aswfdocker release --full-release` | Release every package and image of the given years, in dependency order |
+| `check-release.yml` | Called by the release workflows | Check release inputs, and that the commit is on a branch of the repository |
 
 ## Git Conventions
 
@@ -231,3 +234,7 @@ uv run aswfdocker dockergen --check
    holding the Docker Hub token (and, in future, image signing keys):
    `aswfdocker build --push YES` (or `--push AUTO` resolving to a push) and
    `aswfdocker pushoverview` refuse to run elsewhere.
+   `aswfdocker release -t IMAGE` creates draft GitHub releases of the images
+   (attributed to the person releasing) and starts `release-images.yml` via
+   the GitHub API, which publishes them once the images are pushed
+   (`aswfdocker publishreleases`, GitHub Actions only).

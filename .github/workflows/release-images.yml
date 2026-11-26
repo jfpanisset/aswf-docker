@@ -1,0 +1,183 @@
+# Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+# Builds ci-image Docker images from a given commit and pushes them to Docker
+# Hub, one job per version, then publishes the draft GitHub release recording
+# each released image on the commit, which creates its tag. Started by
+# `aswfdocker release -t IMAGE`, or called by release-all.yml (see
+# CONTRIBUTING.md), as only GitHub Actions holds the Docker Hub credentials
+# (and, in future, the image signing keys). `aswfdocker release` creates the
+# drafts first, with the token of the person releasing, who the releases are
+# attributed to.
+name: Release Images
+run-name: "Images ${{ inputs.groups }} ${{ inputs.targets }} ${{ inputs.versions }} for ${{ inputs.docker_org }} at ${{ inputs.sha }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit to build the images from
+        required: true
+        type: string
+      docker_org:
+        description: Docker Hub organization to push to
+        required: true
+        type: choice
+        options:
+          - aswftesting
+          - aswf
+      groups:
+        description: Space-separated image groups
+        required: true
+        type: string
+      versions:
+        description: Space-separated versions (e.g. "2026 2027", or "2027-clang22"), each built by its own job
+        required: true
+        type: string
+      targets:
+        description: Space-separated images to build (default the whole groups)
+        required: false
+        type: string
+        default: ""
+      message:
+        description: Release message, for images without a draft release (created by `aswfdocker release`)
+        required: false
+        type: string
+        default: ""
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
+      docker_org:
+        required: true
+        type: string
+      groups:
+        required: true
+        type: string
+      versions:
+        required: true
+        type: string
+      targets:
+        required: false
+        type: string
+        default: ""
+      message:
+        required: false
+        type: string
+        default: ""
+    secrets:
+      DOCKERHUB_PASSWORD:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  check-release:
+    uses: $/.github/workflows/check-release.yml
+    with:
+      sha: ${{ inputs.sha }}
+      org: ${{ inputs.docker_org }}
+      groups: ${{ inputs.groups }}
+      versions: ${{ inputs.versions }}
+      targets: ${{ inputs.targets }}
+
+  release:  # zizmor: ignore[concurrency-limits] a concurrency group would cancel queued releases
+    needs: check-release
+    runs-on: ${{ (github.repository_owner == 'AcademySoftwareFoundation' && 'ubuntu-latest-8c-32g-300h') || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ${{ fromJSON(needs.check-release.outputs.versions) }}
+    env:
+      DOCKER_CLI_EXPERIMENTAL: enabled
+      DOCKER_BUILDKIT: '1'
+      # Inputs (checked by check-release) go through the environment rather
+      # than being expanded into scripts.
+      DOCKER_ORG: ${{ inputs.docker_org }}
+      IMAGE_GROUPS: ${{ inputs.groups }}
+      IMAGE_VERSION: ${{ matrix.version }}
+      IMAGE_TARGETS: ${{ inputs.targets }}
+
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        # The commit check-release checked.
+        ref: ${{ inputs.sha }}
+        persist-credentials: false
+
+    - name: Activate Docker buildx
+      uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      with:
+        # Use the docker driver for consistency with docker-builds.yml and local development.
+        # All images are pushed to Docker Hub in this workflow so the image store sharing
+        # behaviour difference between drivers has no practical effect here.
+        driver: docker
+      env:
+        BUILDKIT_STEP_LOG_MAX_SIZE: 10485760
+
+    - name: Set up aswfdocker
+      uses: $/.github/actions/setup-aswfdocker
+
+    # Secrets go through the environment of the steps needing them, never on
+    # a command line or expanded into a script.
+    - name: Login to Docker Hub
+      env:
+        DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      run: printenv DOCKERHUB_PASSWORD | docker login -u aswfdocker --password-stdin
+
+    - name: Build and push
+      run: |
+        set -euo pipefail
+        args=(--ci-image-type IMAGE --docker-org "$DOCKER_ORG" --version "$IMAGE_VERSION")
+        for group in $IMAGE_GROUPS; do args+=(--group "$group"); done
+        for target in $IMAGE_TARGETS; do args+=(--target "$target"); done
+        uv run aswfdocker --repo-uri "$GITHUB_REPOSITORY" --verbose build "${args[@]}" --push YES
+
+    - name: Update Docker Hub descriptions
+      env:
+        DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      run: |
+        set -euo pipefail
+        args=(--ci-image-type IMAGE --docker-org "$DOCKER_ORG" --version "$IMAGE_VERSION")
+        for group in $IMAGE_GROUPS; do args+=(--group "$group"); done
+        for target in $IMAGE_TARGETS; do args+=(--target "$target"); done
+        uv run aswfdocker pushoverview "${args[@]}" --username aswfdocker
+
+    - name: Logout from Docker Hub
+      if: ${{ always() }}
+      run: docker logout
+
+  # A separate job, the only one allowed to write to the repository, which
+  # gets no other secret.
+  record:  # zizmor: ignore[concurrency-limits] a concurrency group would cancel queued releases
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # to publish the GitHub releases (creating their tags)
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        ref: ${{ inputs.sha }}
+        persist-credentials: false
+
+    - name: Set up aswfdocker
+      uses: $/.github/actions/setup-aswfdocker
+
+    - name: Publish the GitHub releases
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        SHA: ${{ inputs.sha }}
+        DOCKER_ORG: ${{ inputs.docker_org }}
+        IMAGE_GROUPS: ${{ inputs.groups }}
+        IMAGE_VERSIONS: ${{ inputs.versions }}
+        IMAGE_TARGETS: ${{ inputs.targets }}
+        MESSAGE: ${{ inputs.message }}
+      run: |
+        set -euo pipefail
+        args=(--ci-image-type IMAGE --docker-org "$DOCKER_ORG" --sha "$SHA" --message "$MESSAGE")
+        for group in $IMAGE_GROUPS; do args+=(--group "$group"); done
+        for version in $IMAGE_VERSIONS; do args+=(--version "$version"); done
+        for target in $IMAGE_TARGETS; do args+=(--target "$target"); done
+        uv run aswfdocker publishreleases "${args[@]}"

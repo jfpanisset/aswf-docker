@@ -466,7 +466,7 @@ def settings(settings_path, github_access_token):
 @click.option(
     "--message",
     "-m",
-    help="The release message (images only).",
+    help="The release message of each image's GitHub release (images only).",
 )
 @click.option(
     "--force-rebuild",
@@ -477,9 +477,14 @@ def settings(settings_path, github_access_token):
 @click.option(
     "--workflow-ref",
     default="",
-    help="Conan packages only: the branch to run the package release workflow "
-    "definition from, defaults to the repository's default branch. Packages are "
-    "always built from --sha.",
+    help="The branch to run the release workflow definition from, defaults to the "
+    "repository's default branch. Releases are always built from --sha.",
+)
+@click.option(
+    "--full-release",
+    is_flag=True,
+    help="Release every Conan package and image of the given years (-v), in "
+    "dependency order.",
 )
 @click.option("--dry-run", "-d", is_flag=True, help="Just logs what would happen.")
 @pass_build_info
@@ -496,15 +501,17 @@ def release(  # pylint: disable=too-many-arguments,too-many-locals
     message,
     force_rebuild,
     workflow_ref,
+    full_release,
     dry_run,
 ):
-    """Releases ci-image Docker images or Conan packages.
+    """Releases ci-image Docker images and/or Conan packages.
 
-    Images get a GitHub release (and tag) on the commit, which has the Release
-    GitHub Actions workflow build and push them to Docker Hub. Conan packages
-    are built from the commit and uploaded to Artifactory by the package
-    release GitHub Actions workflow, started directly without a GitHub
-    release.
+    Starts a GitHub Actions workflow building them from the commit, the only
+    place holding the Docker Hub and Artifactory credentials: images are
+    pushed to Docker Hub and each recorded as a GitHub release (and tag) on
+    the commit, Conan packages are uploaded to Artifactory. With
+    --full-release, every package and image of the given years is released,
+    in dependency order.
     """
 
     # Disable SSL unclosed ResourceWarning coming from GitHub
@@ -523,60 +530,162 @@ def release(  # pylint: disable=too-many-arguments,too-many-locals
     if docker_org:
         build_info.set_org(docker_org)
 
-    group_info = get_group_info(
-        build_info, ci_image_type, group, version, full_name, target
-    )
-    if group_info.type == constants.ImageType.PACKAGE:
-        pr = releaser.PackageReleaser(
+    workflow_releaser: releaser.WorkflowReleaser
+    if full_release:
+        if ci_image_type or group or full_name or target:
+            raise click.BadOptionUsage(
+                "--full-release",
+                "--full-release releases every group: it can't be combined with "
+                "-t, -g, -n or --target",
+            )
+        years = sorted(vi.version for vi in index.Index().iter_years())
+        if list(version) == [constants.ALL]:
+            version = years
+        if not version or set(version) - set(years):
+            raise click.BadOptionUsage(
+                "--version",
+                f"--full-release needs years to release (-v), from: {', '.join(years)}",
+            )
+        full_releaser = releaser.FullReleaser(
             build_info=build_info,
-            group_info=group_info,
+            versions=sorted(version),
             sha=sha,
             github_org=github_org,
             workflow_ref=workflow_ref,
             force_rebuild=force_rebuild,
+            message=message,
         )
-        pr.gather()
-        if not click.confirm(
-            "Are you sure you want GitHub Actions to build and upload these {} "
-            "Conan packages from sha={} ({})?\n{}\n".format(
-                len(pr.release_list),
-                pr.sha,
-                "forcing a rebuild" if force_rebuild else "unless up to date",
-                "\n".join(pr.release_list),
+        full_releaser.gather()
+        workflow_releaser = full_releaser
+        prompt = (
+            f"Are you sure you want GitHub Actions to release every Conan package "
+            f"({'forcing a rebuild' if force_rebuild else 'unless up to date'}) of "
+            f"{' '.join(sorted(version))} to {build_info.docker_org} from sha={sha}, "
+            f"and these {len(full_releaser.releases)} images (as draft GitHub "
+            "releases until they're pushed)?\n"
+            + "\n".join(r.name for r in full_releaser.releases)
+            + "\n"
+        )
+    else:
+        group_info = get_group_info(
+            build_info, ci_image_type, group, version, full_name, target
+        )
+        if group_info.type == constants.ImageType.PACKAGE:
+            package_releaser = releaser.PackageReleaser(
+                build_info=build_info,
+                group_info=group_info,
+                sha=sha,
+                github_org=github_org,
+                workflow_ref=workflow_ref,
+                force_rebuild=force_rebuild,
             )
-        ):
-            click.echo("Release cancelled.")
-            return
-        try:
-            pr.release(dry_run=dry_run)
-        except RuntimeError as e:
-            raise click.ClickException(e.args[0])
-        click.echo("Release started.")
-        return
-    if force_rebuild or workflow_ref:
-        raise click.BadOptionUsage(
-            "--force-rebuild/--workflow-ref",
-            "--force-rebuild/--workflow-ref only apply to Conan package releases",
-        )
-    r = releaser.Releaser(
-        github_org=github_org,
-        build_info=build_info,
-        group_info=group_info,
-        message=message,
-        sha=sha,
-    )
-    r.gather()
-    if not click.confirm(
-        "Are you sure you want to create the following {} release on sha={}?\n{}\n".format(
-            len(r.release_list),
-            r.sha,
-            "\n".join(tag for _, _, tag in r.release_list),
-        )
+            package_releaser.gather()
+            workflow_releaser = package_releaser
+            prompt = (
+                "Are you sure you want GitHub Actions to build and upload these {} "
+                "Conan packages from sha={} ({})?\n{}\n".format(
+                    len(package_releaser.release_list),
+                    sha,
+                    "forcing a rebuild" if force_rebuild else "unless up to date",
+                    "\n".join(package_releaser.release_list),
+                )
+            )
+        else:
+            if force_rebuild:
+                raise click.BadOptionUsage(
+                    "--force-rebuild",
+                    "--force-rebuild only applies to Conan package releases",
+                )
+            image_releaser = releaser.ImageReleaser(
+                build_info=build_info,
+                group_info=group_info,
+                sha=sha,
+                github_org=github_org,
+                workflow_ref=workflow_ref,
+                message=message,
+            )
+            image_releaser.gather()
+            workflow_releaser = image_releaser
+            prompt = (
+                "Are you sure you want GitHub Actions to build and push these {} "
+                "images from sha={} (as draft GitHub releases until they're "
+                "pushed)?\n{}\n".format(
+                    len(image_releaser.releases),
+                    sha,
+                    "\n".join(r.name for r in image_releaser.releases),
+                )
+            )
+    if build_info.docker_org not in (
+        constants.PUBLISH_DOCKER_ORG,
+        constants.TESTING_DOCKER_ORG,
     ):
+        raise click.BadOptionUsage(
+            "--docker-org",
+            f"Releases go to {constants.PUBLISH_DOCKER_ORG} or "
+            f"{constants.TESTING_DOCKER_ORG}, not {build_info.docker_org}",
+        )
+    if not click.confirm(prompt):
         click.echo("Release cancelled.")
         return
-    r.release(dry_run=dry_run)
-    click.echo("Release done.")
+    try:
+        workflow_releaser.release(dry_run=dry_run)
+    except RuntimeError as e:
+        raise click.ClickException(e.args[0])
+    click.echo("Dry run: no release started." if dry_run else "Release started.")
+
+
+@cli.command()
+@common_image_options
+@click.option(
+    "--sha",
+    "-s",
+    required=True,
+    help="The sha the releases are on.",
+)
+@click.option(
+    "--docker-org",
+    "-do",
+    required=True,
+    help="The Docker organization the images were pushed to.",
+)
+@click.option(
+    "--message",
+    "-m",
+    default="",
+    help="The release message, for releases without a draft.",
+)
+@pass_build_info
+def publishreleases(
+    build_info,
+    ci_image_type,
+    group,
+    version,
+    full_name,
+    target,
+    sha,
+    docker_org,
+    message,
+):
+    """Publishes the draft GitHub release (creating its tag) of each released
+    image (GitHub Actions only), with the workflow's GITHUB_TOKEN."""
+    if not utils.on_github_actions():
+        raise click.UsageError(
+            "GitHub releases of images can only be published from GitHub Actions."
+        )
+    build_info.set_org(docker_org)
+    group_info = get_group_info(
+        build_info, ci_image_type, group, version, full_name, target
+    )
+    if group_info.type != constants.ImageType.IMAGE:
+        raise click.BadOptionUsage("--ci-image-type", "Only images get GitHub releases")
+    releaser.ReleasePublisher(
+        build_info=build_info,
+        group_info=group_info,
+        sha=sha,
+        message=message,
+        token=os.environ["GITHUB_TOKEN"],
+        repository=os.environ["GITHUB_REPOSITORY"],
+    ).publish()
 
 
 @cli.command()
@@ -645,6 +754,13 @@ def dockergen(context, image_name, check, verbose):
     envvar="DOCKERHUB_PASSWORD",
     help="Docker Hub password (default: the DOCKERHUB_PASSWORD environment variable).",
 )
+@click.option(
+    "--docker-org",
+    "-do",
+    default="",
+    help="The Docker organization to push the descriptions to, instead of the "
+    "one derived from the repository URI and branch.",
+)
 @pass_build_info
 def pushoverview(
     build_info,
@@ -655,8 +771,11 @@ def pushoverview(
     target,
     username,
     password,
+    docker_org,
 ):
     """Pushes the Docker Image README file to Docker Hub"""
+    if docker_org:
+        build_info.set_org(docker_org)
     group_info = get_group_info(
         build_info, ci_image_type, group, version, full_name, target
     )
