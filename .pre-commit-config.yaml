@@ -30,3 +30,9 @@ repos:
         pass_filenames: false
         language: system
         files: ^\.github/
+      - id: jactionlint
+        name: Check GitHub Actions workflows and actions with jactionlint
+        entry: uv run jactionlint
+        pass_filenames: false
+        language: system
+        files: ^\.github/
