@@ -63,3 +63,10 @@ CONAN_REMOTE_LOCAL = "local"
 # Dockerfile (relative to the repo root) every Conan package build and the
 # Conan dependency-graph grapher are baked from.
 CONAN_PACKAGE_DOCKERFILE = "packages/common/Dockerfile"
+
+# The CycloneDX SBOM of the Conan packages in an image, written by the
+# aswf_deploy Conan deployer (packages/conan/settings/extensions/deployers),
+# and attached to the image's GitHub release. It's under the images'
+# ASWF_INSTALL_PREFIX (ci-image-dockerfile.jinja2), which aswfdocker can't
+# read from outside the build container, so the two must agree.
+IMAGE_SBOM_PATH = "/usr/local/aswf/sbom.cdx.json"

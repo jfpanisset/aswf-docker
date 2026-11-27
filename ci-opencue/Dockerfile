@@ -81,9 +81,9 @@ ENV ASWF_NUMPY_VERSION=$ASWF_NUMPY_VERSION
 ENV ASWF_VFXPLATFORM_VERSION=$ASWF_VFXPLATFORM_VERSION
 
 
-COPY ci-opencue/README.md ci-opencue/image.yaml /usr/local/aswf/
+COPY ci-opencue/README.md ci-opencue/image.yaml ${ASWF_INSTALL_PREFIX}/aswf/
 
-COPY scripts/vfx/build_opencue.sh /usr/local/aswf
+COPY scripts/vfx/build_opencue.sh ${ASWF_INSTALL_PREFIX}/aswf/
 RUN sudo yum -y install \
     java-17-openjdk.x86_64 \
     java-17-openjdk-devel.x86_64 \
@@ -100,7 +100,7 @@ RUN export JAVA_HOME=/usr/lib/jvm/java-17-openjdk && \
 ARG ASWF_PYTHON_MAJOR_MINOR_VERSION
 ENV ASWF_PYTHON_MAJOR_MINOR_VERSION=${ASWF_PYTHON_MAJOR_MINOR_VERSION}
 
-COPY <<EOF /usr/local/conanfile.txt
+COPY <<EOF ${ASWF_INSTALL_PREFIX}/conanfile.txt
 [requires]
 cpython/${ASWF_CPYTHON_VERSION}@${ASWF_PKG_ORG}/${ASWF_CONAN_CHANNEL}
 opencue/${ASWF_OPENCUE_VERSION}@${ASWF_PKG_ORG}/${ASWF_CONAN_CHANNEL}
@@ -108,14 +108,12 @@ EOF
 
 ENV CONAN_HOME=${ASWF_CONAN_HOME}/.conan2
 
+# Conan's download cache (core.download:download_cache in
+# packages/conan/settings/global.conf) is a cache mount, keeping the
+# downloaded package archives out of the image.
 RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=/opt/conan_home/d \
+    --mount=type=cache,id=aswf-conan-downloads,sharing=locked,target=/tmp/downloads \
     --mount=type=bind,rw,target=/opt/conan_home/.conan2,source=packages/conan/settings \
-    conan install /usr/local \
-        --profile:all "${ASWF_CONAN_PROFILE}" \
-        ${ASWF_CONAN_REMOTE_ARGS} \
-        --deployer aswf_deploy \
-        --deployer-folder /usr/local \
-        --conf user.aswf:exclude_package="opencue" \
-        --conf user.aswf:sbom_name="ci-opencue/${ASWF_VERSION}" \
-    && rm -rf /tmp/downloads/*
+    --mount=type=bind,target=/tmp/install_conan_packages.sh,source=scripts/common/install_conan_packages.sh \
+    /tmp/install_conan_packages.sh "opencue" "ci-opencue/${ASWF_VERSION}"
 

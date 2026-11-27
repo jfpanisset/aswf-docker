@@ -77,30 +77,28 @@ ENV ASWF_NUMPY_VERSION=$ASWF_NUMPY_VERSION
 ENV ASWF_VFXPLATFORM_VERSION=$ASWF_VFXPLATFORM_VERSION
 
 
-COPY ci-usd/README.md ci-usd/image.yaml /usr/local/aswf/
+COPY ci-usd/README.md ci-usd/image.yaml ${ASWF_INSTALL_PREFIX}/aswf/
 
-COPY scripts/vfx/build_usd.sh /usr/local/aswf
+COPY scripts/vfx/build_usd.sh ${ASWF_INSTALL_PREFIX}/aswf/
 
 
 ARG ASWF_PYTHON_MAJOR_MINOR_VERSION
 ENV ASWF_PYTHON_MAJOR_MINOR_VERSION=${ASWF_PYTHON_MAJOR_MINOR_VERSION}
 
-COPY <<EOF /usr/local/conanfile.txt
+COPY <<EOF ${ASWF_INSTALL_PREFIX}/conanfile.txt
 [requires]
 openusd/${ASWF_OPENUSD_VERSION}@${ASWF_PKG_ORG}/${ASWF_CONAN_CHANNEL}
 EOF
 
 ENV CONAN_HOME=${ASWF_CONAN_HOME}/.conan2
 
+# Conan's download cache (core.download:download_cache in
+# packages/conan/settings/global.conf) is a cache mount, keeping the
+# downloaded package archives out of the image.
 RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=/opt/conan_home/d \
+    --mount=type=cache,id=aswf-conan-downloads,sharing=locked,target=/tmp/downloads \
     --mount=type=bind,rw,target=/opt/conan_home/.conan2,source=packages/conan/settings \
-    conan install /usr/local \
-        --profile:all "${ASWF_CONAN_PROFILE}" \
-        ${ASWF_CONAN_REMOTE_ARGS} \
-        --deployer aswf_deploy \
-        --deployer-folder /usr/local \
-        --conf user.aswf:exclude_package="openusd" \
-        --conf user.aswf:sbom_name="ci-usd/${ASWF_VERSION}" \
-    && rm -rf /tmp/downloads/*
+    --mount=type=bind,target=/tmp/install_conan_packages.sh,source=scripts/common/install_conan_packages.sh \
+    /tmp/install_conan_packages.sh "openusd" "ci-usd/${ASWF_VERSION}"
 
 RUN pip3 install jinja2 PyOpenGL
