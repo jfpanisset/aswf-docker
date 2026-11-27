@@ -240,4 +240,6 @@ uv run aswfdocker dockergen --check
    `aswfdocker release -t IMAGE` creates draft GitHub releases of the images
    (attributed to the person releasing) and starts `release-images.yml` via
    the GitHub API, which publishes them once the images are pushed
-   (`aswfdocker publishreleases`, GitHub Actions only).
+   (`aswfdocker publishreleases`, GitHub Actions only), with each image's
+   SBOM (`/usr/local/aswf/sbom.cdx.json`, exported by `aswfdocker
+   exportsboms`) attached before publishing.

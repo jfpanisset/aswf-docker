@@ -3,7 +3,8 @@
 
 # Builds ci-image Docker images from a given commit and pushes them to Docker
 # Hub, one job per version, then publishes the draft GitHub release recording
-# each released image on the commit, which creates its tag. Started by
+# each released image on the commit, with the image's SBOM attached, which
+# creates its tag. Started by
 # `aswfdocker release -t IMAGE`, or called by release-all.yml (see
 # CONTRIBUTING.md), as only GitHub Actions holds the Docker Hub credentials
 # (and, in future, the image signing keys). `aswfdocker release` creates the
@@ -135,6 +136,27 @@ jobs:
         for target in $IMAGE_TARGETS; do args+=(--target "$target"); done
         uv run aswfdocker --repo-uri "$GITHUB_REPOSITORY" --verbose build "${args[@]}" --push YES
 
+    # The SBOM of each image, from the image just built, for the record job
+    # to attach to its GitHub release.
+    - name: Export the image SBOMs
+      run: |
+        set -euo pipefail
+        args=(--ci-image-type IMAGE --docker-org "$DOCKER_ORG" --version "$IMAGE_VERSION")
+        for group in $IMAGE_GROUPS; do args+=(--group "$group"); done
+        for target in $IMAGE_TARGETS; do args+=(--target "$target"); done
+        uv run aswfdocker exportsboms "${args[@]}" --output-dir "$RUNNER_TEMP/sboms"
+
+    - name: Upload the image SBOMs
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        # Unique in the run, as release-all.yml calls this workflow once per
+        # image group.
+        name: sboms-${{ inputs.groups }}-${{ matrix.version }}
+        path: ${{ runner.temp }}/sboms/
+        if-no-files-found: error
+        # When the job is re-run.
+        overwrite: true
+
     - name: Update Docker Hub descriptions
       env:
         DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -165,6 +187,13 @@ jobs:
     - name: Set up aswfdocker
       uses: $/.github/actions/setup-aswfdocker
 
+    - name: Download the image SBOMs
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        pattern: sboms-${{ inputs.groups }}-*
+        path: ${{ runner.temp }}/sboms
+        merge-multiple: true
+
     - name: Publish the GitHub releases
       env:
         GITHUB_TOKEN: ${{ github.token }}
@@ -176,7 +205,8 @@ jobs:
         MESSAGE: ${{ inputs.message }}
       run: |
         set -euo pipefail
-        args=(--ci-image-type IMAGE --docker-org "$DOCKER_ORG" --sha "$SHA" --message "$MESSAGE")
+        args=(--ci-image-type IMAGE --docker-org "$DOCKER_ORG" --sha "$SHA" --message "$MESSAGE"
+              --sbom-dir "$RUNNER_TEMP/sboms")
         for group in $IMAGE_GROUPS; do args+=(--group "$group"); done
         for version in $IMAGE_VERSIONS; do args+=(--version "$version"); done
         for target in $IMAGE_TARGETS; do args+=(--target "$target"); done

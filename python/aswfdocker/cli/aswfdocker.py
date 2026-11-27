@@ -654,6 +654,12 @@ def release(  # pylint: disable=too-many-arguments,too-many-locals
     default="",
     help="The release message, for releases without a draft.",
 )
+@click.option(
+    "--sbom-dir",
+    default="",
+    help="The directory holding the image SBOMs (from exportsboms) to attach "
+    "to the releases.",
+)
 @pass_build_info
 def publishreleases(
     build_info,
@@ -665,9 +671,11 @@ def publishreleases(
     sha,
     docker_org,
     message,
+    sbom_dir,
 ):
     """Publishes the draft GitHub release (creating its tag) of each released
-    image (GitHub Actions only), with the workflow's GITHUB_TOKEN."""
+    image (GitHub Actions only), with the workflow's GITHUB_TOKEN, with the
+    image's SBOM attached."""
     if not utils.on_github_actions():
         raise click.UsageError(
             "GitHub releases of images can only be published from GitHub Actions."
@@ -678,14 +686,59 @@ def publishreleases(
     )
     if group_info.type != constants.ImageType.IMAGE:
         raise click.BadOptionUsage("--ci-image-type", "Only images get GitHub releases")
-    releaser.ReleasePublisher(
+    publisher = releaser.ReleasePublisher(
         build_info=build_info,
         group_info=group_info,
         sha=sha,
         message=message,
         token=os.environ["GITHUB_TOKEN"],
         repository=os.environ["GITHUB_REPOSITORY"],
-    ).publish()
+        sbom_dir=sbom_dir,
+    )
+    try:
+        publisher.publish()
+    except FileNotFoundError as e:
+        raise click.ClickException(e.args[0])
+
+
+@cli.command()
+@common_image_options
+@click.option(
+    "--output-dir",
+    "-o",
+    required=True,
+    help="The directory to export the SBOMs to.",
+)
+@click.option(
+    "--docker-org",
+    "-do",
+    default="",
+    help="The Docker organization of the images, instead of the one derived "
+    "from the repository URI and branch.",
+)
+@pass_build_info
+def exportsboms(
+    build_info,
+    ci_image_type,
+    group,
+    version,
+    full_name,
+    target,
+    output_dir,
+    docker_org,
+):
+    """Exports the SBOM of each image, as built in the local Docker image
+    store, for publishreleases to attach to its GitHub release."""
+    if docker_org:
+        build_info.set_org(docker_org)
+    group_info = get_group_info(
+        build_info, ci_image_type, group, version, full_name, target
+    )
+    if group_info.type != constants.ImageType.IMAGE:
+        raise click.BadOptionUsage("--ci-image-type", "Only images have SBOMs")
+    releaser.export_sboms(
+        releaser.image_releases(build_info, group_info, message=""), output_dir
+    )
 
 
 @cli.command()

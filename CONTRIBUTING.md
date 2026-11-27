@@ -694,6 +694,15 @@ workflow publishes the drafts, which creates their tags, replacing any earlier r
 If a build fails, its images' drafts stay until the release is run again, and the earlier published releases are left
 alone.
 
+Each release has the image's SBOM attached, e.g. `ci-base-2027.4.cdx.json`: the CycloneDX SBOM of the Conan packages
+in the image (from every layer, e.g. those of `ci-common` too), which the image also holds as
+`/usr/local/aswf/sbom.cdx.json`. Each package in it records the commit it was built from (`aswf:git_sha`), from the
+package's Conan metadata. As `conan install` doesn't download package metadata, image builds using a Conan remote
+download the packages with their metadata first (`conan aswf-download-metadata`, run by
+[install_conan_packages.sh](scripts/common/install_conan_packages.sh)). The workflow exports the SBOMs from
+the images it built (`aswfdocker exportsboms`), and attaches them to the drafts before publishing them, as releases
+can't be changed once published when GitHub's immutable releases are enabled.
+
 ```bash
 # A single image
 aswfdocker release -n aswftesting/ci-base:2026

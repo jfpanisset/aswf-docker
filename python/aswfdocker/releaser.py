@@ -1,6 +1,8 @@
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 import logging
+import os
+import subprocess
 import typing
 
 from github import Github, GithubException, Auth
@@ -24,6 +26,45 @@ class ImageRelease(typing.NamedTuple):
         colons)."""
         return self.name.replace(":", "/")
 
+    @property
+    def image(self) -> str:
+        """The released image, e.g. docker.io/aswf/ci-base:2027.4."""
+        return f"{constants.DOCKER_REGISTRY}/{self.name}"
+
+    @property
+    def sbom_file(self) -> str:
+        """The name of the image's SBOM, as attached to the release, e.g.
+        ci-base-2027.4.cdx.json."""
+        return self.name.split("/", 1)[1].replace(":", "-") + ".cdx.json"
+
+
+def export_sboms(releases: typing.Sequence[ImageRelease], output_dir: str) -> None:
+    """Copies the SBOM of each released image (see constants.IMAGE_SBOM_PATH)
+    out of the image, as built in the local Docker image store, to
+    `output_dir`/`release.sbom_file`."""
+    os.makedirs(output_dir, exist_ok=True)
+    for release in releases:
+        # The image is never pulled: the SBOM must be the one of the image
+        # just built. The container is never started, so its command
+        # doesn't matter (but images without one need one).
+        container = subprocess.run(
+            ["docker", "create", "--pull", "never", release.image, "true"],
+            check=True,
+            stdout=subprocess.PIPE,
+            text=True,
+        ).stdout.strip()
+        try:
+            path = os.path.join(output_dir, release.sbom_file)
+            subprocess.run(
+                ["docker", "cp", f"{container}:{constants.IMAGE_SBOM_PATH}", path],
+                check=True,
+            )
+            logger.info("Exported the SBOM of %s to %s", release.image, path)
+        finally:
+            subprocess.run(
+                ["docker", "rm", container], check=True, stdout=subprocess.DEVNULL
+            )
+
 
 def image_releases(
     build_info: aswfinfo.ASWFInfo, group_info: groupinfo.GroupInfo, message: str
@@ -40,6 +81,18 @@ def image_releases(
         )
         for image, version in group_info.iter_images_versions()
     ]
+
+
+def attach_asset(release: GitRelease, path: str, name: str) -> None:
+    """Attaches the file at `path` to the (draft) `release` as `name`,
+    replacing any asset of that name (e.g. when the job publishing the
+    releases is re-run)."""
+    for asset in release.get_assets():
+        if asset.name == name:
+            asset.delete_asset()
+            logger.warning("Asset %s of %s replaced", name, release.title)
+    release.upload_asset(path, name=name, content_type="application/vnd.cyclonedx+json")
+    logger.info("Attached %s to %s.", name, release.title)
 
 
 class GitHub:
@@ -92,11 +145,14 @@ class GitHub:
         sha: str,
         release: ImageRelease,
         drafts: typing.Dict[str, GitRelease],
+        sbom_path: str = "",
     ) -> None:
         """Publishes the draft of `release` on `sha`, which creates its tag,
-        replacing any earlier release (and tag) of it. Without a draft (e.g.
-        when the release workflow was started from the GitHub Actions tab),
-        the release is created directly."""
+        replacing any earlier release (and tag) of it, with the image's SBOM
+        at `sbom_path` (if given) attached. Without a draft (e.g. when the
+        release workflow was started from the GitHub Actions tab), one is
+        created first: a release's assets are attached before it's
+        published, as GitHub's immutable releases require."""
         draft = drafts.get(release.tag)
         if draft and draft.target_commitish != sha:
             draft = None
@@ -108,6 +164,21 @@ class GitHub:
             # e.g. the job publishing the releases was re-run
             logger.info("Release %s already published.", release.name)
             return
+        if not draft:
+            logger.warning("No draft release of %s on %s", release.name, sha)
+            draft = self.repo.create_git_release(
+                tag=release.tag,
+                name=release.name,
+                message=release.message,
+                draft=True,
+                prerelease=release.prerelease,
+                target_commitish=sha,
+            )
+            logger.info("Draft release %s created.", release.name)
+        if sbom_path:
+            # Before the earlier release is deleted, so that it stays if this
+            # fails.
+            attach_asset(draft, sbom_path, release.sbom_file)
         if old:
             old.delete_release()
             logger.warning("Release %s already existed, deleted!", release.name)
@@ -118,27 +189,15 @@ class GitHub:
         if ref:
             ref.delete()
             logger.warning("Tag %s already existed, deleted!", release.tag)
-        if draft:
-            draft.update_release(
-                name=draft.title,
-                message=draft.body,
-                draft=False,
-                prerelease=draft.prerelease,
-                tag_name=release.tag,
-                target_commitish=sha,
-            )
-            logger.info("Release %s published.", release.name)
-        else:
-            logger.warning("No draft release of %s on %s", release.name, sha)
-            self.repo.create_git_release(
-                tag=release.tag,
-                name=release.name,
-                message=release.message,
-                draft=False,
-                prerelease=release.prerelease,
-                target_commitish=sha,
-            )
-            logger.info("Release %s created.", release.name)
+        draft.update_release(
+            name=draft.title,
+            message=draft.body,
+            draft=False,
+            prerelease=draft.prerelease,
+            tag_name=release.tag,
+            target_commitish=sha,
+        )
+        logger.info("Release %s published.", release.name)
 
     def commit_exists(self, sha: str) -> bool:
         try:
@@ -166,7 +225,9 @@ class ReleasePublisher:
     images released by the release-images.yml GitHub Actions workflow, which
     runs it once the images are pushed, with its own GitHub token. The
     drafts were created by `aswfdocker release`, with the token of the
-    person releasing, who the releases are attributed to."""
+    person releasing, who the releases are attributed to. With `sbom_dir`,
+    each release gets its image's SBOM (exported there by export_sboms())
+    attached."""
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
@@ -176,15 +237,33 @@ class ReleasePublisher:
         message="",
         token="",
         repository="",
+        sbom_dir="",
     ):
         self.sha = sha
         self.releases = image_releases(build_info, group_info, message)
+        self.sbom_dir = sbom_dir
         self.gh = GitHub(token=token, repository=repository)
 
+    def sbom_paths(self) -> typing.Dict[str, str]:
+        """The SBOM to attach to each release, by release name. Raises
+        FileNotFoundError if any is missing, before anything is published."""
+        if not self.sbom_dir:
+            return {}
+        paths = {
+            r.name: os.path.join(self.sbom_dir, r.sbom_file) for r in self.releases
+        }
+        missing = [p for p in paths.values() if not os.path.isfile(p)]
+        if missing:
+            raise FileNotFoundError(f"Missing image SBOMs: {', '.join(missing)}")
+        return paths
+
     def publish(self):
+        sbom_paths = self.sbom_paths()
         drafts = self.gh.draft_releases()
         for release in self.releases:
-            self.gh.publish_release(self.sha, release, drafts)
+            self.gh.publish_release(
+                self.sha, release, drafts, sbom_paths.get(release.name, "")
+            )
 
 
 class WorkflowReleaser:

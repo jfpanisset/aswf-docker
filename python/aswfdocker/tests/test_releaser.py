@@ -3,6 +3,8 @@
 
 
 import os
+import subprocess
+import tempfile
 import unittest
 from unittest import mock
 import logging
@@ -98,20 +100,126 @@ class TestGitHubReleases(unittest.TestCase):
 
     def test_publish_release_without_draft_creates_it(self):
         # e.g. the workflow was started from the GitHub Actions tab, or the
-        # draft is on another commit
+        # draft is on another commit: a draft is created, to attach the
+        # SBOM to before publishing it.
         self.repo.get_release.side_effect = releaser.GithubException(404)
         self.repo.get_git_ref.side_effect = releaser.GithubException(404)
         for drafts in ({}, {"aswf/ci-base/2027.4": _release(True, "x", "def456")}):
             self.repo.create_git_release.reset_mock()
-            self.gh.publish_release("abc123", self.RELEASE, drafts)
+            self.gh.publish_release("abc123", self.RELEASE, drafts, "/sboms/x.json")
             self.repo.create_git_release.assert_called_once_with(
                 tag="aswf/ci-base/2027.4",
                 name="aswf/ci-base:2027.4",
                 message="Hello",
-                draft=False,
+                draft=True,
                 prerelease=False,
                 target_commitish="abc123",
             )
+            draft = self.repo.create_git_release.return_value
+            draft.upload_asset.assert_called_once_with(
+                "/sboms/x.json",
+                name="ci-base-2027.4.cdx.json",
+                content_type="application/vnd.cyclonedx+json",
+            )
+            self.assertEqual(draft.update_release.call_args.kwargs["draft"], False)
+            draft.reset_mock()
+
+    def test_publish_release_attaches_sbom_before_replacing_release(self):
+        draft = _release(True, "aswf/ci-base/2027.4")
+        old = _release(False, "aswf/ci-base/2027.4", "def456")
+        self.repo.get_release.return_value = old
+        order = mock.MagicMock()
+        order.attach_mock(draft.upload_asset, "attach_asset")
+        order.attach_mock(old.delete_release, "delete")
+        order.attach_mock(draft.update_release, "publish")
+        draft.get_assets.return_value = []
+        self.gh.publish_release(
+            "abc123", self.RELEASE, {draft.tag_name: draft}, "/sboms/x.json"
+        )
+        self.assertEqual(
+            [c[0] for c in order.mock_calls], ["attach_asset", "delete", "publish"]
+        )
+
+    def test_publish_release_replaces_sbom_of_draft(self):
+        # e.g. the job publishing the releases was re-run after attaching
+        # the SBOM, but before publishing.
+        draft = _release(True, "aswf/ci-base/2027.4")
+        stale, other = mock.MagicMock(), mock.MagicMock()
+        stale.name = "ci-base-2027.4.cdx.json"
+        other.name = "notes.txt"
+        draft.get_assets.return_value = [stale, other]
+        self.repo.get_release.side_effect = releaser.GithubException(404)
+        self.repo.get_git_ref.side_effect = releaser.GithubException(404)
+        self.gh.publish_release(
+            "abc123", self.RELEASE, {draft.tag_name: draft}, "/sboms/x.json"
+        )
+        stale.delete_asset.assert_called_once_with()
+        other.delete_asset.assert_not_called()
+        draft.upload_asset.assert_called_once()
+        self.repo.create_git_release.assert_not_called()
+
+    def test_publish_release_without_sbom(self):
+        draft = _release(True, "aswf/ci-base/2027.4")
+        self.repo.get_release.side_effect = releaser.GithubException(404)
+        self.repo.get_git_ref.side_effect = releaser.GithubException(404)
+        self.gh.publish_release("abc123", self.RELEASE, {draft.tag_name: draft})
+        draft.upload_asset.assert_not_called()
+        draft.update_release.assert_called_once()
+
+
+class TestImageReleaseSbom(unittest.TestCase):
+    RELEASE = releaser.ImageRelease(
+        name="aswftesting/ci-common:2027-clang22.4", message="", prerelease=True
+    )
+
+    def test_names(self):
+        self.assertEqual(
+            self.RELEASE.image, "docker.io/aswftesting/ci-common:2027-clang22.4"
+        )
+        self.assertEqual(self.RELEASE.sbom_file, "ci-common-2027-clang22.4.cdx.json")
+
+    @mock.patch.object(releaser.subprocess, "run")
+    def test_export_sboms(self, mock_run):
+        mock_run.return_value.stdout = "cid123\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            out = os.path.join(tmp, "sboms")
+            releaser.export_sboms([self.RELEASE], out)
+            self.assertTrue(os.path.isdir(out))
+            self.assertEqual(
+                [c.args[0] for c in mock_run.call_args_list],
+                [
+                    [
+                        "docker",
+                        "create",
+                        "--pull",
+                        "never",
+                        "docker.io/aswftesting/ci-common:2027-clang22.4",
+                        "true",
+                    ],
+                    [
+                        "docker",
+                        "cp",
+                        "cid123:/usr/local/aswf/sbom.cdx.json",
+                        os.path.join(out, "ci-common-2027-clang22.4.cdx.json"),
+                    ],
+                    ["docker", "rm", "cid123"],
+                ],
+            )
+
+    @mock.patch.object(releaser.subprocess, "run")
+    def test_export_sboms_removes_container_on_failure(self, mock_run):
+        created = mock.MagicMock(stdout="cid123\n")
+        mock_run.side_effect = [
+            created,
+            subprocess.CalledProcessError(1, "docker cp"),
+            mock.MagicMock(),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(subprocess.CalledProcessError):
+                releaser.export_sboms([self.RELEASE], tmp)
+        self.assertEqual(
+            mock_run.call_args_list[-1].args[0], ["docker", "rm", "cid123"]
+        )
 
 
 class TestReleaser(unittest.TestCase):
@@ -156,6 +264,7 @@ class TestReleaser(unittest.TestCase):
                 prerelease=False,
             ),
             gh.draft_releases.return_value,
+            "",
         )
 
     def test_full_release_image_groups_match_workflow(self):
@@ -508,3 +617,65 @@ class TestPublishReleasesCli(unittest.TestCase):
             self.assertEqual(c.args[0], "abc")
             self.assertTrue(c.args[1].message.startswith("Hello\n\n"))
             self.assertFalse(c.args[1].prerelease)
+
+    @mock.patch.object(releaser, "GitHub")
+    def test_attaches_sboms(self, mock_github):
+        env = {
+            "GITHUB_ACTIONS": "true",
+            "GITHUB_TOKEN": "gha-token",
+            "GITHUB_REPOSITORY": "AcademySoftwareFoundation/aswf-docker",
+        }
+        args = ["publishreleases", "-g", "base", "-v", "2027", "-s", "abc"]
+        args += ["-do", "aswf", "-tg", "base"]
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(os.environ, env):
+            # Refused, before publishing anything, when an SBOM is missing.
+            result = CliRunner().invoke(aswfdocker.cli, args + ["--sbom-dir", tmp])
+            self.assertNotEqual(result.exit_code, 0)
+            self.assertIn("Missing image SBOMs", result.output)
+            mock_github.return_value.publish_release.assert_not_called()
+
+            release = mock_github.return_value.publish_release
+            releases = releaser.image_releases(
+                aswfinfo.ASWFInfo(repo_uri="x", source_branch="y"),
+                groupinfo.GroupInfo(
+                    names=["base"],
+                    versions=["2027"],
+                    type_=constants.ImageType.IMAGE,
+                    targets=["base"],
+                ),
+                "",
+            )
+            for r in releases:
+                with open(os.path.join(tmp, r.sbom_file), "w", encoding="utf-8") as f:
+                    f.write("{}")
+            result = CliRunner().invoke(aswfdocker.cli, args + ["--sbom-dir", tmp])
+            self.assertEqual(result.exit_code, 0, msg=result.output)
+            self.assertEqual(len(release.call_args_list), len(releases))
+            for c in release.call_args_list:
+                self.assertEqual(c.args[3], os.path.join(tmp, c.args[1].sbom_file))
+
+
+class TestExportSbomsCli(unittest.TestCase):
+    @mock.patch.object(releaser, "export_sboms")
+    def test_exports_image_sboms(self, mock_export):
+        result = CliRunner().invoke(
+            aswfdocker.cli,
+            ["exportsboms", "-g", "common", "-v", "2027", "-do", "aswf", "-o", "out"],
+        )
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        releases, output_dir = mock_export.call_args.args
+        self.assertEqual(output_dir, "out")
+        names = sorted(r.name.split(":")[1] for r in releases)
+        self.assertTrue(names)
+        self.assertTrue(
+            all(r.name.startswith("aswf/ci-common:2027-clang") for r in releases)
+        )
+
+    @mock.patch.object(releaser, "export_sboms")
+    def test_refuses_packages(self, mock_export):
+        result = CliRunner().invoke(
+            aswfdocker.cli,
+            ["exportsboms", "-t", "PACKAGE", "-g", "common", "-v", "2027", "-o", "out"],
+        )
+        self.assertNotEqual(result.exit_code, 0)
+        mock_export.assert_not_called()

@@ -111,7 +111,7 @@ ENV ASWF_YQ_VERSION=$ASWF_YQ_VERSION
 ENV ASWF_CONAN_PYTHON_VERSION=$ASWF_CONAN_PYTHON_VERSION
 
 
-COPY ci-common/README.md ci-common/image.yaml /usr/local/aswf/
+COPY ci-common/README.md ci-common/image.yaml ${ASWF_INSTALL_PREFIX}/aswf/
 USER root
 
 COPY ../scripts/common/install_cudadevel.sh /tmp/
@@ -177,7 +177,7 @@ ENV ASWF_CONAN_HOME=/opt/conan_home
 ARG ASWF_PYTHON_MAJOR_MINOR_VERSION
 ENV ASWF_PYTHON_MAJOR_MINOR_VERSION=${ASWF_PYTHON_MAJOR_MINOR_VERSION}
 
-COPY <<EOF /usr/local/conanfile.txt
+COPY <<EOF ${ASWF_INSTALL_PREFIX}/conanfile.txt
 [requires]
 clang/${ASWF_CLANG_VERSION}@${ASWF_PKG_ORG}/${ASWF_CONAN_CHANNEL}
 cmake/${ASWF_CMAKE_VERSION}@${ASWF_PKG_ORG}/${ASWF_CONAN_CHANNEL}
@@ -186,14 +186,12 @@ EOF
 
 ENV CONAN_HOME=${ASWF_CONAN_HOME}/.conan2
 
+# Conan's download cache (core.download:download_cache in
+# packages/conan/settings/global.conf) is a cache mount, keeping the
+# downloaded package archives out of the image.
 RUN --mount=type=cache,id=aswf-conan-cache,sharing=locked,target=/opt/conan_home/d \
+    --mount=type=cache,id=aswf-conan-downloads,sharing=locked,target=/tmp/downloads \
     --mount=type=bind,rw,target=/opt/conan_home/.conan2,source=packages/conan/settings \
-    conan install /usr/local \
-        --profile:all "${ASWF_CONAN_PROFILE}" \
-        ${ASWF_CONAN_REMOTE_ARGS} \
-        --deployer aswf_deploy \
-        --deployer-folder /usr/local \
-        --conf user.aswf:exclude_package="common" \
-        --conf user.aswf:sbom_name="ci-common/${ASWF_VERSION}" \
-    && rm -rf /tmp/downloads/*
+    --mount=type=bind,target=/tmp/install_conan_packages.sh,source=scripts/common/install_conan_packages.sh \
+    /tmp/install_conan_packages.sh "common" "ci-common/${ASWF_VERSION}"
 
