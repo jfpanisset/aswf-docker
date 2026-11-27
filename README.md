@@ -200,8 +200,6 @@ To build a single Conan package, e.g. OpenUSD:
 aswfdocker packages
 # Then run the build
 aswfdocker --verbose build --ci-image-type PACKAGE --group vfx --version 2026 --target openusd
-# Or the simpler but less flexible syntax:
-aswfdocker build --full-name aswftesting/ci-package-openusd:2026
 ```
 
 ### Images

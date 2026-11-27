@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+# 2026-11-27
+
+- Build and release infrastructure updates
+  - aswfdocker [uses Conan's dependency graph to determine build order](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/386)
+instead of hand-maintained build levels in versions.yaml
+    - package groups collapsed to `common`, `base1`, `base2`, `base3` and `vfx`, image groups `vfx1`-`vfx3` merged into `vfx`
+    - packages with up-to-date builds are skipped, `--force-rebuild` forces a rebuild (bypassing the BuildKit cache), `--target-to` / `--target-from` select part of a group
+    - a package is rebuilt whenever any of its dependencies changes (version, recipe or patches), transitively
+    - never use package builds from Conan Center Index, glu recipe vendored
+  - Single version per VFX Platform year for every image: `ci-common:2027-clang22` instead of `ci-common:7-clang22`,
+`ci-common` and `ci-baseos-gl-conan` keep additional legacy tags for 2023-2027
+    - [`ci-packages` removed from versions.yaml](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/310), 2019-2022 and CentOS 7 support removed
+    - Conan packages built in per-release channels (e.g. `vfx2027_4`), so a new release (minor version) never reuses the previous release's packages
+  - Images include a [CycloneDX SBOM](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/275) of their Conan packages
+in `/usr/local/aswf/sbom.cdx.json`, attached to each image's GitHub release
+    - release builds record the git SHA each Conan package was built from
+  - Release process moved to GitHub Actions workflows started by `aswfdocker release`, no more GitHub web UI or `gh` CLI needed
+    - `release-packages.yml` builds and uploads Conan packages to Artifactory, without creating GitHub releases
+    - `release-images.yml` builds and pushes images to Docker Hub, publishing draft GitHub releases created by `aswfdocker release`
+    - `aswfdocker release --full-release` (`release-all.yml`) releases every package and image of the given years in dependency order
+    - [fine-grained GitHub token](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/498) with minimal permissions supported and documented
+  - GitHub Actions hardening
+    - Artifactory uploads and Docker Hub pushes only allowed from GitHub Actions, from commits on a branch of the repository
+    - secrets scoped to the steps using them, minimal workflow permissions, no dev dependencies in jobs holding release credentials
+    - [zizmor](https://github.com/zizmorcore/zizmor) security audit and [jactionlint](https://github.com/jdx/jactionlint) correctness checks added to pre-commit
+    - GitHub runner disk cleanup updated for Ubuntu 26.04.1, and only run when needed
+  - Developer documentation updated, including [adding a new Conan recipe](https://github.com/AcademySoftwareFoundation/aswf-docker/issues/482)
+
 # 2026-10-26
 
 Updated 2023.7 2024.11 2025.10 2026.8 2027.3 images
