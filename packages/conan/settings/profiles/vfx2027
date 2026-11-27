@@ -19,7 +19,7 @@ qt/*:compiler.cppstd=gnu20
 [tool_requires]
 [replace_requires]
 # common group packages
-openssl/*: openssl/3.5.8@{{ org }}/vfx2027_4
+openssl/*: openssl/3.5.9@{{ org }}/vfx2027_4
 gnutls/*: gnutls/3.8.10@{{ org }}/vfx2027_4
 ninja/*: ninja/1.13.2@{{ org }}/vfx2027_4
 # Other packages
