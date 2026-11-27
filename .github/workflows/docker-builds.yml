@@ -70,9 +70,7 @@ jobs:
     # such as ASWF's larger runners, skip it.
     - name: Free up disk space
       env:
-        # TODO: temporarily high so the cleanup runs on today's 87 GB free
-        # runners while it's being tested; lower once tested.
-        MIN_FREE_GB: '100'
+        MIN_FREE_GB: '80'
       run: |
         set -euo pipefail
         df -h /
