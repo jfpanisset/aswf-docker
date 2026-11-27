@@ -55,8 +55,8 @@ To contribute code to the project, you will need:
 
 * An understanding of the project's development workflow.
 
-* Legal authorization, that is, you need to have signed a Contributor
-  License Agreement. See below for details.
+* Legal authorization: although the project does not currently require a Contributor
+  License Agreement, all commits are required to be signed off. See below for details.
 
 ## Legal Requirements
 
@@ -67,7 +67,10 @@ open source software best practice policies of the Linux Foundation.
 
 aswf-docker is licensed under the [Apache-2.0](LICENSE.md)
 license. Contributions to the project should abide by that standard
-license.
+license. The exception is the `packages/conan/recipes/`
+hierarchy: since most of these are vendored from the
+[Conan Center Index](https://github.com/conan-io/conan-center-index), all
+recipes retain that project's MIT license.
 
 ### Commit Sign-Off
 
@@ -315,10 +318,6 @@ Versioning is further explained in the [README](README.md#version) file.
 
 ## Building Conan Packages
 
-This repository contains 2 ways of building packages, Docker packages (`aswf/ci-package-*` images) and Conan packages.
-
-The Docker packages are being phased out as Conan offers a lot more flexibility when building options and variants of packages, with great cross-platform support.
-
 The [Conan](https://conan.io) [Reference Documentation](https://docs.conan.io/en/latest/reference.html) is a great way to discover and learn all about the Conan package manager.
 
 The AcademySoftwareFoundation has an [Artifactory](https://linuxfoundation.jfrog.io/ui/packages) server which hosts all `aswf` Conan packages.
@@ -333,27 +332,18 @@ Use the existing recipes as an example, and borrow from the MIT-licensed
 
 Follow the great instructions there:
 [Conan Center Index - How to add Packages](https://github.com/conan-io/conan-center-index/blob/master/docs/how_to_add_packages.md),
-but ignore the `config.yml` instructions as the aswfdocker `versions.yaml` already
+but you can mostly ignore the `config.yml` instructions as the aswfdocker `versions.yaml` already
 takes care of listing all the maintained package versions. If required `config.yml` can still be used when completely different recipes are require for
 major package versions, see the `onetbb` package for an example.
 
-Then ensure the ASWF-specific settings are added in the `conanfile.py` such as `cpython`. This project attempts to minimize local changes to the recipes which originate in the Conan Center Index. Local changes may be marked with a `# ASWF` comment. For simple recipes, the required changes may be as minimal as:
+Then ensure the ASWF-specific settings are added in the `conanfile.py`, as well as ASWF-specific versions and patches in `conandata.yml`. This project attempts to minimize local changes to the recipes which originate in the Conan Center Index. Local changes to recipes vendored from CCI should be marked with a `# ASWF` comment,
+and upstream code which does not apply should be commented out rather than deleted. For simple recipes, the required changes may be as minimal as:
 
-- adding a [SPDX license header](https://spdx.dev/learn/handling-license-info/) where the `From:` URL can be obtained by using the `y` hotkey in the GitHub web UI to obtain a permalink to the version of the Conan recipe file
-you are basing hyour local copy on.
+- adding a [SPDX license header](https://spdx.dev/learn/handling-license-info/)
 ```
 # Copyright (c) Contributors to the conan-center-index Project. All rights reserved.
 # Copyright (c) Contributors to the aswf-docker Project. All rights reserved.
 # SPDX-License-Identifier: MIT
-#
-# From: https://github.com/conan-io/conan-center-index/blob/9a66422e07df06d2c502501de6e00b8b1213b563/recipes/opencolorio/all/conanfile.py
-```
-
-- adding a `self.name` level to the `copy()` in the `package()` method: when Conan packages are "installed" in the CI build images, they are all flattened together into `/usr/local/` and without this change the license files for all the packages end up in the same directory and can overwrite each other:
-```
-    def package(self):
-        # ASWF: separate licenses from multiple package installs
-        copy(self, "LICENSE.md", src=self.source_folder, dst=os.path.join(self.package_folder, "licenses", self.name))
 ```
 
 - comment out the call that removes the `cmake` directory: we want to be able to use
@@ -380,7 +370,9 @@ Conan user/org at runtime: the `ASWF_PKG_ORG` environment variable (set to
 profile, so a single set of profile files serves both organizations.
 
 When a sufficiently recent package is provided by the underlying OS distribution, packages labeled as version `system` are created which are thin wrappers around system installed components, and the Conan profile is used to remap `requires()`
-call to specific versions to these wrapper packages. Confusingly some will have an actual version number since some dependent packages check for acceptable version ranges. A better versioning scheme would be desirable for these wrapper packages.
+call to specific versions to these wrapper packages. Confusingly some will have an actual version number since some dependent packages check for acceptable version ranges. Even though VFX Platform years indirectly specify the Enterprise Linux base image
+through the glibc requirement, base image component versions can change over time, which can result in failed dependency checks when a wrapper package with an
+explicit version no longer matches the package in the base image. A better versioning scheme would be desirable for these wrapper packages.
 
 You can use the `aswfdocker conandiff` command to view, and optionally pull in, updates
 from the upstream Conan Center Index (CCI) recipes that our recipes in
@@ -393,10 +385,9 @@ be removed from the recipe files in a future PR).
 Every recipe in the manifest is classified as one of:
 
 - `cci`: vendored from CCI, with one tracked SHA per upstream folder (or one per version
-  folder, for the two recipes — `qt` and `onetbb` — that have real multi-version CCI
-  layouts). Only `cci` recipes are ever diffed or merged against upstream.
-- `unique`: not tracked against any upstream (recipes unique to this project, or whose
-  `From:` link points somewhere other than canonical CCI, e.g. a fork).
+  folder, for recipes that have real multi-version CCI
+  layouts specified in a `config.yml` file). Only `cci` recipes are ever diffed or merged against upstream.
+- `unique`: not tracked against any upstream (recipes unique to this project).
 - `system`: a thin wrapper around a system-installed package; never diffed either.
 
 #### Checking for updates
@@ -521,7 +512,8 @@ bin  conaninfo.txt  conanmanifest.txt  doc  include  lib  libexec  licenses  met
 Be careful when trying to modify this cache directory directly, as it is managed by
 Conan and tracked in a [SQLite](https://www.sqlite.org/) database.
 The [`conan cache`](https://docs.conan.io/2/reference/commands/cache.html) command
-should be used to explicitly manipulate the cache.
+should be used to explicitly manipulate the cache. `packages/common/Dockerfile` contains commented out examples of useful Conan commands you may
+want to run against the Conan cache.
 
 ### Debugging CMake in Conan issues
 
@@ -563,8 +555,8 @@ To specifically look at how `CMake` is trying to find a package, in the `generat
 The [CHANGELOG.md](CHANGELOG.md) file needs to be updated with the date of the change
 and the list of new Docker image versions that will be built by the CI infrastructure.
 
-GitHub releases will trigger a `Release` GitHub action that will build the corresponding
-image and push it to Docker Hub.
+Images are built and pushed to Docker Hub by GitHub Actions release workflows, which `aswfdocker release` starts through the GitHub API.
+Each released image is recorded as a GitHub release with its SBOM attached, see [Releasing images](#releasing-images).
 
 The Docker Hub access token is only available to GitHub Actions as a repository secret (and in future, images will
 also be signed there), so images can only be pushed to Docker Hub by GitHub Actions builds:
@@ -586,29 +578,12 @@ aswfdocker --verbose build -t IMAGE --group vfx --version 2026 --target vfxall
 Images are only pushed to Docker Hub, and Conan packages only uploaded to Artifactory, by GitHub Actions builds, see
 [Releasing new Docker Images](#releasing-new-docker-images) and [Releasing Conan packages](#releasing-conan-packages).
 
-If you are building on system with multiple cores, you may want to set the environment variable:
-
-```
-DOCKER_BUILDKIT=1
-```
-
-before running `aswfdocker build`, as that will allow Docker BuildKit to run multiple builds in parallel. This is mostly useful when building smaller larger groups of smaller packages: when building individual large packages like Qt or Clang/LLVM,
-CMake will run parallel compiles. `DOCKER_BUILDKIT=1` is set when building on GitHub Actions.
-
-### Migrate
-
-`aswfdocker migrate` can migrate images between Docker organizations, should only be used on package images
-that are very heavy to build such as clang or qt.
-Example use: migrate a single package from `aswftesting` to `aswf` Docker Hub organization.
-
-```bash
-aswfdocker --verbose migrate --from aswftesting --to aswf --package usd
-```
+Conan packages are built one at a time: as of Conan 2.18, concurrent builds sharing a Conan cache can fail on its SQLite database lock. Large packages such as Qt or Clang/LLVM still use every core, as CMake runs parallel compiles. Future improvements will use separate Conan caches per VFX Platform year (since we never want to share builds between years), and will incorporate any future Conan improvements around build concurrency.
 
 ### Updating versions
 
-If a version number of a package or an image needs to be updated, the `versions.yaml` file is the main data source.
-In order to update the templated images with updated version numbers, run `aswfdocker dockergen`.
+If a version number of a package or an image needs to be updated, the `versions.yaml` file is the source of truth.
+In order to update the templated configuration files with updated version numbers, run `aswfdocker dockergen`.
 
 `versions.yaml` has one section per VFX Platform year (e.g. `"2027"`) holding every version pin for that year, from the
 toolchain (GCC, CUDA, CMake...) to the VFX packages. Each year:
@@ -623,7 +598,11 @@ toolchain (GCC, CUDA, CMake...) to the VFX packages. Each year:
   each one, for the images marked `per_clang` in `ci-images` (`ci-common`, `ci-osl`, `ci-openvdb`, `ci-vfxall`,
   tagged e.g. `ci-osl:2027-clang22.4`) and for the Conan packages listed in `per_clang_packages` (`clang` itself).
   Everything else uses the year's `ASWF_CLANG_MAJOR_VERSION`, and only the newest clang version's images also get the
-  bare year tag (e.g. `ci-common:2027`) and the year's extra `tags` (e.g. `latest`).
+  bare year tag (e.g. `ci-common:2027`) and the year's extra `tags` (e.g. `latest`). A `draft` tag can be used to signal
+  that a VFX Platform year is still work in progress, for instance if some of the packages called out by that year
+  are not released yet and thus the images include an older version of the packages. `draft` has no functional meaning,
+  it is purely an indication for end users. It is not related to the concept of GitHub draft releases.
+  Tags are not checked for uniqueness, and should only be applied to a single year.
 
 `--version 2027` selects all of 2027's clang versions as well, while `--version 2027-clang22` only selects that one.
 
@@ -644,7 +623,8 @@ are reused: the whole release is rebuilt, in this order (see
 
 `aswfdocker release --full-release` does all of this in one go, see [Full releases](#full-releases).
 
-Similarly, whenever `ci-baseos-gl-conan` changes, every Conan package built in it needs to be rebuilt, which is
+Similarly, whenever `ci-baseos-gl-conan` changes, every Conan package built in it should be rebuilt, since
+it is impossible to determine how changes to the builder image may affect Conan package builds. This is
 best done by starting a new release.
 
 For local builds, build the release's `ci-baseos-gl-conan` image first:
@@ -653,14 +633,32 @@ For local builds, build the release's `ci-baseos-gl-conan` image first:
 aswfdocker build -t IMAGE -g baseos-gl-conan -v 2027
 ```
 
+Then build all the Conan package groups (expect `common` to take a long time to build clang/llvm, and `base2` to build qt):
+
+```bash
+aswfdocker build -t PACKAGE -g common -v 2027
+aswfdocker build -t PACKAGE -g base1 -v 2027
+aswfdocker build -t PACKAGE -g base2 -v 2027
+aswfdocker build -t PACKAGE -g base3 -v 2027
+aswfdocker build -t PACKAGE -g vfx -v 2027
+```
+
+and finally build the images:
+
+```bash
+aswfdocker build -t IMAGE -g common -v 2027
+aswfdocker build -t IMAGE -g base -v 2027
+aswfdocker build -t IMAGE -g vfx -v 2027
+```
+
 ### Releasing Conan packages
 
 Conan packages are built and uploaded to Artifactory by the `Release Conan Packages` GitHub Actions workflow
 ([release-packages.yml](.github/workflows/release-packages.yml)), which `aswfdocker release -t PACKAGE` starts directly:
 no GitHub release or tag is created. The packages are built from the given commit (`--sha`, by default the current commit
 of `main`), which must be on a branch of the repository: `main`, or a release branch for a maintenance release. The
-workflow refuses any other commit (such as one only pushed to a fork), so the Artifactory credentials only ever see
-reviewed code. They are also only given to the `conan upload` step: Artifactory downloads need no credentials.
+workflow refuses any other commit (such as one only pushed to a fork), so the Artifactory credentials are only ever accessed by
+code pushed to the main repository. They are also only given to the `conan upload` step: Artifactory downloads need no credentials.
 
 ```bash
 # A whole group, for every clang version of the year where relevant
@@ -669,7 +667,7 @@ aswfdocker release -t PACKAGE -g common -v 2027 --docker-org aswf
 aswfdocker release -t PACKAGE -g vfx -v 2027 --target openexr --target osl --docker-org aswf
 ```
 
-As with local builds, packages Artifactory already has an up-to-date binary of are skipped, so a release that failed
+As with local builds, packages for which Artifactory already has an up-to-date binary are skipped, so a release that failed
 part way through can simply be started again. `--force-rebuild` rebuilds and uploads them regardless. Packages are built
 in dependency order within their group, but a package release fails if one of the packages it needs from another group
 hasn't been uploaded yet, so groups need releasing in order (`common`, `base1`, `base2`, `base3`, `vfx`), waiting for
@@ -694,7 +692,8 @@ workflow publishes the drafts, which creates their tags, replacing any earlier r
 If a build fails, its images' drafts stay until the release is run again, and the earlier published releases are left
 alone.
 
-Each release has the image's SBOM attached, e.g. `ci-base-2027.4.cdx.json`: the CycloneDX SBOM of the Conan packages
+Each release has the image's SBOM attached, e.g. `ci-base-2027.4.cdx.json`: the [CycloneDX SBOM](https://cyclonedx.org/)
+of the Conan packages
 in the image (from every layer, e.g. those of `ci-common` too), which the image also holds as
 `/usr/local/aswf/sbom.cdx.json`. Each package in it records the commit it was built from (`aswf:git_sha`), from the
 package's Conan metadata. As `conan install` doesn't download package metadata, image builds using a Conan remote
@@ -705,9 +704,9 @@ can't be changed once published when GitHub's immutable releases are enabled.
 
 ```bash
 # A single image
-aswfdocker release -n aswftesting/ci-base:2026
+aswfdocker release -n aswftesting/ci-base:2027
 # A whole group of images
-aswfdocker release -t IMAGE -g vfx -v 2026 --docker-org aswftesting -m "Testing release"
+aswfdocker release -t IMAGE -g vfx -v 2027 --docker-org aswftesting -m "Testing release"
 ```
 
 Images released to `aswftesting` are marked as pre-releases. Creating a GitHub release by hand doesn't build anything.
@@ -728,7 +727,7 @@ aswfdocker release --full-release -v 2026 -v 2027 --docker-org aswf -m "RELEASE_
 It runs the package and image release workflows above, one stage per group, starting each stage once the stages it
 needs are released for every year (see the table in `release-all.yml`). `--force-rebuild` rebuilds the Conan packages
 even if Artifactory already has them. If a stage fails, "Re-run failed jobs" in the GitHub Actions tab resumes the
-release: packages already uploaded are skipped. The `review` group (OpenRV) isn't part of full releases.
+release: packages already uploaded are skipped.
 
 ### GitHub token for releases
 
@@ -749,39 +748,46 @@ release: packages already uploaded are skipped. The `review` group (OpenRV) isn'
   aswfdocker settings --github-access-token MYTOKEN
   ```
 
-Publishing the draft releases (which creates their tags) is done by the release workflow itself, with its own token.
+Publishing the draft releases (which creates their tags) is done by the release workflow itself, with the `GITHUB_TOKEN` GitHub Actions gives it, so your personal token is never passed to GitHub Actions.
 
 ### Adding a new `ci` image
 
 Let's consider the addition of a new `ci-xyz` Docker image to help the maintainers of the `xyz` library. The `ci-xyz` Docker image
-should be prepared with most upstream dependencies of the `xyz` library.
+should include as many upstream dependencies of the `xyz` library as possible.
 
-It is usually a good idea to add this `xyz` package to the `vfxall` library so that it can be tested there.
+It is usually a good idea to also add this `xyz` package to the `vfxall` image so that it can be tested there.
 
 * Add the `xyz` version pin to each year of `versions.yaml` it should be built for, and add `xyz` to its `ci-images` (and
   image `groups`).
-* Create a new `ci-xyx/Dockerfile` using an existing one as an example (e.g. `ci-otio/Dockerfile`).
-* Create a new `scripts/vfx/build_xyz.sh` file that builds and installs `xyz` from source.
-* Add a new `xyz` section at the end of the `packages/Dockerfile` file to build the `ci-package-xyz` Docker package using the previous script.
-* Add the `xyz` package to the `ci-vfxall/Dockerfile` image.
+* Create a new `ci-xyz/image.yaml` using an existing one as an example (e.g. `ci-oiio/image.yaml`).
+* Create a new `scripts/vfx/build_xyz.sh` file that builds and installs `xyz` from source to test builds outside Conan.
+* Import and adapt an existing Conan recipe from [Conan Center Index](https://github.com/conan-io/conan-center-index)
+  if one exists, or create one from scratch using existing recipes as examples.
+* Add Conan package description in `packages/conan/recipes/conan-center-index-upstream.json` specifying the class
+  of Conan package (`cci` if imported from Conan Center Index, `unique` if unique to this project).
+* Add the new Conan package to the Conan environment template `python/aswfdocker/data/conan-profile-vfx.jinja2`
+* Add the `xyz` package to the `ci-vfxall/image.yaml` image.
+* Update the table of released `ci-` images in the top level `README.md`
 * Test the scripts by running these commands in order and manually checking if everything works
   ```bash
+  # Regenerate all templated files
+  aswfdocker dockergen
+  # If the recipe is vendored from CCI (imported from its current master), record the CCI commit in the master
+  aswfdocker conandiff --group vfx --target xyz --update-manifest
+  # Build the Conan package
+  aswfdocker build --ci-image-type PACKAGE --group vfx --version 2027 --target xyz
   # Build the CI image
-  aswfdocker build -n aswftesting/ci-xyz:2026
-  # Build the CI package (a small Docker image that contains only the xyz build artifacts)
-  aswfdocker build -n aswftesting/ci-package-xyz:2026 --progress plain
-  # Buils the `vfxall` package that should now contain the `xyz` package
-  aswfdocker build -n aswftesting/ci-vfxall:2026
+  aswfdocker build --ci-image-type IMAGE -n aswftesting/ci-xyz:2027
+  # Build the `vfxall` image that should now contain the `xyz` package
+  aswfdocker build --ci-image-type IMAGE -n aswftesting/ci-vfxall:2027
   # Now run the vfxall image locally to test if xyz is working properly
-  docker run --gpus=all -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v `pwd`:/project --rm -it aswftesting/ci-vfxall:2026 bash
-  ```
-* Have GitHub Actions build and upload the new `xyz` Conan package so it can be used by the GitHub Action builds and tests:
-  ```bash
-  aswfdocker release -t PACKAGE --target xyz -v 2024 -v 2025 -v 2026 --sha `git rev-parse HEAD` --github-org MY_GITHUB_ORG
+  docker run --gpus=all -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v `pwd`:/project --rm -it aswftesting/ci-vfxall:2027 bash
   ```
 * Create the Pull Request with these changes
-
-Check [#66](https://github.com/AcademySoftwareFoundation/aswf-docker/pull/66) for an example.
+* Once the PR is merged, a maintainer builds and uploads the new `xyz` Conan package, so it can be used by the GitHub Actions builds:
+  ```bash
+  aswfdocker release -t PACKAGE -g vfx --target xyz -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf
+  ```
 
 ### Example of a large re-release of all supported images
 
@@ -801,7 +807,10 @@ aswfdocker release -t IMAGE -g baseos-gl-conan -v 2023 -v 2024 -v 2025 -v 2026 -
 
 # Then the Conan packages, one group at a time
 aswfdocker release -t PACKAGE -g common -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf
-# ... and similarly for base1, base2, base3 and vfx
+aswfdocker release -t PACKAGE -g base1 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf
+aswfdocker release -t PACKAGE -g base2 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf
+aswfdocker release -t PACKAGE -g base3 -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf
+aswfdocker release -t PACKAGE -g vfx -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf
 
 # ci-common needs the clang packages, and needs to be built before the base images
 aswfdocker release -t IMAGE -g common -v 2023 -v 2024 -v 2025 -v 2026 -v 2027 --docker-org aswf -m "RELEASE_NOTES!"
