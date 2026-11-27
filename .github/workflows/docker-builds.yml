@@ -64,15 +64,37 @@ jobs:
     - name: Set up aswfdocker
       uses: $/.github/actions/setup-aswfdocker
 
+    # Standard GitHub-hosted runners only guarantee 14 GB of free disk space
+    # (though they often have much more), so when / is short of space, remove
+    # the preinstalled tools the builds don't use. Runners with enough space,
+    # such as ASWF's larger runners, skip it.
     - name: Free up disk space
+      env:
+        # TODO: temporarily high so the cleanup runs on today's 87 GB free
+        # runners while it's being tested; lower once tested.
+        MIN_FREE_GB: '100'
       run: |
-        df -h
-        sudo apt-get remove -y '^llvm-.*' '^php.*' '^php8.*' '^cpp.*' '^g\+\+.*' '^clang.*' '^gfortran.*' \
-            '^dotnet-.*' '^libmono-.*' '^mono-.*' monodoc-http '^r-.*' '^ruby.*' \
-            ant ant-optional aria2 azure-cli firefox google-chrome-stable microsoft-edge-stable powershell \
-            imagemagick '^imagemagick-.*' '^libmagickcore-.*' '^libmagickwand-.*'  kubectl mercurial mercurial-common subversion
-        sudo apt-get autoremove -y
-        sudo apt-get clean
+        set -euo pipefail
+        df -h /
+        free_gb=$(df --block-size=1G --output=avail / | tail -n 1 | tr -d ' ')
+        if (( free_gb >= MIN_FREE_GB )); then
+          echo "${free_gb} GB free on /, no cleanup needed"
+          exit 0
+        fi
+        echo "Only ${free_gb} GB free on /, removing preinstalled tools"
+        # Only the installed packages matching these names are removed, as
+        # apt-get fails on any name it doesn't know, and the runner images
+        # keep changing.
+        patterns='^(llvm-|php|cpp|g\+\+|clang|gfortran|dotnet-|libmono-|mono-|r-|ruby|imagemagick|libmagickcore-|libmagickwand-)'
+        patterns+='|^(ant|ant-optional|aria2|azure-cli|firefox|google-chrome-stable|microsoft-edge-stable|powershell|kubectl|mercurial|mercurial-common|subversion)$'
+        mapfile -t packages < <(
+          dpkg-query --show --showformat='${db:Status-Abbrev}\t${Package}\n' |
+            awk -F '\t' '$1 ~ /^ii/ {print $2}' | grep -E "$patterns" || true)
+        if (( ${#packages[@]} )); then
+          sudo apt-get remove -y "${packages[@]}"
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+        fi
         sudo rm -rf \
             /usr/share/dotnet/ \
             /usr/local/lib/android \
@@ -83,10 +105,11 @@ jobs:
             /usr/local/aws-cli \
             /usr/local/aws-sam-cli \
             /usr/local/julia* \
-            /usr/lib/jvm || true
-        sudo docker system prune -a
-        df -h
-        dpkg -l 
+            /usr/lib/jvm
+        # The container images preloaded on the runner (-f, as there is no
+        # terminal to confirm).
+        sudo docker system prune -af
+        df -h /
 
     - name: Build Conan Builder Image
       run: |
