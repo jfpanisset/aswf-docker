@@ -78,7 +78,7 @@ packages = { find = { where = ["python"] } }
 aswfdocker = ["data/*.yaml", "data/*.jinja2"]
 
 [tool.uv]
-required-version = "0.13.5"
+required-version = "0.13.7"
 
 [tool.pytest.ini_options]
 testpaths = [

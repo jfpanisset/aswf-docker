@@ -76,7 +76,7 @@ uv run pytest python/aswfdocker
 # Type checking
 uv run mypy python/aswfdocker
 
-# Linting (score must be >= 8.0)
+# Linting (any pylint message fails, as in python-sonar.yml's pytest --pylint)
 uv run pylint python/aswfdocker
 
 # Formatting (Black, targets Python 3.10)
@@ -137,7 +137,8 @@ uv run aswfdocker dockergen --check
 - **Black** formatting (target: py310). Vendored Conan recipes in
   `packages/conan/recipes/` are excluded from Black.
 - **MyPy** strict type checking (Python 3.11 target)
-- **Pylint** with fail-under score of 8.0
+- **Pylint**: any message fails (`fail-on` in `pylintrc`), matching `pytest --pylint`
+  in `python-sonar.yml`; disable a check inline with a reason if it really doesn't apply
 - **Naming**: PascalCase classes, snake_case functions/variables, UPPER_CASE constants
 
 ### Docker Images
