@@ -733,20 +733,37 @@ release: packages already uploaded are skipped.
 
 `aswfdocker release` starts the release workflows through the GitHub API, which needs a GitHub token:
 
-* Generate a [fine-grained GitHub token](https://github.com/settings/personal-access-tokens), with access to the
-  repository you release from (`AcademySoftwareFoundation/aswf-docker`, or your fork when testing) and these
-  permissions:
+* Generate a [fine-grained GitHub token](https://github.com/settings/personal-access-tokens), with access to only the
+  repository you release from, and these permissions:
   * **Actions: Read and write**: to start the release workflows, the only place allowed to upload Conan packages to
     Artifactory and push images to Docker Hub.
   * **Contents: Read and write**: to check that the commit to release exists, and to create the draft GitHub releases
     of images, which the release workflow publishes once the images are pushed.
 
-  Also select **Public repositories (read-only)** access if you use `aswfdocker conandiff` to compare vendored recipes
-  with Conan Center Index. A classic token with the **"repo"** scope also works.
+  A fine-grained token only reaches the repositories of its **Resource owner**:
+  * To release from `AcademySoftwareFoundation/aswf-docker`, the resource owner must be the `AcademySoftwareFoundation`
+    organization, even if you are a maintainer of the repository. Generating the token then requests access to the
+    organization, and the token can't start releases until an organization owner approves the request. The organization
+    is administered by Linux Foundation support: you may want to open a ticket on the
+    [Linux Foundation Project IT Service Support Portal](https://jira.linuxfoundation.org/plugins/servlet/desk/portal/2)
+    to expedite the approval. Changing the token's permissions later requires a new approval.
+  * To test releases on your fork, use a separate token, with your own account as the resource owner, which needs no
+    approval.
+
+  Give the token an expiration date: a shorter lifetime limits the damage if it leaks, but each new organization token
+  needs approving again.
+
+  A classic token with the **"repo"** scope also works, without organization approval, but it can access every
+  repository you have access to, not just the one you release from.
 * Configure the token in the `aswfdocker` settings by running:
   ```bash
   aswfdocker settings --github-access-token MYTOKEN
   ```
+
+`aswfdocker conandiff` also uses this token, if one is configured: it only reads the public Conan Center Index
+repository, but GitHub limits unauthenticated API requests to 60 per hour, which comparing more than a few recipes
+exceeds, and authenticated ones to 5,000 per hour. Any token works for this, including an organization token still
+awaiting approval, as fine-grained tokens can always read public repositories.
 
 Publishing the draft releases (which creates their tags) is done by the release workflow itself, with the `GITHUB_TOKEN` GitHub Actions gives it, so your personal token is never passed to GitHub Actions.
 
