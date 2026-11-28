@@ -37,9 +37,11 @@ class TestGitHubReleases(unittest.TestCase):
     def setUp(self):
         patcher = mock.patch.object(releaser, "Github")
         self.addCleanup(patcher.stop)
-        patcher.start()
+        github_class = patcher.start()
         self.gh = releaser.GitHub(token="token", repository="me/aswf-docker")
-        self.repo = self.gh.repo
+        # The mock itself, rather than self.gh.repo, which pylint infers as a
+        # PyGithub Repository without the mock's assert_* members.
+        self.repo = github_class.return_value.get_repo.return_value
 
     def test_tag_has_no_colon(self):
         self.assertEqual(self.RELEASE.tag, "aswf/ci-base/2027.4")
